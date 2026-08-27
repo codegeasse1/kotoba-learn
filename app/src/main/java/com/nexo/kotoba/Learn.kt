@@ -1,0 +1,516 @@
+package com.nexo.kotoba
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlin.math.min
+
+data class QuizQuestion(
+    val promptText: String?,
+    val promptAudio: String,
+    val promptIsJa: Boolean,
+    val options: List<QuizOption>,
+    val correct: Int
+)
+
+data class QuizOption(val emoji: String, val label: String)
+
+@Composable
+fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
+    var showKana by remember { mutableStateOf(false) }
+    var openLesson by remember { mutableStateOf<Lesson?>(null) }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp)
+    ) {
+        Text("Learn", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
+        Text(
+            "Master the writing system, then build vocabulary by topic.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(20.dp))
+
+        KanaModuleCard(store, onClick = { showKana = true })
+        Spacer(Modifier.height(24.dp))
+
+        Text("Lessons", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "${store.completedLessons.size}/${Data.allLessons.size} completed",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(10.dp))
+        Data.allLessons.forEach { lesson ->
+            LessonRow(
+                lesson = lesson,
+                done = lesson.id in store.completedLessons,
+                onClick = { openLesson = lesson }
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        Spacer(Modifier.height(24.dp))
+
+        Text("Chunks — say whole sentences", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "Learn in phrases, not single words — that's how fluent speakers actually talk.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(10.dp))
+        PhraseList(store, speaker)
+        Spacer(Modifier.height(24.dp))
+    }
+
+    if (showKana) KanaScreen(store, speaker, onClose = { showKana = false })
+    openLesson?.let { l -> LessonFlow(store, speaker, l, onClose = { openLesson = null }) }
+}
+
+@Composable
+private fun KanaModuleCard(store: Store, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { store.kanaProgress() / 100f },
+                    modifier = Modifier.size(72.dp),
+                    strokeWidth = 8.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surface
+                )
+                Text("${store.kanaProgress()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Hiragana & Katakana", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "46 characters each, with picture mnemonics and sound practice.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Start kana →",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LessonRow(lesson: Lesson, done: Boolean, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(lesson.emoji, fontSize = 30.sp)
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(lesson.title, fontWeight = FontWeight.Bold)
+                Text(
+                    lesson.desc,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+                Text(
+                    "${lesson.words.size} words",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            if (done) {
+                Icon(Icons.Filled.CheckCircle, contentDescription = "Done", tint = MaterialTheme.colorScheme.tertiary)
+            } else {
+                Icon(Icons.Filled.PlayArrow, contentDescription = "Start")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhraseList(store: Store, speaker: Speaker) {
+    var expanded by remember { mutableStateOf<String?>(null) }
+    Data.allPhrases.forEach { p ->
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = if (expanded == p.id) null else p.id },
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(Modifier.padding(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(p.emoji, fontSize = 22.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(p.ja, fontWeight = FontWeight.Bold)
+                        if (store.showRomaji) {
+                            Text(p.romaji, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    FilledIconButton(
+                        onClick = { speak(store, speaker, p.ja, true) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(Icons.Filled.VolumeUp, contentDescription = "Play", modifier = Modifier.size(18.dp))
+                    }
+                }
+                if (expanded == p.id) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(p.en, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        p.chunks,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: () -> Unit) {
+    val words = lesson.words
+    var introIndex by remember { mutableStateOf(0) }
+    var quiz by remember { mutableStateOf<List<QuizQuestion>?>(null) }
+    var qIndex by remember { mutableStateOf(0) }
+    var picked by remember { mutableStateOf<Int?>(null) }
+    var score by remember { mutableStateOf(0) }
+    var finished by remember { mutableStateOf(false) }
+
+    val targetJa = store.direction != Direction.ENGLISH
+
+    fun buildQuiz(): List<QuizQuestion> {
+        val rnd = java.util.Random()
+        val pool = if (words.size >= 4) words else Data.allWords
+        val count = min(10, words.size)
+        val targets = words.shuffled(rnd).take(count)
+        return targets.map { w ->
+            val audioOnly = rnd.nextBoolean()
+            val distractors = pool.filter { it.id != w.id }.shuffled(rnd).take(3)
+            val options = (distractors + w).shuffled(rnd)
+            val correct = options.indexOf(w)
+            QuizQuestion(
+                promptText = if (audioOnly) null else {
+                    if (targetJa) w.kana + (if (store.showRomaji) "\n" + w.romaji else "")
+                    else w.en + "\n" + w.ipa
+                },
+                promptAudio = if (targetJa) w.kana else w.en,
+                promptIsJa = targetJa,
+                options = options.map { o ->
+                    QuizOption(
+                        emoji = o.emoji,
+                        label = if (targetJa) (if (store.showTranslations) o.en else "") else o.kana + (if (store.showRomaji) "\n" + o.romaji else "")
+                    )
+                },
+                correct = correct
+            )
+        }
+    }
+
+    when {
+        finished -> {
+            ResultStage(
+                score = score,
+                total = quiz?.size ?: 0,
+                lesson = lesson,
+                store = store,
+                onClose = onClose,
+                onAgain = {
+                    quiz = buildQuiz()
+                    qIndex = 0
+                    picked = null
+                    score = 0
+                    finished = false
+                }
+            )
+        }
+
+        quiz == null -> {
+            val w = words[introIndex]
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onClose) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                    Text("${introIndex + 1}/${words.size}", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = { quiz = buildQuiz() }) { Text("Skip intro →") }
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp, horizontal = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(w.emoji, fontSize = 88.sp)
+                        Spacer(Modifier.height(16.dp))
+                        if (targetJa) {
+                            Text(w.kana, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
+                            if (store.showRomaji) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(w.romaji, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        } else {
+                            Text(w.en, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                            Spacer(Modifier.height(4.dp))
+                            Text(w.ipa, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (store.showTranslations) {
+                            Spacer(Modifier.height(14.dp))
+                            Text(
+                                if (targetJa) "= ${w.en}" else "= ${w.kana}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FilledIconButton(onClick = { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) }) {
+                        Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Button(
+                        onClick = {
+                            if (introIndex == words.lastIndex) quiz = buildQuiz() else introIndex++
+                        }
+                    ) {
+                        Text(if (introIndex == words.lastIndex) "Start quiz" else "Next")
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
+
+        else -> {
+            val q = quiz!![qIndex]
+            LaunchedEffect(quiz, qIndex) {
+                speak(store, speaker, q.promptAudio, q.promptIsJa)
+            }
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onClose) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                    Text("Quiz ${qIndex + 1}/${quiz!!.size}", style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.weight(1f))
+                    Text("⭐ $score", style = MaterialTheme.typography.labelLarge)
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 28.dp, horizontal = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (q.promptText == null) {
+                            Text("🔊 Listen", fontSize = 26.sp)
+                            Spacer(Modifier.height(8.dp))
+                            FilledIconButton(onClick = { speak(store, speaker, q.promptAudio, q.promptIsJa) }) {
+                                Icon(Icons.Filled.VolumeUp, contentDescription = "Hear again")
+                            }
+                        } else {
+                            Text(q.promptText, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+
+                q.options.forEachIndexed { i, opt ->
+                    val isCorrect = i == q.correct
+                    val isPicked = i == picked
+                    val borderColor = when {
+                        picked == null -> Color.Transparent
+                        isCorrect -> Color(0xFF2E9E5B)
+                        isPicked -> Color(0xFFD64545)
+                        else -> Color.Transparent
+                    }
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+                            .clickable(enabled = picked == null) {
+                                if (picked == null) {
+                                    picked = i
+                                    if (isCorrect) score++
+                                }
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (picked != null && isCorrect) Color(0xFFE4F6EA)
+                            else if (picked != null && isPicked) Color(0xFFFBE5E5)
+                            else MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(opt.emoji, fontSize = 26.sp)
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                opt.label,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (opt.label.isNotEmpty()) FontWeight.Medium else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+
+                if (picked != null) {
+                    Spacer(Modifier.height(10.dp))
+                    val correctOpt = q.options[q.correct]
+                    Text(
+                        if (picked == q.correct) "✅ Correct!" else "→ ${correctOpt.emoji} ${correctOpt.label}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            if (qIndex == quiz!!.lastIndex) {
+                                store.completeLesson(lesson.id, words.map { it.id })
+                                finished = true
+                            } else {
+                                qIndex++
+                                picked = null
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (qIndex == quiz!!.lastIndex) "Finish" else "Next question")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResultStage(
+    score: Int,
+    total: Int,
+    lesson: Lesson,
+    store: Store,
+    onClose: () -> Unit,
+    onAgain: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("🎉", fontSize = 72.sp)
+        Spacer(Modifier.height(16.dp))
+        Text("Lesson complete!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Score: $score / $total",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "+${lesson.words.size * 5} XP · ${lesson.words.size} new words added to your reviews",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Done") }
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = onAgain, modifier = Modifier.fillMaxWidth()) { Text("Practice again") }
+    }
+}
