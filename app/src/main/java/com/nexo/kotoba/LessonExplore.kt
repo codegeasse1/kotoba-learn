@@ -106,9 +106,9 @@ fun LessonExplore(
             Spacer(Modifier.height(6.dp))
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ModeChip("🃏", "Flashcards", mode == 0) { mode = 0 }
-                ModeChip("📋", "List", mode == 1) { mode = 1 }
-                ModeChip("🧩", "Tiles", mode == 2) { mode = 2 }
+                ModeChip("🃏", "Flashcards", mode == 0, Modifier.weight(1f)) { mode = 0 }
+                ModeChip("📋", "List", mode == 1, Modifier.weight(1f)) { mode = 1 }
+                ModeChip("🧩", "Tiles", mode == 2, Modifier.weight(1f)) { mode = 2 }
             }
             Spacer(Modifier.height(12.dp))
 
@@ -133,10 +133,9 @@ fun LessonExplore(
 }
 
 @Composable
-private fun ModeChip(emoji: String, label: String, selected: Boolean, onClick: () -> Unit) {
+private fun ModeChip(emoji: String, label: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .weight(1f)
+        modifier = modifier
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
