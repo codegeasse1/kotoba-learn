@@ -18,7 +18,7 @@ fun Phrase.glossFor(native: String): String = when (native) {
 }
 
 fun Pattern.ruleFor(native: String): String = when (native) {
-    "ja" -> ruleJa
+    "ja" -> if (ruleJa.isNotEmpty()) ruleJa else ruleEn
     "hi" -> if (ruleHi.isNotEmpty()) ruleHi else ruleEn
     else -> ruleEn
 }

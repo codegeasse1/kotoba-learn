@@ -102,6 +102,11 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         val enLessons = Data.allLessons.filter { it.lang == "en" }
         val visible = (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList())
 
+        fun levelGroups(lang: String): List<Pair<String, List<Lesson>>> {
+            val byLevel = (if (lang == "ja") jaLessons else enLessons).groupBy { Levels.ofLesson(it) }
+            return Levels.ORDER.mapNotNull { lv -> byLevel[lv]?.let { lv to it } }
+        }
+
         Text("Lessons", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(
             "${store.completedLessons.size}/${visible.size} completed",
@@ -109,30 +114,34 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
-        if (learningJa && learningEn) {
-            Text("Japanese", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-        }
-        jaLessons.forEach { lesson ->
-            LessonRow(
-                lesson = lesson,
-                done = lesson.id in store.completedLessons,
-                onClick = { openLesson = lesson }
-            )
-            Spacer(Modifier.height(8.dp))
+        if (learningJa) {
+            levelGroups("ja").forEach { (lv, lessons) ->
+                LevelHeader(lv, "${lessons.size} lessons")
+                lessons.forEach { lesson ->
+                    LessonRow(
+                        lesson = lesson,
+                        done = lesson.id in store.completedLessons,
+                        onClick = { openLesson = lesson }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+                Spacer(Modifier.height(8.dp))
+            }
         }
         if (learningEn && enLessons.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))
-            Text("English", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
-        }
-        enLessons.forEach { lesson ->
-            LessonRow(
-                lesson = lesson,
-                done = lesson.id in store.completedLessons,
-                onClick = { openLesson = lesson }
-            )
-            Spacer(Modifier.height(8.dp))
+            levelGroups("en").forEach { (lv, lessons) ->
+                LevelHeader(lv, "${lessons.size} lessons")
+                lessons.forEach { lesson ->
+                    LessonRow(
+                        lesson = lesson,
+                        done = lesson.id in store.completedLessons,
+                        onClick = { openLesson = lesson }
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+                Spacer(Modifier.height(8.dp))
+            }
         }
         Spacer(Modifier.height(24.dp))
 
@@ -272,6 +281,23 @@ private fun AlphabetModuleCard(store: Store, onClick: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun LevelHeader(level: String, subtitle: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(Levels.EMOJI[level] ?: "📘", fontSize = 20.sp)
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(Levels.label(level), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    Spacer(Modifier.height(6.dp))
 }
 
 @Composable
