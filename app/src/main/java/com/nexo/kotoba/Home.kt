@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -157,7 +158,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun StatCard(emoji: String, value: String, label: String) {
+private fun RowScope.StatCard(emoji: String, value: String, label: String) {
     Card(
         modifier = Modifier.weight(1f),
         shape = RoundedCornerShape(18.dp)

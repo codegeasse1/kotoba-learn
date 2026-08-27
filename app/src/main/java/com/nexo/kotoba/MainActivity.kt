@@ -6,16 +6,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home as FHome
-import androidx.compose.material.icons.filled.MenuBook as FMenuBook
-import androidx.compose.material.icons.filled.Person as FPerson
-import androidx.compose.material.icons.filled.Quiz as FQuiz
-import androidx.compose.material.icons.filled.Translate as FTranslate
-import androidx.compose.material.icons.outlined.Home as OHome
-import androidx.compose.material.icons.outlined.MenuBook as OMenuBook
-import androidx.compose.material.icons.outlined.Person as OPerson
-import androidx.compose.material.icons.outlined.Quiz as OQuiz
-import androidx.compose.material.icons.outlined.Translate as OTranslate
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Quiz
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -34,11 +34,11 @@ enum class Screen { HOME, LEARN, REVIEW, GRAMMAR, PROFILE }
 private data class Tab(val screen: Screen, val label: String, val filled: ImageVector, val outlined: ImageVector)
 
 private val tabs = listOf(
-    Tab(Screen.HOME, "Home", FHome, OHome),
-    Tab(Screen.LEARN, "Learn", FMenuBook, OMenuBook),
-    Tab(Screen.REVIEW, "Review", FQuiz, OQuiz),
-    Tab(Screen.GRAMMAR, "Grammar", FTranslate, OTranslate),
-    Tab(Screen.PROFILE, "Profile", FPerson, OPerson)
+    Tab(Screen.HOME, "Home", Icons.Filled.Home, Icons.Outlined.Home),
+    Tab(Screen.LEARN, "Learn", Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
+    Tab(Screen.REVIEW, "Review", Icons.Filled.Quiz, Icons.Outlined.Quiz),
+    Tab(Screen.GRAMMAR, "Grammar", Icons.Filled.Translate, Icons.Outlined.Translate),
+    Tab(Screen.PROFILE, "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 )
 
 class MainActivity : ComponentActivity() {

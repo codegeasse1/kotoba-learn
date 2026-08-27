@@ -3,6 +3,7 @@ package com.nexo.kotoba
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -180,7 +181,7 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun StatBox(emoji: String, value: String, label: String) {
+private fun RowScope.StatBox(emoji: String, value: String, label: String) {
     Card(
         modifier = Modifier.weight(1f),
         shape = RoundedCornerShape(14.dp),
