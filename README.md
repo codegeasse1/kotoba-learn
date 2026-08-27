@@ -14,10 +14,15 @@ Built on well-established language-learning research:
 ## Features
 
 - 🌸 **Kana mastery** — Hiragana + Katakana with picture mnemonics, audio, a "mark learned" tracker, and a 10-question listening/reading quiz.
-- 📚 **12 bilingual lessons** — 135+ high-frequency words across greetings, numbers, colors, family, food, animals, actions, adjectives, time, places, weather and a survival kit — each with romaji, kanji where useful, IPA for English, audio, and an image-first quiz.
-- 🧠 **Spaced-repetition reviews** — SM-2 scheduler with Again / Hard / Good / Easy grading, progress bars, and XP rewards.
-- 🗣️ **Phrase bank** — 12 real-world chunked sentences with word-by-word breakdowns.
-- 📐 **24 grammar patterns** (14 Japanese + 10 English) — taught as *patterns with audio examples*, explained in *both* languages so either kind of learner benefits.
+- 📚 **Bilingual core lessons** — high-frequency words across greetings, numbers, colors, family, food, animals, actions, adjectives, time, places, weather and a survival kit — each with romaji, kanji where useful, IPA for English, audio, and an image-first quiz.
+- 🏯 **JLPT word lists** — Japanese vocabulary grouped by level (N5 → N1), plus **CEFR English lists** (A1 → C2) with Hindi meanings.
+- 📗 **Genki 1 + Japanese From Zero** — official Genki Textbook 1 vocabulary (12 lessons) and Japanese From Zero Book 1 vocabulary (pre-lessons + 13 lessons), each with matching grammar-pattern sections (12 Genki + 13 JFZ points).
+- 🗾 **5000 Kanji Words** — 5,000 kanji vocabulary words in 20 thematic categories (daily life, food, family, work, nature, verbs…), each with kana/romaji/kanji/English/Hindi + audio.
+- 🇬🇧 **Oxford 5000** — the official Oxford 5000 word list (~4,960 words) grouped by CEFR band A1–C1, with part of speech and Hindi meaning + audio.
+- 🧠 **Spaced-repetition reviews** — SM-2 scheduler with Again / Hard / Good / Easy grading, progress bars, and XP rewards. Every word in every module feeds one unified SRS.
+- 🗣️ **Phrase bank** — real-world chunked sentences with word-by-word breakdowns.
+- 📐 **Grammar patterns** — JLPT/CEFR patterns plus Genki 1 and JFZ grammar, taught as *patterns with audio examples*, explained in English, Japanese *and Hindi*.
+- 🪔 **Hindi support** — every word and pattern carries a Hindi gloss (with an override dictionary of common words for accuracy); empty glosses fall back to the English meaning.
 - 🎮 **Gamification** — XP, levels, daily streaks, stats, and progress tracking that make daily practice a habit.
 - 🌍 **Direction-independent** — switch between learning Japanese, English, or both; toggle romaji and translations to taper off scaffolding.
 
