@@ -28,6 +28,11 @@ fun PatternExample.glossFor(native: String): String = when (native) {
     else -> en
 }
 
+fun AlphabetChar.glossFor(native: String): String = when (native) {
+    "hi" -> if (hi.isNotEmpty()) "$hi — ${word.lowercase()}" else word
+    else -> word
+}
+
 val NATIVE_LANGUAGES = listOf(
     "en" to "🇺🇸 English",
     "hi" to "🇮🇳 Hindi",
