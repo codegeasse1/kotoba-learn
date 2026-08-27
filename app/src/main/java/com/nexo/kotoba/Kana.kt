@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
     var tab by remember { mutableStateOf(0) }
     var quizMode by remember { mutableStateOf(false) }
 
@@ -196,6 +198,7 @@ private fun KanaDetailDialog(
 
 @Composable
 private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modifier: Modifier = Modifier, onExit: () -> Unit) {
+    BackHandler(onBack = onExit)
     val rnd = remember { java.util.Random() }
     val questions = remember {
         chars.shuffled(rnd).take(10).map { w ->

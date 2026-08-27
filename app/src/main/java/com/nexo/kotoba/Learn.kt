@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +67,8 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var showKanji by remember { mutableStateOf(false) }
     var showAlphabet by remember { mutableStateOf(false) }
     var openLesson by remember { mutableStateOf<Lesson?>(null) }
+    var openCat by remember { mutableStateOf<SentenceCategory?>(null) }
+    val scroll = rememberScrollState()
 
     val learningJa = store.direction != Direction.ENGLISH
     val learningEn = store.direction != Direction.JAPANESE
@@ -72,11 +77,12 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         showKana -> KanaScreen(store, speaker, modifier, onClose = { showKana = false })
         showKanji -> KanjiScreen(store, speaker, modifier, onClose = { showKanji = false })
         showAlphabet -> AlphabetScreen(store, speaker, modifier, onClose = { showAlphabet = false })
-        openLesson != null -> LessonFlow(store, speaker, openLesson!!, modifier, onClose = { openLesson = null })
+        openCat != null -> SentenceCategoryScreen(openCat!!, store, speaker, onClose = { openCat = null })
+        openLesson != null -> LessonExplore(store, speaker, openLesson!!, modifier, onClose = { openLesson = null })
         else -> Column(
             modifier = modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .padding(20.dp)
         ) {
         Text("Learn", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
@@ -184,6 +190,46 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(10.dp))
         PhraseList(store, speaker)
+        Spacer(Modifier.height(24.dp))
+
+        Text("💬 Conversations & Sentences", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "Thousands of real sentences by category, with native audio and translations.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(10.dp))
+        Sentences.categories
+            .filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }
+            .forEach { cat ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { openCat = cat },
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(cat.emoji, fontSize = 30.sp)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(cat.title, fontWeight = FontWeight.Bold)
+                            Text(
+                                cat.desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                            Text(
+                                "${cat.sentences.size} sentences · ${if (cat.lang == "ja") "Japanese" else "English"}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Text(cat.sentences.size.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
         Spacer(Modifier.height(24.dp))
         }
     }
@@ -420,7 +466,7 @@ private fun PhraseList(store: Store, speaker: Speaker) {
 }
 
 @Composable
-private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifier = Modifier, onClose: () -> Unit) {
+fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifier = Modifier, onClose: () -> Unit) {
     val words = lesson.words
     var introIndex by remember { mutableStateOf(0) }
     var quiz by remember { mutableStateOf<List<QuizQuestion>?>(null) }
@@ -707,5 +753,79 @@ private fun ResultStage(
         Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Done") }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(onClick = onAgain, modifier = Modifier.fillMaxWidth()) { Text("Practice again") }
+    }
+}
+
+@Composable
+fun SentenceCategoryScreen(cat: SentenceCategory, store: Store, speaker: Speaker, onClose: () -> Unit) {
+    val isJa = cat.lang != "en"
+    BackHandler(onBack = onClose)
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onClose) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Column(Modifier.weight(1f)) {
+                Text(cat.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    "${cat.sentences.size} sentences · ${cat.desc}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
+            Text(cat.emoji, fontSize = 26.sp)
+        }
+        LazyColumn(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp)
+        ) {
+            items(cat.sentences, key = { it.id }) { s ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(s.emoji, fontSize = 24.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                if (isJa) s.ja else s.en,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            if (isJa && store.showRomaji) {
+                                Text(
+                                    s.romaji,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.height(2.dp))
+                            Text(s.glossFor(store.nativeLang), style = MaterialTheme.typography.bodyMedium)
+                        }
+                        FilledIconButton(
+                            onClick = { speak(store, speaker, if (isJa) s.ja else s.en, isJa) },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
+        }
     }
 }

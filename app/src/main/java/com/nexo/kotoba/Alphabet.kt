@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun AlphabetScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
     var quizMode by remember { mutableStateOf(false) }
 
     if (quizMode) {
@@ -186,6 +188,7 @@ private fun AlphabetDetailDialog(
 
 @Composable
 private fun AlphabetQuiz(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onExit: () -> Unit) {
+    BackHandler(onBack = onExit)
     val rnd = remember { java.util.Random() }
     val questions = remember {
         AlphabetData.alphabet.shuffled(rnd).take(10).map { a ->

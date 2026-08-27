@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -39,13 +40,16 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf<Pattern?>(null) }
+    val scroll = rememberScrollState()
+    val learningJa = store.direction != Direction.ENGLISH
+    val learningEn = store.direction != Direction.JAPANESE
 
     when {
         open != null -> PatternDetail(open!!, store, speaker, modifier, onClose = { open = null })
         else -> Column(
             modifier = modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scroll)
                 .padding(20.dp)
         ) {
         Text("Grammar", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
@@ -56,6 +60,7 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
         )
         Spacer(Modifier.height(20.dp))
 
+        if (learningJa) {
         Text("Japanese patterns", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Data.allPatterns.filter { it.lang == "ja" && it.source.isEmpty() }.groupBy { Levels.ofPattern(it) }
@@ -90,8 +95,17 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             Spacer(Modifier.height(8.dp))
         }
         Spacer(Modifier.height(12.dp))
+        Text("Japanese Essentials", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        JapaneseGrammar.patterns.forEach { p ->
+            PatternRow(p, onClick = { open = p })
+            Spacer(Modifier.height(8.dp))
+        }
+        Spacer(Modifier.height(12.dp))
+        }
 
-        Spacer(Modifier.height(20.dp))
+        if (learningEn) {
+        Spacer(Modifier.height(12.dp))
         Text("English patterns", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Data.allPatterns.filter { it.lang == "en" && it.source.isEmpty() }.groupBy { Levels.ofPattern(it) }
@@ -110,6 +124,14 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                 }
                 Spacer(Modifier.height(10.dp))
             }
+        Spacer(Modifier.height(12.dp))
+        Text("English Grammar Essentials", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        EnglishGrammar.patterns.forEach { p ->
+            PatternRow(p, onClick = { open = p })
+            Spacer(Modifier.height(8.dp))
+        }
+        }
         Spacer(Modifier.height(24.dp))
         }
     }
@@ -146,6 +168,7 @@ private fun PatternRow(p: Pattern, onClick: () -> Unit) {
 
 @Composable
 private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {

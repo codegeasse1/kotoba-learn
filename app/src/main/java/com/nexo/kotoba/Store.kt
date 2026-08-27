@@ -158,6 +158,13 @@ class Store(private val ctx: Context) {
         save()
     }
 
+    fun toggleCard(id: String) {
+        val m = srs.toMutableMap()
+        if (m[id] == null) m[id] = Card(due = System.currentTimeMillis()) else m.remove(id)
+        srs = m
+        save()
+    }
+
     fun dueCount(): Int = srs.values.count { it.due <= System.currentTimeMillis() }
 
     fun dueCards(limit: Int = 25): List<Pair<String, Card>> =

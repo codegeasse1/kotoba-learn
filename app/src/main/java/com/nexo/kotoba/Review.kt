@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -150,6 +151,7 @@ private fun ReviewSession(
     modifier: Modifier,
     onFinish: () -> Unit
 ) {
+    BackHandler(onBack = onFinish)
     var index by remember { mutableStateOf(0) }
     var revealed by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(false) }

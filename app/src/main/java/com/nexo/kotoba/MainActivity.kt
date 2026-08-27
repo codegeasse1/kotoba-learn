@@ -2,6 +2,7 @@ package com.nexo.kotoba
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
@@ -10,11 +11,13 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Quiz
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -29,7 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 
-enum class Screen { HOME, LEARN, REVIEW, GRAMMAR, PROFILE }
+enum class Screen { HOME, LEARN, REVIEW, GRAMMAR, DICTIONARY, PROFILE }
 
 private data class Tab(val screen: Screen, val label: String, val filled: ImageVector, val outlined: ImageVector)
 
@@ -38,6 +41,7 @@ private val tabs = listOf(
     Tab(Screen.LEARN, "Learn", Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
     Tab(Screen.REVIEW, "Review", Icons.Filled.Quiz, Icons.Outlined.Quiz),
     Tab(Screen.GRAMMAR, "Grammar", Icons.Filled.Translate, Icons.Outlined.Translate),
+    Tab(Screen.DICTIONARY, "Words", Icons.Filled.Search, Icons.Outlined.Search),
     Tab(Screen.PROFILE, "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 )
 
@@ -55,6 +59,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KotobaTheme {
                 var screen by remember { mutableStateOf(Screen.HOME) }
+                BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
                 if (!store.onboarded) {
                     OnboardingDialog(store, onDone = { screen = Screen.HOME })
                 }
@@ -83,6 +88,7 @@ class MainActivity : ComponentActivity() {
                         Screen.LEARN -> LearnScreen(store, speaker, contentMod)
                         Screen.REVIEW -> ReviewScreen(store, speaker, contentMod)
                         Screen.GRAMMAR -> GrammarScreen(store, speaker, contentMod)
+                        Screen.DICTIONARY -> DictionaryScreen(store, speaker, contentMod)
                         Screen.PROFILE -> ProfileScreen(store, speaker, contentMod)
                     }
                 }

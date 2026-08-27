@@ -55,6 +55,24 @@ data class Pattern(
     val source: String = ""
 )
 
+data class Sentence(
+    val id: String,
+    val emoji: String,
+    val ja: String,
+    val romaji: String,
+    val en: String,
+    val hi: String = ""
+)
+
+data class SentenceCategory(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    val desc: String,
+    val sentences: List<Sentence>,
+    val lang: String = "ja"
+)
+
 data class KanjiChar(
     val id: String,
     val kanji: String,
