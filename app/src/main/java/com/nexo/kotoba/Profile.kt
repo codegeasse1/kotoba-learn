@@ -90,6 +90,31 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
 
         Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
             Column(Modifier.padding(20.dp)) {
+                Text("My native language", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Kotoba teaches you with explanations in this language.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(10.dp))
+                NATIVE_LANGUAGES.chunked(2).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { (code, name) ->
+                            FilterChip(
+                                selected = store.nativeLang == code,
+                                onClick = { store.setNative(code) },
+                                label = { Text(name) }
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.padding(20.dp)) {
                 Text("I'm learning…", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -110,7 +135,7 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                     )
                 }
                 Text(
-                    "Japanese: learn Japanese words & hear Japanese. English: learn English words & hear English. Both: mix of both worlds.",
+                    "Japanese: learn Japanese with ${nativeName(store.nativeLang)} meanings. English: learn English with ${nativeName(store.nativeLang)} meanings. Both: mix of both worlds.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

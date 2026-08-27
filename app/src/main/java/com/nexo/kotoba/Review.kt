@@ -233,7 +233,7 @@ private fun ReviewSession(
                     if (store.showTranslations) {
                         Spacer(Modifier.height(14.dp))
                         Text(
-                            if (targetJa) w.en else w.kana,
+                            w.glossFor(store.nativeLang),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )

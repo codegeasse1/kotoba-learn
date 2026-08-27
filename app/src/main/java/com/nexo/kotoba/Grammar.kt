@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,12 +40,14 @@ import androidx.compose.ui.unit.sp
 fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf<Pattern?>(null) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
-    ) {
+    when {
+        open != null -> PatternDetail(open!!, store, speaker, modifier, onClose = { open = null })
+        else -> Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
         Text("Grammar", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
         Text(
             "Learn the patterns, not the jargon — each rule gets real sentences with sound.",
@@ -68,9 +71,8 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             Spacer(Modifier.height(8.dp))
         }
         Spacer(Modifier.height(24.dp))
+        }
     }
-
-    open?.let { p -> PatternDetail(p, store, speaker, onClose = { open = null }) }
 }
 
 @Composable
@@ -103,8 +105,8 @@ private fun PatternRow(p: Pattern, onClick: () -> Unit) {
 }
 
 @Composable
-private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, onClose: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
+private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
+    Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -127,8 +129,8 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, onClose: (
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Column(Modifier.padding(18.dp)) {
-                    if (store.direction == Direction.ENGLISH) {
-                        Text(p.ruleJa, style = MaterialTheme.typography.bodyMedium)
+                    if (store.nativeLang != "en") {
+                        Text(p.ruleFor(store.nativeLang), style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(8.dp))
                         Text(p.ruleEn, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
@@ -161,7 +163,7 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, onClose: (
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(2.dp))
-                            Text(ex.en, style = MaterialTheme.typography.bodyMedium)
+                            Text(ex.glossFor(store.nativeLang), style = MaterialTheme.typography.bodyMedium)
                         }
                         FilledIconButton(
                             onClick = { speak(store, speaker, ex.ja, p.lang == "ja") },

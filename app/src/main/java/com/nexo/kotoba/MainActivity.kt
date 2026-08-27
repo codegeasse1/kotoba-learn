@@ -55,6 +55,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             KotobaTheme {
                 var screen by remember { mutableStateOf(Screen.HOME) }
+                if (!store.onboarded) {
+                    OnboardingDialog(store, onDone = { screen = Screen.HOME })
+                }
                 Scaffold(
                     bottomBar = {
                         NavigationBar {

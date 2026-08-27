@@ -38,6 +38,8 @@ class Store(private val ctx: Context) {
         private set
 
     var direction by mutableStateOf(Direction.JAPANESE)
+    var nativeLang by mutableStateOf("en")
+    var onboarded by mutableStateOf(false)
     var showRomaji by mutableStateOf(true)
     var showTranslations by mutableStateOf(true)
     var speechRate by mutableStateOf(0.85f)
@@ -54,6 +56,8 @@ class Store(private val ctx: Context) {
             bestStreak = o.optInt("best", 0)
             lastDay = o.optLong("lastDay", 0)
             direction = runCatching { Direction.valueOf(o.optString("direction", "JAPANESE")) }.getOrDefault(Direction.JAPANESE)
+            nativeLang = o.optString("native", "en")
+            onboarded = o.optBoolean("onboarded", false)
             showRomaji = o.optBoolean("showRomaji", true)
             showTranslations = o.optBoolean("showTranslations", true)
             speechRate = o.optDouble("rate", 0.85).toFloat()
@@ -91,6 +95,8 @@ class Store(private val ctx: Context) {
             o.put("best", bestStreak)
             o.put("lastDay", lastDay)
             o.put("direction", direction.name)
+            o.put("native", nativeLang)
+            o.put("onboarded", onboarded)
             o.put("showRomaji", showRomaji)
             o.put("showTranslations", showTranslations)
             o.put("rate", speechRate.toDouble())
@@ -202,6 +208,26 @@ class Store(private val ctx: Context) {
     fun kanaProgress(): Int =
         if (KanaData.all.isEmpty()) 0 else learnedKana.count { it in KanaData.allIds } * 100 / KanaData.all.size
 
+    fun kanjiProgress(): Int =
+        if (KanjiData.all.isEmpty()) 0 else learnedKana.count { it in KanjiData.allIds } * 100 / KanjiData.all.size
+
+    fun setNative(lang: String) {
+        nativeLang = lang
+        save()
+    }
+
+    fun setOnboarded() {
+        onboarded = true
+        save()
+    }
+
+    fun finishOnboarding(native: String, dir: Direction) {
+        nativeLang = native
+        direction = dir
+        onboarded = true
+        save()
+    }
+
     fun resetAll() {
         xp = 0
         streak = 0
@@ -210,6 +236,7 @@ class Store(private val ctx: Context) {
         learnedKana = emptySet()
         completedLessons = emptySet()
         srs = emptyMap()
+        onboarded = false
         file.delete()
     }
 }

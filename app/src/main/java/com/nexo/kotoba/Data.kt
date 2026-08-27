@@ -9,10 +9,18 @@ data class Word(
     val romaji: String,
     val kanji: String = "",
     val en: String,
-    val ipa: String
+    val ipa: String,
+    val hi: String = ""
 )
 
-data class Lesson(val id: String, val title: String, val emoji: String, val desc: String, val words: List<Word>)
+data class Lesson(
+    val id: String,
+    val title: String,
+    val emoji: String,
+    val desc: String,
+    val words: List<Word>,
+    val lang: String = "ja"
+)
 
 data class Phrase(
     val id: String,
@@ -20,10 +28,17 @@ data class Phrase(
     val ja: String,
     val romaji: String,
     val en: String,
-    val chunks: String
+    val chunks: String,
+    val hi: String = ""
 )
 
-data class PatternExample(val emoji: String, val ja: String, val romaji: String, val en: String)
+data class PatternExample(
+    val emoji: String,
+    val ja: String,
+    val romaji: String,
+    val en: String,
+    val hi: String = ""
+)
 
 data class Pattern(
     val id: String,
@@ -32,7 +47,26 @@ data class Pattern(
     val lang: String,
     val ruleEn: String,
     val ruleJa: String,
-    val examples: List<PatternExample>
+    val examples: List<PatternExample>,
+    val ruleHi: String = ""
+)
+
+data class KanjiChar(
+    val id: String,
+    val kanji: String,
+    val meaning: String,
+    val onyomi: String,
+    val kunyomi: String,
+    val story: String
+)
+
+data class AlphabetChar(
+    val letter: String,
+    val word: String,
+    val emoji: String,
+    val ipa: String,
+    val kana: String,
+    val hi: String
 )
 
 object KanaData {
@@ -193,6 +227,94 @@ object KanaData {
 
     val all: List<KanaChar> = hiragana + katakana + hiraganaDakuon + katakanaDakuon
     val allIds: Set<String> = all.map { it.id }.toSet()
+}
+
+object KanjiData {
+
+    val kanji = listOf(
+        KanjiChar("kj1", "日", "sun / day", "ニチ・ジツ", "ひ・か", "A box with a line through it — the sun shining through a window. 日 also means 'day'."),
+        KanjiChar("kj2", "月", "moon / month", "ゲツ・ガツ", "つき", "The crescent moon shape. Two small strokes inside are the moon's shadow."),
+        KanjiChar("kj3", "火", "fire", "カ", "ひ", "A person standing between two flames — fire rising on both sides."),
+        KanjiChar("kj4", "水", "water", "スイ", "みず", "Four streams of running water, splashing off a surface."),
+        KanjiChar("kj5", "木", "tree / wood", "モク・ボク", "き", "A tree: the vertical stroke is the trunk, branches spread above, roots below."),
+        KanjiChar("kj6", "金", "gold / money", "キン・コン", "かね", "Gold nuggets ('八' below) under a lid ('人') in the ground — gold, hence money."),
+        KanjiChar("kj7", "土", "soil / ground", "ド・ト", "つち", "A seed ('十') planted in the ground (the horizontal bar)."),
+        KanjiChar("kj8", "山", "mountain", "サン", "やま", "Three mountain peaks side by side."),
+        KanjiChar("kj9", "川", "river", "セン", "かわ", "Three flowing lines of a river — the middle one curves like a stream."),
+        KanjiChar("kj10", "人", "person", "ジン・ニン", "ひと", "A person walking: two legs stepping forward."),
+        KanjiChar("kj11", "口", "mouth", "コウ", "くち", "An open mouth — a simple square."),
+        KanjiChar("kj12", "目", "eye", "モク", "め", "An upright eye: the two inner lines are the pupil lines."),
+        KanjiChar("kj13", "耳", "ear", "ジ", "みみ", "An ear seen from the side: the box is the outer ear, the lines the inner fold."),
+        KanjiChar("kj14", "手", "hand", "シュ", "て", "A hand from above: the horizontal strokes are fingers, the lower hook is the thumb."),
+        KanjiChar("kj15", "足", "foot / leg", "ソク", "あし", "A foot on a leg: the '口' is the knee, the lower strokes the foot."),
+        KanjiChar("kj16", "心", "heart", "シン", "こころ", "A stylized heart with three strokes showing its chambers."),
+        KanjiChar("kj17", "大", "big", "ダイ・タイ", "おおきい", "A person ('人') stretching arms wide — big!"),
+        KanjiChar("kj18", "小", "small", "ショウ", "ちいさい", "Three small strokes — little specks or a tiny tree."),
+        KanjiChar("kj19", "中", "middle / inside", "チュウ", "なか", "A line passing through the middle of a box."),
+        KanjiChar("kj20", "上", "up / above", "ジョウ", "うえ", "A short line above a baseline — pointing up."),
+        KanjiChar("kj21", "下", "down / below", "カ・ゲ", "した", "A short line below a baseline — pointing down."),
+        KanjiChar("kj22", "右", "right", "ウ・ユウ", "みぎ", "The right hand ('口') holding something to the mouth — the hand you eat with."),
+        KanjiChar("kj23", "左", "left", "サ", "ひだり", "The left hand ('工') holding a tool to build — the hand you work with."),
+        KanjiChar("kj24", "一", "one", "イチ", "ひと", "One stroke."),
+        KanjiChar("kj25", "二", "two", "ニ", "ふた", "Two strokes."),
+        KanjiChar("kj26", "三", "three", "サン", "みっ", "Three strokes."),
+        KanjiChar("kj27", "四", "four", "シ", "よん", "A window with four panes."),
+        KanjiChar("kj28", "五", "five", "ゴ", "いつ", "Four strokes meeting — the number five's outline."),
+        KanjiChar("kj29", "六", "six", "ロク", "むっ", "A point on top and two legs — the number six."),
+        KanjiChar("kj30", "七", "seven", "シチ", "なな", "A cross with a bent bottom stroke — like a seven."),
+        KanjiChar("kj31", "八", "eight", "ハチ", "やっ", "Two pieces splitting apart — eight."),
+        KanjiChar("kj32", "九", "nine", "キュウ", "ここの", "A curved hook — like a nine."),
+        KanjiChar("kj33", "十", "ten", "ジュウ", "とお", "A cross — ten."),
+        KanjiChar("kj34", "百", "hundred", "ヒャク", "", "One ('一') over 'white' ('白') — a hundred."),
+        KanjiChar("kj35", "千", "thousand", "セン", "", "'Ten' ('十') with a slash — a thousand."),
+        KanjiChar("kj36", "円", "yen / circle", "エン", "まる", "A circle with a mark inside — the yen symbol made into a character."),
+        KanjiChar("kj37", "学", "study / learn", "ガク", "まなぶ", "A child ('子') under a roof, hands up to learn — school."),
+        KanjiChar("kj38", "校", "school", "コウ", "", "'Tree' ('木') plus a cross — a school (study place)."),
+        KanjiChar("kj39", "生", "life / birth", "セイ・ショウ", "いきる", "A plant growing up out of the ground — life."),
+        KanjiChar("kj40", "時", "time / hour", "ジ", "とき", "The sun ('日') next to a temple ('寺') — time marked by the sun."),
+        KanjiChar("kj41", "年", "year", "ネン", "とし", "Grain stalks being harvested — a year's cycle."),
+        KanjiChar("kj42", "先", "ahead / teacher", "セン", "さき", "'Legs' ('儿') on the ground ahead — what comes before."),
+        KanjiChar("kj43", "電", "electricity", "デン", "", "Rain ('雨') over a field with a line — electricity from rain."),
+        KanjiChar("kj44", "車", "car / vehicle", "シャ", "くるま", "A car seen from above: body, wheels, and an axle."),
+        KanjiChar("kj45", "町", "town", "チョウ", "まち", "A town: a road with small plots on both sides."),
+        KanjiChar("kj46", "語", "language / word", "ゴ", "かたる", "Words ('言') with many mouths ('口') — language."),
+        KanjiChar("kj47", "本", "book / origin", "ホン", "もと", "A tree with its root marked — the origin, hence a book.")
+    )
+
+    val all: List<KanjiChar> = kanji
+    val allIds: Set<String> = all.map { it.id }.toSet()
+}
+
+object AlphabetData {
+
+    val alphabet = listOf(
+        AlphabetChar("A", "Apple", "🍎", "/ˈæpəl/", "アップル", "सेब"),
+        AlphabetChar("B", "Ball", "⚽", "/bɔːl/", "ボール", "गेंद"),
+        AlphabetChar("C", "Cat", "🐱", "/kæt/", "キャット", "बिल्ली"),
+        AlphabetChar("D", "Dog", "🐶", "/dɒɡ/", "ドッグ", "कुत्ता"),
+        AlphabetChar("E", "Egg", "🥚", "/ɛɡ/", "エッグ", "अंडा"),
+        AlphabetChar("F", "Fish", "🐟", "/fɪʃ/", "フィッシュ", "मछली"),
+        AlphabetChar("G", "Goat", "🐐", "/ɡoʊt/", "ゴート", "बकरी"),
+        AlphabetChar("H", "Hat", "🎩", "/hæt/", "ハット", "टोपी"),
+        AlphabetChar("I", "Ice", "🧊", "/aɪs/", "アイス", "बर्फ़"),
+        AlphabetChar("J", "Juice", "🧃", "/dʒuːs/", "ジュース", "जूस"),
+        AlphabetChar("K", "Key", "🔑", "/kiː/", "キー", "चाबी"),
+        AlphabetChar("L", "Lion", "🦁", "/ˈlaɪən/", "ライオン", "शेर"),
+        AlphabetChar("M", "Milk", "🥛", "/mɪlk/", "ミルク", "दूध"),
+        AlphabetChar("N", "Nose", "👃", "/noʊz/", "ノーズ", "नाक"),
+        AlphabetChar("O", "Orange", "🍊", "/ˈɒrɪndʒ/", "オレンジ", "संतरा"),
+        AlphabetChar("P", "Pen", "🖊️", "/pɛn/", "ペン", "कलम"),
+        AlphabetChar("Q", "Queen", "👑", "/kwiːn/", "クイーン", "रानी"),
+        AlphabetChar("R", "Rabbit", "🐰", "/ˈræbɪt/", "ラビット", "खरगोश"),
+        AlphabetChar("S", "Sun", "☀️", "/sʌn/", "サン", "सूरज"),
+        AlphabetChar("T", "Tree", "🌳", "/triː/", "ツリー", "पेड़"),
+        AlphabetChar("U", "Umbrella", "☂️", "/ʌmˈbrɛlə/", "アンブレラ", "छाता"),
+        AlphabetChar("V", "Violin", "🎻", "/ˌvaɪəˈlɪn/", "バイオリン", "वायलिन"),
+        AlphabetChar("W", "Water", "💧", "/ˈwɔːtər/", "ウォーター", "पानी"),
+        AlphabetChar("X", "Xylophone", "🎶", "/ˈzaɪləfoʊn/", "ザイロフォン", "ज़ाइलोफ़ोन"),
+        AlphabetChar("Y", "Yellow", "🟡", "/ˈjɛloʊ/", "イエロー", "पीला"),
+        AlphabetChar("Z", "Zebra", "🦓", "/ˈzɛbrə/", "ゼブラ", "ज़ेबरा")
+    )
 }
 
 object Data {
@@ -392,6 +514,429 @@ object Data {
                 Word("w134", "🆘", "たすけて", "tasukete", "助けて", "help!", "/hɛlp/"),
                 Word("w135", "📛", "わたしのなまえは…です", "watashi no namae wa … desu", "私の名前は…です", "my name is …", "/maɪ neɪm ɪz/")
             )
+        ),
+        Lesson(
+            "intro", "Self-Introduction", "🧑‍🎓", "Genki Ch.1 — name, job, nationality and where you're from.",
+            listOf(
+                Word("w136", "🧑‍🏫", "せんせい", "sensei", "先生", "teacher", "", "शिक्षक"),
+                Word("w137", "🎓", "がくせい", "gakusei", "学生", "student", "", "छात्र"),
+                Word("w138", "💼", "かいしゃいん", "kaishain", "会社員", "company employee", "", "कंपनी कर्मचारी"),
+                Word("w139", "🩺", "いしゃ", "isha", "医者", "doctor", "", "डॉक्टर"),
+                Word("w140", "🇯🇵", "にほんじん", "nihonjin", "日本人", "Japanese person", "", "जापानी व्यक्ति"),
+                Word("w141", "🗽", "あめりかじん", "amerikajin", "アメリカ人", "American person", "", "अमेरिकी व्यक्ति"),
+                Word("w142", "📛", "なまえ", "namae", "名前", "name", "", "नाम"),
+                Word("w143", "🧍", "ひと", "hito", "人", "person", "", "व्यक्ति"),
+                Word("w144", "☎️", "でんわばんごう", "denwabangou", "電話番号", "phone number", "", "फ़ोन नंबर"),
+                Word("w145", "📍", "しゅっしん", "shusshin", "出身", "hometown / from", "", "गृहस्थान"),
+                Word("w146", "🗺️", "くに", "kuni", "国", "country", "", "देश")
+            )
+        ),
+        Lesson(
+            "routine", "Daily Routine", "⏰", "Genki Ch.4 — wake up, eat, go out, sleep: your whole day.",
+            listOf(
+                Word("w147", "⏰", "おきる", "okiru", "起きる", "to wake up", "", "जागना"),
+                Word("w148", "🥣", "あさごはん", "asagohan", "朝ごはん", "breakfast", "", "नाश्ता"),
+                Word("w149", "🪥", "はをみがく", "ha wo migaku", "歯を磨く", "to brush teeth", "", "दाँत साफ़ करना"),
+                Word("w150", "🚿", "シャワーをあびる", "shawaa wo abiru", "シャワーを浴びる", "to take a shower", "", "स्नान करना"),
+                Word("w151", "🚪", "でかける", "dekakeru", "出かける", "to go out", "", "बाहर जाना"),
+                Word("w152", "🏠", "かえる", "kaeru", "帰る", "to return home", "", "लौटना"),
+                Word("w153", "🍽️", "ばんごはん", "bangohan", "晩ごはん", "dinner", "", "रात का खाना"),
+                Word("w154", "🛁", "おふろにはいる", "ofuro ni hairu", "お風呂に入る", "to take a bath", "", "नहाना"),
+                Word("w155", "😴", "ねむる", "nemuru", "眠る", "to sleep", "", "सोना"),
+                Word("w156", "🧹", "かじ", "kaji", "家事", "housework", "", "घर का काम"),
+                Word("w157", "🧺", "せんたく", "sentaku", "洗濯", "laundry", "", "कपड़े धोना"),
+                Word("w158", "👨‍🍳", "りょうり", "ryouri", "料理", "cooking", "", "खाना बनाना")
+            )
+        ),
+        Lesson(
+            "travel", "Travel & Transport", "✈️", "Genki Ch.7 — airports, trains, tickets and getting around.",
+            listOf(
+                Word("w159", "✈️", "くうこう", "kuukou", "空港", "airport", "", "हवाई अड्डा"),
+                Word("w160", "✈️", "ひこうき", "hikouki", "飛行機", "airplane", "", "हवाई जहाज़"),
+                Word("w161", "🚋", "でんしゃ", "densha", "電車", "train", "", "ट्रेन"),
+                Word("w162", "🚌", "バス", "basu", "バス", "bus", "", "बस"),
+                Word("w163", "🚕", "タクシー", "takushii", "タクシー", "taxi", "", "टैक्सी"),
+                Word("w164", "🚲", "じてんしゃ", "jitensha", "自転車", "bicycle", "", "साइकिल"),
+                Word("w165", "🎫", "きっぷ", "kippu", "切符", "ticket", "", "टिकट"),
+                Word("w166", "🧳", "りょこう", "ryokou", "旅行", "travel / trip", "", "यात्रा"),
+                Word("w167", "🗺️", "ちず", "chizu", "地図", "map", "", "नक्शा"),
+                Word("w168", "🙈", "まいご", "maigo", "迷子", "to get lost", "", "खो जाना"),
+                Word("w169", "🚄", "しんかんせん", "shinkansen", "新幹線", "bullet train", "", "बुलेट ट्रेन"),
+                Word("w170", "⚓", "みなと", "minato", "港", "port / harbor", "", "बंदरगाह")
+            )
+        ),
+        Lesson(
+            "shopping", "Shopping", "🛍️", "Genki Ch.6 — prices, cheap and expensive, buying things.",
+            listOf(
+                Word("w171", "💸", "たかい", "takai", "高い", "expensive", "", "महँगा"),
+                Word("w172", "🏷️", "やすい", "yasui", "安い", "cheap", "", "सस्ता"),
+                Word("w173", "👛", "さいふ", "saifu", "財布", "wallet", "", "बटुआ"),
+                Word("w174", "👜", "かばん", "kaban", "鞄", "bag", "", "बैग"),
+                Word("w175", "💰", "おかね", "okane", "お金", "money", "", "पैसा"),
+                Word("w176", "💴", "えん", "en", "円", "yen", "", "येन"),
+                Word("w177", "🎁", "おみやげ", "omiyage", "お土産", "souvenir", "", "स्मृति चिन्ह"),
+                Word("w178", "🪙", "おつり", "otsuri", "お釣り", "change (money)", "", "खुले पैसे"),
+                Word("w179", "🏷️", "ねだん", "nedan", "値段", "price", "", "कीमत"),
+                Word("w180", "🛒", "かいもの", "kaimono", "買い物", "shopping", "", "खरीदारी"),
+                Word("w181", "🪞", "しちゃく", "shichaku", "試着", "trying on clothes", "", "पहनकर देखना"),
+                Word("w182", "🧾", "レシート", "reshiito", "レシート", "receipt", "", "रसीद")
+            )
+        ),
+        Lesson(
+            "restaurant", "At a Restaurant", "🍱", "Genki Ch.6 — order, eat, and ask for the bill.",
+            listOf(
+                Word("w183", "📋", "メニュー", "menyuu", "メニュー", "menu", "", "मेन्यू"),
+                Word("w184", "⭐", "おすすめ", "osusume", "おすすめ", "recommendation", "", "सिफ़ारिश"),
+                Word("w185", "🗣️", "ちゅうもん", "chuumon", "注文", "order (noun)", "", "ऑर्डर"),
+                Word("w186", "🍽️", "おさら", "osara", "お皿", "plate", "", "थाली"),
+                Word("w187", "🥢", "はし", "hashi", "箸", "chopsticks", "", "चॉपस्टिक"),
+                Word("w188", "🥄", "スプーン", "supuun", "スプーン", "spoon", "", "चम्मच"),
+                Word("w189", "🍴", "フォーク", "fooku", "フォーク", "fork", "", "काँटा"),
+                Word("w190", "🔪", "ナイフ", "naifu", "ナイフ", "knife", "", "चाकू"),
+                Word("w191", "🍰", "デザート", "dezaato", "デザート", "dessert", "", "मिठाई"),
+                Word("w192", "🧾", "かいけい", "kaikei", "会計", "bill / check", "", "बिल"),
+                Word("w193", "🥤", "のみもの", "nomimono", "飲み物", "drink", "", "पेय"),
+                Word("w194", "🍱", "たべもの", "tabemono", "食べ物", "food", "", "खाना")
+            )
+        ),
+        Lesson(
+            "hobbies", "Hobbies & Sports", "🎯", "Genki Ch.5 — music, sports, photos and free time.",
+            listOf(
+                Word("w195", "🎵", "おんがく", "ongaku", "音楽", "music", "", "संगीत"),
+                Word("w196", "🎤", "うたう", "utau", "歌う", "to sing", "", "गाना"),
+                Word("w197", "🏆", "スポーツ", "supootsu", "スポーツ", "sports", "", "खेल"),
+                Word("w198", "⚽", "サッカー", "sakkaa", "サッカー", "soccer", "", "फ़ुटबॉल"),
+                Word("w199", "🎾", "テニス", "tenisu", "テニス", "tennis", "", "टेनिस"),
+                Word("w200", "🏊", "すいえい", "suiei", "水泳", "swimming", "", "तैराकी"),
+                Word("w201", "🚶", "さんぽ", "sanpo", "散歩", "walk / stroll", "", "सैर"),
+                Word("w202", "📸", "しゃしんをとる", "shashin wo toru", "写真を撮る", "to take photos", "", "फ़ोटो लेना"),
+                Word("w203", "🎨", "えをかく", "e wo kaku", "絵を描く", "to draw", "", "चित्र बनाना"),
+                Word("w204", "🎬", "えいが", "eiga", "映画", "movie", "", "फ़िल्म"),
+                Word("w205", "📖", "ほんをよむ", "hon wo yomu", "本を読む", "to read books", "", "किताब पढ़ना"),
+                Word("w206", "💃", "ダンス", "dansu", "ダンス", "dance", "", "नृत्य")
+            )
+        ),
+        Lesson(
+            "home", "Home & Rooms", "🏠", "Genki Ch.3 — rooms, furniture and everyday things at home.",
+            listOf(
+                Word("w207", "🚪", "へや", "heya", "部屋", "room", "", "कमरा"),
+                Word("w208", "🍳", "だいどころ", "daidokoro", "台所", "kitchen", "", "रसोई"),
+                Word("w209", "🛏️", "ベッド", "beddo", "ベッド", "bed", "", "बिस्तर"),
+                Word("w210", "🪟", "まど", "mado", "窓", "window", "", "खिड़की"),
+                Word("w211", "🚪", "ドア", "doa", "ドア", "door", "", "दरवाज़ा"),
+                Word("w212", "🪑", "いす", "isu", "椅子", "chair", "", "कुर्सी"),
+                Word("w213", "🗄️", "つくえ", "tsukue", "机", "desk", "", "डेस्क / मेज़"),
+                Word("w214", "📚", "ほんだな", "hondana", "本棚", "bookshelf", "", "किताबों की अलमारी"),
+                Word("w215", "💡", "でんき", "denki", "電気", "light / electricity", "", "रोशनी / बिजली"),
+                Word("w216", "🛋️", "ソファ", "sofa", "ソファ", "sofa", "", "सोफ़ा"),
+                Word("w217", "🔑", "かぎ", "kagi", "鍵", "key", "", "चाबी"),
+                Word("w218", "🛁", "おふろ", "ofuro", "お風呂", "bath / bathtub", "", "स्नानघर")
+            )
+        ),
+        Lesson(
+            "body", "Body Parts", "🫀", "Genki vocabulary — head to toe, the parts of your body.",
+            listOf(
+                Word("w219", "🧠", "あたま", "atama", "頭", "head", "", "सिर"),
+                Word("w220", "😊", "かお", "kao", "顔", "face", "", "चेहरा"),
+                Word("w221", "👀", "め", "me", "目", "eye", "", "आँख"),
+                Word("w222", "👂", "みみ", "mimi", "耳", "ear", "", "कान"),
+                Word("w223", "👃", "はな", "hana", "鼻", "nose", "", "नाक"),
+                Word("w224", "👄", "くち", "kuchi", "口", "mouth", "", "मुँह"),
+                Word("w225", "✋", "て", "te", "手", "hand", "", "हाथ"),
+                Word("w226", "🦶", "あし", "ashi", "足", "leg / foot", "", "पैर"),
+                Word("w227", "🧍", "からだ", "karada", "体", "body", "", "शरीर"),
+                Word("w228", "🍽️", "おなか", "onaka", "お腹", "stomach / belly", "", "पेट"),
+                Word("w229", "🗣️", "のど", "nodo", "喉", "throat", "", "गला"),
+                Word("w230", "💇", "かみ", "kami", "髪", "hair", "", "बाल")
+            )
+        ),
+        Lesson(
+            "city", "City Places", "🏙️", "Genki Ch.3 — hospital, bank, library and finding your way.",
+            listOf(
+                Word("w231", "🏥", "びょういん", "byouin", "病院", "hospital", "", "अस्पताल"),
+                Word("w232", "📮", "ゆうびんきょく", "yuubinkyoku", "郵便局", "post office", "", "डाकघर"),
+                Word("w233", "🚔", "こうばん", "kouban", "交番", "police box", "", "पुलिस चौकी"),
+                Word("w234", "🏦", "ぎんこう", "ginkou", "銀行", "bank", "", "बैंक"),
+                Word("w235", "📚", "としょかん", "toshokan", "図書館", "library", "", "पुस्तकालय"),
+                Word("w236", "🏨", "ホテル", "hoteru", "ホテル", "hotel", "", "होटल"),
+                Word("w237", "🍽️", "レストラン", "resutoran", "レストラン", "restaurant", "", "रेस्तराँ"),
+                Word("w238", "🏬", "デパート", "depaato", "デパート", "department store", "", "डिपार्टमेंट स्टोर"),
+                Word("w239", "🛒", "スーパー", "suupaa", "スーパー", "supermarket", "", "सुपरमार्केट"),
+                Word("w240", "🎬", "えいがかん", "eigakan", "映画館", "movie theater", "", "सिनेमाघर"),
+                Word("w241", "☕", "きっさてん", "kissaten", "喫茶店", "cafe", "", "कैफ़े"),
+                Word("w242", "⛩️", "じんじゃ", "jinja", "神社", "shrine", "", "शिंटो मंदिर")
+            )
+        ),
+        Lesson(
+            "dates", "Time & Days", "📆", "Genki Ch.2 — today, tomorrow, yesterday and every weekday.",
+            listOf(
+                Word("w243", "📅", "きょう", "kyou", "今日", "today", "", "आज"),
+                Word("w244", "🌅", "あした", "ashita", "明日", "tomorrow", "", "कल"),
+                Word("w245", "⏪", "きのう", "kinou", "昨日", "yesterday", "", "बीता कल"),
+                Word("w246", "🌄", "あさって", "asatte", "明後日", "day after tomorrow", "", "परसों"),
+                Word("w247", "🗓️", "しゅうまつ", "shuumatsu", "週末", "weekend", "", "सप्ताहांत"),
+                Word("w248", "🗓️", "げつようび", "getsuyoubi", "月曜日", "Monday", "", "सोमवार"),
+                Word("w249", "🗓️", "かようび", "kayoubi", "火曜日", "Tuesday", "", "मंगलवार"),
+                Word("w250", "🗓️", "すいようび", "suiyoubi", "水曜日", "Wednesday", "", "बुधवार"),
+                Word("w251", "🗓️", "もくようび", "mokuyoubi", "木曜日", "Thursday", "", "गुरुवार"),
+                Word("w252", "🗓️", "きんようび", "kinyoubi", "金曜日", "Friday", "", "शुक्रवार"),
+                Word("w253", "🗓️", "どようび", "doyoubi", "土曜日", "Saturday", "", "शनिवार"),
+                Word("w254", "🗓️", "にちようび", "nichiyoubi", "日曜日", "Sunday", "", "रविवार")
+            )
+        ),
+        Lesson(
+            "feelings", "Feelings & States", "💗", "Genki Ch.5 — how you feel: happy, tired, hungry, busy.",
+            listOf(
+                Word("w255", "😄", "うれしい", "ureshii", "嬉しい", "happy", "", "खुश"),
+                Word("w256", "😢", "かなしい", "kanashii", "悲しい", "sad", "", "उदास"),
+                Word("w257", "🥱", "つかれている", "tsukareteiru", "疲れている", "tired", "", "थका हुआ"),
+                Word("w258", "🍽️", "おなかがすいている", "onaka ga suiteiru", "お腹がすいている", "hungry", "", "भूखा"),
+                Word("w259", "💧", "のどがかわいている", "nodo ga kawaiteiru", "喉が渇いている", "thirsty", "", "प्यासा"),
+                Word("w260", "😴", "ねむい", "nemui", "眠い", "sleepy", "", "नींद में"),
+                Word("w261", "🤒", "びょうき", "byouki", "病気", "sick", "", "बीमार"),
+                Word("w262", "😣", "いたい", "itai", "痛い", "painful / hurts", "", "दर्द"),
+                Word("w263", "🥱", "つまらない", "tsumaranai", "つまらない", "boring", "", "उबाऊ"),
+                Word("w264", "🤩", "おもしろい", "omoshiroi", "面白い", "interesting / funny", "", "दिलचस्प"),
+                Word("w265", "⏰", "いそがしい", "isogashii", "忙しい", "busy", "", "व्यस्त"),
+                Word("w266", "💪", "げんき", "genki", "元気", "energetic / well", "", "तंदुरुस्त")
+            )
+        ),
+        Lesson(
+            "work", "Work & Study", "💼", "Genki vocabulary — jobs, meetings, homework and classrooms.",
+            listOf(
+                Word("w267", "💼", "はたらく", "hataraku", "働く", "to work", "", "काम करना"),
+                Word("w268", "📚", "べんきょうする", "benkyou suru", "勉強する", "to study", "", "पढ़ाई करना"),
+                Word("w269", "🗣️", "かいぎ", "kaigi", "会議", "meeting", "", "बैठक"),
+                Word("w270", "📖", "じしょ", "jisho", "辞書", "dictionary", "", "शब्दकोश"),
+                Word("w271", "📘", "きょうかしょ", "kyoukasho", "教科書", "textbook", "", "पाठ्यपुस्तक"),
+                Word("w272", "🏫", "じゅぎょう", "jugyou", "授業", "class / lesson", "", "कक्षा"),
+                Word("w273", "📝", "しゅくだい", "shukudai", "宿題", "homework", "", "होमवर्क"),
+                Word("w274", "📋", "テスト", "tesuto", "テスト", "test", "", "परीक्षा"),
+                Word("w275", "🔤", "えいご", "eigo", "英語", "English (language)", "", "अंग्रेज़ी"),
+                Word("w276", "🈯", "にほんご", "nihongo", "日本語", "Japanese (language)", "", "जापानी भाषा"),
+                Word("w277", "💡", "いみ", "imi", "意味", "meaning", "", "अर्थ"),
+                Word("w278", "❓", "しつもん", "shitsumon", "質問", "question", "", "प्रश्न")
+            )
+        ),
+        Lesson(
+            "en-greet", "English Greetings", "👋", "ESL starter — say hello, thank people and say goodbye.",
+            listOf(
+                Word("w279", "👋", "ハロー", "haroo", "", "hello", "/həˈloʊ/", "नमस्ते"),
+                Word("w280", "😊", "ハイ", "hai", "", "hi", "/haɪ/", "नमस्ते"),
+                Word("w281", "🌅", "グッドモーニング", "guddomooningu", "", "good morning", "/ɡʊd ˈmɔːrnɪŋ/", "शुभ प्रभात"),
+                Word("w282", "🌇", "グッドアフタヌーン", "guddoafutanuun", "", "good afternoon", "/ɡʊd ˌæftərˈnuːn/", "शुभ दोपहर"),
+                Word("w283", "🌆", "グッドイブニング", "guddoibuningu", "", "good evening", "/ɡʊd ˈiːvnɪŋ/", "शुभ संध्या"),
+                Word("w284", "🌙", "グッドナイト", "guddonaito", "", "good night", "/ɡʊd naɪt/", "शुभ रात्रि"),
+                Word("w285", "🤗", "ウェルカム", "werukamu", "", "welcome", "/ˈwɛlkəm/", "स्वागत है"),
+                Word("w286", "🫂", "ハウアーユー", "hauaa yuu", "", "how are you?", "/haʊ ɑːr juː/", "आप कैसे हैं?"),
+                Word("w287", "🙂", "アイムファイン", "aimu fain", "", "I'm fine", "/aɪm faɪn/", "मैं ठीक हूँ"),
+                Word("w288", "🙏", "サンキュー", "sankyuu", "", "thank you", "/θæŋk juː/", "धन्यवाद"),
+                Word("w289", "👋", "バイ", "bai", "", "bye", "/baɪ/", "अलविदा"),
+                Word("w290", "👋", "シーユーレイター", "shii yuu reitaa", "", "see you later", "/siː juː ˈleɪtər/", "फिर मिलेंगे")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-num", "English Numbers", "🔢", "ESL numbers — eleven to a million, plus ordinals.",
+            listOf(
+                Word("w291", "1️⃣1️⃣", "イレブン", "irebun", "", "eleven", "/ɪˈlɛvən/", "ग्यारह"),
+                Word("w292", "1️⃣2️⃣", "トゥエルブ", "tuerubu", "", "twelve", "/twɛlv/", "बारह"),
+                Word("w293", "1️⃣3️⃣", "サーティーン", "saatiin", "", "thirteen", "/ˌθɜːrˈtiːn/", "तेरह"),
+                Word("w294", "2️⃣0️⃣", "トゥエンティ", "tuenti", "", "twenty", "/ˈtwɛnti/", "बीस"),
+                Word("w295", "3️⃣0️⃣", "サーティ", "saati", "", "thirty", "/ˈθɜːrti/", "तीस"),
+                Word("w296", "💯", "ハンドレッド", "handoreddo", "", "hundred", "/ˈhʌndrəd/", "सौ"),
+                Word("w297", "🔟", "サウザンド", "sauzando", "", "thousand", "/ˈθaʊzənd/", "हज़ार"),
+                Word("w298", "💹", "ミリオン", "mirion", "", "million", "/ˈmɪljən/", "दस लाख"),
+                Word("w299", "0️⃣", "ジロウ", "jirou", "", "zero", "/ˈzɪəroʊ/", "शून्य"),
+                Word("w300", "🥇", "ファースト", "faasuto", "", "first", "/fɜːrst/", "पहला"),
+                Word("w301", "🥈", "セカンド", "sekando", "", "second", "/ˈsɛkənd/", "दूसरा"),
+                Word("w302", "🏁", "ラスト", "rasuto", "", "last", "/læst/", "आख़िरी")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-time", "English Time & Days", "⏰", "ESL time — morning, night, today, tomorrow, this week.",
+            listOf(
+                Word("w303", "🌅", "モーニング", "mooningu", "", "morning", "/ˈmɔːrnɪŋ/", "सुबह"),
+                Word("w304", "🌇", "アフタヌーン", "afutanuun", "", "afternoon", "/ˌæftərˈnuːn/", "दोपहर"),
+                Word("w305", "🌆", "イブニング", "ibuningu", "", "evening", "/ˈiːvnɪŋ/", "शाम"),
+                Word("w306", "🌙", "ナイト", "naito", "", "night", "/naɪt/", "रात"),
+                Word("w307", "📅", "トゥデイ", "tudei", "", "today", "/təˈdeɪ/", "आज"),
+                Word("w308", "🌅", "トゥモロー", "tumorou", "", "tomorrow", "/təˈmɔːroʊ/", "कल"),
+                Word("w309", "⏪", "イエスタデイ", "iesutadei", "", "yesterday", "/ˈjɛstərdeɪ/", "बीता कल"),
+                Word("w310", "🗓️", "ウィーク", "wiiku", "", "week", "/wiːk/", "सप्ताह"),
+                Word("w311", "📆", "マンス", "mansu", "", "month", "/mʌnθ/", "महीना"),
+                Word("w312", "🗓️", "イヤー", "iyaa", "", "year", "/jɪər/", "साल"),
+                Word("w313", "⏰", "アワー", "awaa", "", "hour", "/ˈaʊər/", "घंटा"),
+                Word("w314", "⏱️", "ミニット", "minitto", "", "minute", "/ˈmɪnɪt/", "मिनट")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-family", "English Family", "👨‍👩‍👧", "ESL family — mother, father, brothers, sisters and more.",
+            listOf(
+                Word("w315", "👩", "マザー", "mazaa", "", "mother", "/ˈmʌðər/", "माँ"),
+                Word("w316", "👨", "ファーザー", "faa zaa", "", "father", "/ˈfɑːðər/", "पिता"),
+                Word("w317", "👦", "ブラザー", "burazaa", "", "brother", "/ˈbrʌðər/", "भाई"),
+                Word("w318", "👧", "シスター", "shisutaa", "", "sister", "/ˈsɪstər/", "बहन"),
+                Word("w319", "👦", "サン", "san", "", "son", "/sʌn/", "बेटा"),
+                Word("w320", "👧", "ドーター", "dootaa", "", "daughter", "/ˈdɔːtər/", "बेटी"),
+                Word("w321", "👵", "グランドマザー", "gurandomazaa", "", "grandmother", "/ˈɡrænmʌðər/", "दादी / नानी"),
+                Word("w322", "👴", "グランドファーザー", "gurandofaa zaa", "", "grandfather", "/ˈɡrænfɑːðər/", "दादा / नाना"),
+                Word("w323", "👨", "ハズバンド", "hazubando", "", "husband", "/ˈhʌzbənd/", "पति"),
+                Word("w324", "👩", "ワイフ", "waifu", "", "wife", "/waɪf/", "पत्नी"),
+                Word("w325", "👨", "アンクル", "ankuru", "", "uncle", "/ˈʌŋkəl/", "चाचा"),
+                Word("w326", "👩", "アント", "anto", "", "aunt", "/ænt/", "चाची")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-food", "English Food & Drink", "🍜", "ESL food — the kitchen basics everyone needs.",
+            listOf(
+                Word("w327", "🍞", "ブレッド", "bureddo", "", "bread", "/brɛd/", "रोटी / ब्रेड"),
+                Word("w328", "🍚", "ライス", "raisu", "", "rice", "/raɪs/", "चावल"),
+                Word("w329", "🍗", "チキン", "chikin", "", "chicken", "/ˈtʃɪkɪn/", "मुर्ग़ा / चिकन"),
+                Word("w330", "🥚", "エッグ", "eggu", "", "egg", "/ɛɡ/", "अंडा"),
+                Word("w331", "🥛", "ミルク", "miruku", "", "milk", "/mɪlk/", "दूध"),
+                Word("w332", "🍵", "ティー", "tii", "", "tea", "/tiː/", "चाय"),
+                Word("w333", "☕", "コーヒー", "koohii", "", "coffee", "/ˈkɒfi/", "कॉफ़ी"),
+                Word("w334", "🧃", "ジュース", "juusu", "", "juice", "/dʒuːs/", "जूस"),
+                Word("w335", "🍎", "フルーツ", "furuutsu", "", "fruit", "/fruːt/", "फल"),
+                Word("w336", "🥦", "ベジタブル", "bejitaburu", "", "vegetable", "/ˈvɛdʒtəbəl/", "सब्ज़ी"),
+                Word("w337", "🍬", "シュガー", "shugaa", "", "sugar", "/ˈʃʊɡər/", "चीनी"),
+                Word("w338", "🧂", "ソルト", "soruto", "", "salt", "/sɔːlt/", "नमक")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-body", "English Body Parts", "🫀", "ESL body — the parts of your body in English.",
+            listOf(
+                Word("w339", "🧠", "ヘッド", "heddo", "", "head", "/hɛd/", "सिर"),
+                Word("w340", "😊", "フェイス", "feisu", "", "face", "/feɪs/", "चेहरा"),
+                Word("w341", "💇", "ヘア", "hea", "", "hair", "/hɛər/", "बाल"),
+                Word("w342", "👀", "アイ", "ai", "", "eye", "/aɪ/", "आँख"),
+                Word("w343", "👂", "イアー", "iaa", "", "ear", "/ɪər/", "कान"),
+                Word("w344", "👃", "ノーズ", "noozu", "", "nose", "/noʊz/", "नाक"),
+                Word("w345", "👄", "マウス", "mausu", "", "mouth", "/maʊθ/", "मुँह"),
+                Word("w346", "✋", "ハンド", "hando", "", "hand", "/hænd/", "हाथ"),
+                Word("w347", "💪", "アーム", "aamu", "", "arm", "/ɑːrm/", "बाँह"),
+                Word("w348", "🦵", "レッグ", "reggu", "", "leg", "/lɛɡ/", "टाँग"),
+                Word("w349", "🦶", "フット", "futto", "", "foot", "/fʊt/", "पैर"),
+                Word("w350", "🧍", "バック", "bakku", "", "back", "/bæk/", "पीठ")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-clothes", "English Clothes", "👕", "ESL clothes — shirts, shoes, coats and what you wear.",
+            listOf(
+                Word("w351", "👕", "シャート", "shaato", "", "shirt", "/ʃɜːrt/", "कमीज़"),
+                Word("w352", "👖", "トラウザーズ", "tora uzaazu", "", "trousers", "/ˈtraʊzərz/", "पतलून"),
+                Word("w353", "🩳", "ショーツ", "shootsu", "", "shorts", "/ʃɔːrts/", "शॉर्ट्स"),
+                Word("w354", "👗", "ドレス", "doresu", "", "dress", "/drɛs/", "पोशाक"),
+                Word("w355", "👗", "スカート", "sukaato", "", "skirt", "/skɜːrt/", "स्कर्ट"),
+                Word("w356", "👟", "シューズ", "shuuzu", "", "shoes", "/ʃuːz/", "जूते"),
+                Word("w357", "🧦", "ソックス", "sokkusu", "", "socks", "/sɒks/", "मोज़े"),
+                Word("w358", "🎩", "ハット", "hatto", "", "hat", "/hæt/", "टोपी"),
+                Word("w359", "🧥", "コート", "kooto", "", "coat", "/koʊt/", "कोट"),
+                Word("w360", "🧥", "ジャケット", "jaketto", "", "jacket", "/ˈdʒækɪt/", "जैकेट"),
+                Word("w361", "🧣", "スカーフ", "sukaafu", "", "scarf", "/skɑːrf/", "दुपट्टा"),
+                Word("w362", "🧤", "グラブズ", "gurabuzu", "", "gloves", "/ɡlʌvz/", "दस्ताने")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-house", "English House & Things", "🏠", "ESL house — rooms, furniture and daily objects.",
+            listOf(
+                Word("w363", "🏠", "ハウス", "hausu", "", "house", "/haʊs/", "घर"),
+                Word("w364", "🍳", "キッチン", "kitchin", "", "kitchen", "/ˈkɪtʃɪn/", "रसोई"),
+                Word("w365", "🛏️", "ベッドルーム", "beddoruumu", "", "bedroom", "/ˈbɛdruːm/", "शयनकक्ष"),
+                Word("w366", "🛁", "バスルーム", "basuruumu", "", "bathroom", "/ˈbæθruːm/", "स्नानघर"),
+                Word("w367", "🪑", "テーブル", "teeburu", "", "table", "/ˈteɪbəl/", "मेज़"),
+                Word("w368", "🪑", "チェアー", "cheaa", "", "chair", "/tʃɛər/", "कुर्सी"),
+                Word("w369", "🪟", "ウィンドウ", "windou", "", "window", "/ˈwɪndoʊ/", "खिड़की"),
+                Word("w370", "🚪", "ドア", "doa", "", "door", "/dɔːr/", "दरवाज़ा"),
+                Word("w371", "🪞", "ミラー", "miraa", "", "mirror", "/ˈmɪrər/", "आईना"),
+                Word("w372", "💡", "ランプ", "ranpu", "", "lamp", "/læmp/", "लैंप"),
+                Word("w373", "🕰️", "クロック", "kurokku", "", "clock", "/klɒk/", "घड़ी"),
+                Word("w374", "📱", "フォーン", "foon", "", "phone", "/foʊn/", "फ़ोन")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-work", "English Jobs", "👷", "ESL jobs — doctor, teacher, driver and what people do.",
+            listOf(
+                Word("w375", "🧑‍⚕️", "ナース", "naasu", "", "nurse", "/nɜːrs/", "नर्स"),
+                Word("w376", "🧑‍🔧", "エンジニア", "enjinia", "", "engineer", "/ˌɛndʒɪˈnɪər/", "इंजीनियर"),
+                Word("w377", "🚗", "ドライバー", "doraibaa", "", "driver", "/ˈdraɪvər/", "चालक"),
+                Word("w378", "👨‍🍳", "クック", "kukku", "", "cook", "/kʊk/", "रसोइया"),
+                Word("w379", "👮", "ポリスオフィサー", "porisu ofisaa", "", "police officer", "/pəˈliːs ˈɒfɪsər/", "पुलिस अधिकारी"),
+                Word("w380", "🏪", "ショップキーパー", "shoppukii paa", "", "shopkeeper", "/ˈʃɒpkiːpər/", "दुकानदार"),
+                Word("w381", "👨‍🌾", "ファーマー", "faamaa", "", "farmer", "/ˈfɑːrmər/", "किसान"),
+                Word("w382", "🧑‍🍳", "ウェイター", "weitaa", "", "waiter", "/ˈweɪtər/", "वेटर"),
+                Word("w383", "🎨", "アーティスト", "aatisuto", "", "artist", "/ˈɑːrtɪst/", "कलाकार"),
+                Word("w384", "🎤", "シンガー", "shingaa", "", "singer", "/ˈsɪŋər/", "गायक"),
+                Word("w385", "✈️", "パイロット", "pairotto", "", "pilot", "/ˈpaɪlət/", "पायलट"),
+                Word("w386", "⚖️", "ロイヤー", "roiyaa", "", "lawyer", "/ˈlɔːjər/", "वकील")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-actions", "English Verbs", "🏃", "ESL verbs — the most-used actions in daily life.",
+            listOf(
+                Word("w387", "🚶", "カム", "kamu", "", "come", "/kʌm/", "आना"),
+                Word("w388", "🚶", "ウォーク", "wooku", "", "walk", "/wɔːk/", "चलना"),
+                Word("w389", "🏃", "ラン", "ran", "", "run", "/rʌn/", "दौड़ना"),
+                Word("w390", "🪑", "シット", "shitto", "", "sit", "/sɪt/", "बैठना"),
+                Word("w391", "🧍", "スタンド", "sutando", "", "stand", "/stænd/", "खड़ा होना"),
+                Word("w392", "🚪", "オープン", "oopun", "", "open", "/ˈoʊpən/", "खोलना"),
+                Word("w393", "🚪", "クローズ", "kuroozu", "", "close", "/kloʊz/", "बंद करना"),
+                Word("w394", "🤲", "ギブ", "gibu", "", "give", "/ɡɪv/", "देना"),
+                Word("w395", "🤏", "テイク", "teiku", "", "take", "/teɪk/", "लेना"),
+                Word("w396", "👀", "シー", "shii", "", "see", "/siː/", "देखना"),
+                Word("w397", "🧠", "ノウ", "nou", "", "know", "/noʊ/", "जानना"),
+                Word("w398", "💭", "シンク", "shinku", "", "think", "/θɪŋk/", "सोचना"),
+                Word("w399", "🙋", "ウォント", "wonto", "", "want", "/wɒnt/", "चाहना"),
+                Word("w400", "⚠️", "ニード", "niido", "", "need", "/niːd/", "ज़रूरत होना"),
+                Word("w401", "❤️", "ライク", "raiku", "", "like", "/laɪk/", "पसंद करना"),
+                Word("w402", "🆘", "ヘルプ", "herupu", "", "help", "/hɛlp/", "मदद करना")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-shop", "English Shopping", "🛒", "ESL shopping — buy, sell, pay, prices and shops.",
+            listOf(
+                Word("w403", "🛒", "バイ", "bai", "", "buy", "/baɪ/", "खरीदना"),
+                Word("w404", "🏪", "セル", "seru", "", "sell", "/sɛl/", "बेचना"),
+                Word("w405", "💳", "ペイ", "pei", "", "pay", "/peɪ/", "भुगतान करना"),
+                Word("w406", "💰", "マネー", "manee", "", "money", "/ˈmʌni/", "पैसा"),
+                Word("w407", "🏷️", "プライス", "puraisu", "", "price", "/praɪs/", "कीमत"),
+                Word("w408", "💸", "チープ", "chiipu", "", "cheap", "/tʃiːp/", "सस्ता"),
+                Word("w409", "💎", "エクスペンシブ", "ekusupenshibu", "", "expensive", "/ɪkˈspɛnsɪv/", "महँगा"),
+                Word("w410", "🏪", "ショップ", "shoppu", "", "shop", "/ʃɒp/", "दुकान"),
+                Word("w411", "🏬", "マーケット", "maaketto", "", "market", "/ˈmɑːrkɪt/", "बाज़ार"),
+                Word("w412", "💵", "キャッシュ", "kyasshu", "", "cash", "/kæʃ/", "नकद"),
+                Word("w413", "🧾", "リシート", "rishiito", "", "receipt", "/rɪˈsiːt/", "रसीद"),
+                Word("w414", "🛍️", "バッグ", "baggu", "", "bag", "/bæɡ/", "थैला / बैग")
+            ),
+            lang = "en"
+        ),
+        Lesson(
+            "en-feel", "English Feelings", "💗", "ESL feelings — happy, sad, angry, tired and more.",
+            listOf(
+                Word("w415", "😄", "ハッピー", "happii", "", "happy", "/ˈhæpi/", "खुश"),
+                Word("w416", "😢", "サッド", "saddo", "", "sad", "/sæd/", "उदास"),
+                Word("w417", "😠", "アングリー", "angurii", "", "angry", "/ˈæŋɡri/", "गुस्सा"),
+                Word("w418", "😴", "タイアド", "taiado", "", "tired", "/ˈtaɪərd/", "थका हुआ"),
+                Word("w419", "🍽️", "ハングリー", "hangurii", "", "hungry", "/ˈhʌŋɡri/", "भूखा"),
+                Word("w420", "💧", "サースティ", "saasutii", "", "thirsty", "/ˈθɜːrsti/", "प्यासा"),
+                Word("w421", "🔥", "ホット", "hotto", "", "hot", "/hɒt/", "गर्म"),
+                Word("w422", "❄️", "コールド", "koorudo", "", "cold", "/koʊld/", "ठंडा"),
+                Word("w423", "😨", "アフレイド", "afureido", "", "afraid", "/əˈfreɪd/", "डरा हुआ"),
+                Word("w424", "😲", "サプライズド", "supuraizudo", "", "surprised", "/səˈpraɪzd/", "हैरान"),
+                Word("w425", "🥱", "ボード", "boodo", "", "bored", "/bɔːrd/", "ऊबा हुआ"),
+                Word("w426", "🤒", "シック", "shikku", "", "sick", "/sɪk/", "बीमार")
+            ),
+            lang = "en"
         )
     )
 
@@ -409,7 +954,19 @@ object Data {
         Phrase("p9", "🍜", "たべものはおいしいです。", "tabemono wa oishii desu", "The food is delicious.", "たべもの (food) は (topic) おいしい (delicious) です (is)"),
         Phrase("p10", "🚆", "でんしゃでいきます。", "densha de ikimasu", "I'll go by train.", "でんしゃ (train) で (by means of) いきます (go)"),
         Phrase("p11", "⏳", "ちょっとまってください。", "chotto matte kudasai", "Please wait a moment.", "ちょっと (a little) まって (wait) ください (please)"),
-        Phrase("p12", "💝", "すきなものはなんですか。", "sukina mono wa nan desu ka", "What's your favorite thing?", "すきな (favorite) もの (thing) は (topic) なん (what) ですか (is?)")
+        Phrase("p12", "💝", "すきなものはなんですか。", "sukina mono wa nan desu ka", "What's your favorite thing?", "すきな (favorite) もの (thing) は (topic) なん (what) ですか (is?)"),
+        Phrase("p13", "🌅", "おはようございます。", "ohayou gozaimasu", "Good morning.", "おはよう (morning) + ございます (polite)", "शुभ प्रभात।"),
+        Phrase("p14", "🍽️", "いただきます。", "itadakimasu", "Let's eat! (before a meal)", "いただきます = humble form of 'I receive'", "खाने से पहले कहा जाने वाला धन्यवाद।"),
+        Phrase("p15", "🙏", "ごちそうさまでした。", "gochisousama deshita", "Thanks for the meal.", "ごちそうさま (feast) + でした (past polite)", "खाने के बाद धन्यवाद।"),
+        Phrase("p16", "🌙", "おやすみなさい。", "oyasuminasai", "Good night.", "おやすみ (rest) + なさい (soft command)", "शुभ रात्रि।"),
+        Phrase("p17", "👋", "またあした。", "mata ashita", "See you tomorrow.", "また (again) + あした (tomorrow)", "कल मिलते हैं।"),
+        Phrase("p18", "📛", "なまえはなんですか。", "namae wa nan desu ka", "What's your name?", "なまえ (name) は (topic) なん (what) ですか (is?)", "आपका नाम क्या है?"),
+        Phrase("p19", "📍", "どこからきましたか。", "doko kara kimashita ka", "Where are you from?", "どこ (where) から (from) きました (came) か (?)", "आप कहाँ से हैं?"),
+        Phrase("p20", "🗣️", "にほんごがすこしわかります。", "nihongo ga sukoshi wakarimasu", "I understand a little Japanese.", "にほんご (Japanese) が (subject) すこし (a little) わかります (understand)", "मुझे थोड़ी जापानी समझ आती है।"),
+        Phrase("p21", "🔁", "もういちどおねがいします。", "mou ichido onegaishimasu", "One more time, please.", "もういちど (once more) おねがいします (please)", "एक बार फिर, कृपया।"),
+        Phrase("p22", "🍻", "かんぱい！", "kanpai!", "Cheers!", "かんぱい = dry cup → 'cheers'", "चियर्स!"),
+        Phrase("p23", "👍", "それはいいですね。", "sore wa ii desu ne", "That's nice, isn't it.", "それ (that) は (topic) いい (good) ですね (right?)", "यह बहुत अच्छा है।"),
+        Phrase("p24", "🌏", "どこでしゅっしんですか。", "doko de shusshin desu ka", "Where are you originally from?", "どこ (where) で (in) しゅっしん (origin) ですか (is?)", "आपका गृहस्थान कहाँ है?")
     )
 
     val allPatterns = listOf(
@@ -653,6 +1210,306 @@ object Data {
                 PatternExample("📱", "I have a phone.", "アイ ハヴ ア フォン", "けいたいをもっています。"),
                 PatternExample("🐶", "She has two dogs.", "シー ハズ トゥー ドッグズ", "かのじょはいぬをにひきかっています。")
             )
+        ),
+        Pattern(
+            "jp15", "も — 'also / too'", "〜も — 「も」", "ja",
+            "も (mo) means 'also' or 'too'. Swap は for も to add extra information: 'I drink coffee' → 'I drink coffee TOO'.",
+            "は の代わりに も を使うと「〜も」という意味になります。",
+            listOf(
+                PatternExample("☕", "コーヒーものみます。", "koohii mo nomimasu", "I drink coffee too.", "मैं भी कॉफ़ी पीता हूँ।"),
+                PatternExample("🍎", "りんごもたべます。", "ringo mo tabemasu", "I also eat apples.", "मैं सेब भी खाता हूँ।")
+            ),
+            "も का अर्थ है 'भी'। は के स्थान पर も लगाने से वाक्य में 'भी' का भाव आता है।"
+        ),
+        Pattern(
+            "jp16", "〜ましょう — 'let's ~'", "〜ましょう — 「〜ましょう」", "ja",
+            "Change ます to ましょう to suggest doing something together: たべます (I eat) → たべましょう (let's eat).",
+            "ます を ましょう に変えて、一緒に何かをする提案をします。",
+            listOf(
+                PatternExample("🍜", "たべましょう。", "tabemashou", "Let's eat.", "चलो खाते हैं।"),
+                PatternExample("📚", "べんきょうしましょう。", "benkyou shimashou", "Let's study.", "चलो पढ़ाई करते हैं।")
+            ),
+            "ます को ましょう में बदलें — 'चलो करें' का प्रस्ताव।"
+        ),
+        Pattern(
+            "jp17", "〜てもいいです — 'may I / you can ~'", "〜てもいいです — 「〜てもいいです」", "ja",
+            "Te-form + もいいです gives permission: はいってもいいですか = May I come in?",
+            "て形 + もいいです で許可を表します。",
+            listOf(
+                PatternExample("🚪", "はいってもいいですか。", "haitte mo ii desu ka", "May I come in?", "क्या मैं अंदर आ सकता हूँ?"),
+                PatternExample("📷", "しゃしんをとってもいいですか。", "shashin wo totte mo ii desu ka", "May I take a photo?", "क्या मैं फ़ोटो ले सकता हूँ?")
+            ),
+            "て-form + もいいです = अनुमति माँगना या देना।"
+        ),
+        Pattern(
+            "jp18", "〜なければなりません — 'must ~'", "〜なければなりません — 「〜なければなりません」", "ja",
+            "Verb in negative 〜なければ + なりません = obligation: べんきょうしなければなりません = I must study.",
+            "否定形 + なりません で「〜しなければならない」という義務を表します。",
+            listOf(
+                PatternExample("📚", "べんきょうしなければなりません。", "benkyou shinakereba narimasen", "I must study.", "मुझे पढ़ाई करनी ही होगी।"),
+                PatternExample("😴", "ねなければなりません。", "nenakereba narimasen", "I must sleep.", "मुझे सोना ही होगा।")
+            ),
+            "〜なければなりません = 'करना ही होगा' (बाध्यता)।"
+        ),
+        Pattern(
+            "jp19", "〜てから — 'after doing ~'", "〜てから — 「〜てから」", "ja",
+            "Te-form + から = 'after ~': たべてから = after eating.",
+            "て形 + から で「〜してから」の意味です。",
+            listOf(
+                PatternExample("🛁", "おふろにはいってから、ねます。", "ofuro ni haitte kara, nemasu", "I sleep after taking a bath.", "नहाने के बाद सोता हूँ।"),
+                PatternExample("🍽️", "たべてから、おさらをあらいます。", "tabete kara, osara wo araimasu", "I wash the dishes after eating.", "खाने के बाद बर्तन धोता हूँ।")
+            ),
+            "て-form + から = 'करने के बाद'।"
+        ),
+        Pattern(
+            "jp20", "〜より のほうが — comparison", "〜より のほうが — 「〜より〜のほうが」", "ja",
+            "X より Y のほうが = Y is more ~ than X. さかなよりにくのほうがすきです = I like meat more than fish.",
+            "X より Y のほうが で「X よりも Y の方が」という比較を表します。",
+            listOf(
+                PatternExample("🍣", "すしよりラーメンのほうがすきです。", "sushi yori raamen no hou ga suki desu", "I like ramen more than sushi.", "मुझे सुशी से ज़्यादा रामेन पसंद है।"),
+                PatternExample("🐱", "ねこよりいぬのほうがかわいいです。", "neko yori inu no hou ga kawaii desu", "Dogs are cuter than cats.", "बिल्लियों से कुत्ते ज़्यादा प्यारे हैं।")
+            ),
+            "X より Y のほうが = Y, X से ज़्यादा / बेहतर।"
+        ),
+        Pattern(
+            "jp21", "〜がほしいです — 'I want (a thing)'", "〜がほしいです — 「〜が欲しいです」", "ja",
+            "ほしい (hoshii) = to want [a thing], marked with が: ほんがほしいです = I want a book.",
+            "ほしい は「物が欲しい」の意味。欲しいものは が で示します。",
+            listOf(
+                PatternExample("📖", "ほんがほしいです。", "hon ga hoshii desu", "I want a book.", "मुझे किताब चाहिए।"),
+                PatternExample("📱", "あたらしいけいたいがほしいです。", "atarashii keitai ga hoshii desu", "I want a new phone.", "मुझे नया फ़ोन चाहिए।")
+            ),
+            "〜がほしいです = 'मुझे चाहिए' (किसी चीज़ के लिए)।"
+        ),
+        Pattern(
+            "jp22", "〜でした — past of です", "〜でした — 「〜でした」", "ja",
+            "です → でした for the past: きのうはあめでした = Yesterday was rainy. Negative past: ではありませんでした.",
+            "です の過去形は でした。否定の過去は ではありませんでした です。",
+            listOf(
+                PatternExample("☔", "きのうはあめでした。", "kinou wa ame deshita", "Yesterday was rainy.", "कल बारिश थी।"),
+                PatternExample("🎉", "たのしかったです。", "tanoshikatta desu", "It was fun.", "बहुत मज़ा आया।")
+            ),
+            "です का भूतकाल रूप でした है।"
+        ),
+        Pattern(
+            "jp23", "〜てみます — 'try doing ~'", "〜てみます — 「〜てみます」", "ja",
+            "Te-form + みます = to try doing: たべてみます = I'll try (eating) it.",
+            "て形 + みます で「試しに〜する」という意味です。",
+            listOf(
+                PatternExample("🍜", "ラーメンをたべてみます。", "raamen wo tabete mimasu", "I'll try ramen.", "मैं रामेन चखूँगा।"),
+                PatternExample("👕", "このふくをきてみます。", "kono fuku wo kite mimasu", "I'll try on these clothes.", "मैं ये कपड़े पहनकर देखूँगा।")
+            ),
+            "て-form + みます = 'कोशिश करके देखना'।"
+        ),
+        Pattern(
+            "jp24", "〜から — 'because ~'", "〜から — 「〜から」", "ja",
+            "Put から after the reason clause: あついから = because it's hot. The reason comes first in Japanese.",
+            "理由の文の最後に から を付けます。日本語では理由が先に来ます。",
+            listOf(
+                PatternExample("🔥", "あついから、みずをのみます。", "atsui kara, mizu wo nomimasu", "Because it's hot, I drink water.", "गर्मी है इसलिए पानी पीता हूँ।"),
+                PatternExample("🛒", "やすかったから、かいました。", "yasukatta kara, kaimashita", "Because it was cheap, I bought it.", "सस्ता था इसलिए खरीद लिया।")
+            ),
+            "कारण बताने के लिए वाक्य के अंत में から लगाते हैं।"
+        ),
+        Pattern(
+            "jp25", "〜に — time particle", "〜に — 時間の助詞", "ja",
+            "に (ni) marks when something happens: くじにおきます = I wake up at 9. Not used with きょう, あした or every-day words.",
+            "時間を表す言葉に に を使います。今日・明日・毎日などには使いません。",
+            listOf(
+                PatternExample("⏰", "くじにおきます。", "kuji ni okimasu", "I wake up at 9.", "मैं नौ बजे उठता हूँ।"),
+                PatternExample("🎂", "ろくがつにたんじょうびです。", "rokugatsu ni tanjoubi desu", "My birthday is in June.", "मेरा जन्मदिन जून में है।")
+            ),
+            "समय बताने के लिए に लगता है (आज / कल / हर दिन के साथ नहीं)।"
+        ),
+        Pattern(
+            "jp26", "〜で — by means of / at a place", "〜で — 手段・場所の助詞", "ja",
+            "で (de) marks the tool, means or place of an action: でんしゃでいきます = go by train; こうえんであそびます = play in the park.",
+            "手段（でんしゃで）や場所（こうえんで）を表します。",
+            listOf(
+                PatternExample("🚋", "でんしゃでいきます。", "densha de ikimasu", "I go by train.", "मैं ट्रेन से जाता हूँ।"),
+                PatternExample("⚽", "こうえんでサッカーをします。", "kouen de sakkaa wo shimasu", "I play soccer in the park.", "मैं पार्क में फ़ुटबॉल खेलता हूँ।")
+            ),
+            "で से साधन ('से') या स्थान ('में') का भाव आता है।"
+        ),
+        Pattern(
+            "en13", "Present Simple — habits & facts", "現在形（習慣・事実）", "en",
+            "I/you/we/they + verb, he/she/it + verb-s: I work, she works. Used for habits (I drink tea every day) and facts (The sun rises in the east).",
+            "三人称単数（he/she/it）のとき動詞に s を付けます。習慣や事実に使います。",
+            listOf(
+                PatternExample("☕", "I drink tea every day.", "アイ ドリンク ティー エヴリ デイ", "まいにちおちゃをのみます。", "मैं हर दिन चाय पीता हूँ।"),
+                PatternExample("🏫", "She works at a school.", "シー ワークス アット ア スクール", "かのじょはがっこうではたらいています。", "वह स्कूल में काम करती है।")
+            ),
+            "आदतों और तथ्यों के लिए — he/she/it के साथ क्रिया में -s लगता है।"
+        ),
+        Pattern(
+            "en14", "Present Perfect — have/has + V3", "現在完了形", "en",
+            "have/has + past participle (V3): I have eaten, She has finished. Links the past to now — experience, result, or 'just/already/yet'.",
+            "過去の出来事が今につながっていることを表します。経験や結果に使います。",
+            listOf(
+                PatternExample("🍜", "I have eaten sushi.", "アイ ハヴ イートゥン スシ", "すしをたべたことがあります。", "मैंने सुशी खाई है।"),
+                PatternExample("✅", "She has finished her work.", "シー ハズ フィニッシュト ハー ワーク", "かのじょはしごとをおえました。", "उसने अपना काम ख़त्म कर लिया है।")
+            ),
+            "have/has + क्रिया का तीसरा रूप — अतीत का काम जो अब तक प्रासंगिक है ('कर चुका हूँ')।"
+        ),
+        Pattern(
+            "en15", "Present Perfect Continuous — have been + -ing", "現在完了進行形", "en",
+            "have/has been + -ing: I have been studying for 2 hours. For actions that started in the past and are still going on.",
+            "過去から始まって今も続いている動作に使います。",
+            listOf(
+                PatternExample("📚", "I have been studying for two hours.", "アイ ハヴ ビーン スタディング フォー トゥー アワーズ", "にじかんべんきょうしています。", "मैं दो घंटे से पढ़ रहा हूँ।"),
+                PatternExample("🌧️", "It has been raining all day.", "イット ハズ ビーン レイニング オール デイ", "いちにちじゅうあめがふっています。", "पूरे दिन बारिश हो रही है।")
+            ),
+            "have been + -ing — अतीत से शुरू होकर अब भी चल रहे काम के लिए।"
+        ),
+        Pattern(
+            "en16", "Past Continuous — was/were + -ing", "過去進行形", "en",
+            "was/were + -ing: I was reading when you called. For an action in progress at a past moment.",
+            "過去のある時点で進行中だった動作に使います。",
+            listOf(
+                PatternExample("📖", "I was reading when you called.", "アイ ワズ リーディング ウェン ユー コールド", "あなたがでんわしたときよんでいました。", "जब तुमने फ़ोन किया मैं पढ़ रहा था।"),
+                PatternExample("🍳", "She was cooking dinner.", "シー ワズ クッキング ディナー", "かのじょはばんごはんをつくっていました。", "वह रात का खाना बना रही थी।")
+            ),
+            "was/were + -ing — अतीत के किसी समय चल रहा काम।"
+        ),
+        Pattern(
+            "en17", "Past Perfect — had + V3", "過去完了形", "en",
+            "had + V3: I had already eaten before the party. Used for the earlier of two past events.",
+            "二つの過去の出来事のうち、より前に起きた方に使います。",
+            listOf(
+                PatternExample("🎉", "I had already eaten before the party.", "アイ ハド オールレディ イートゥン ビフォー ザ パーティー", "パーティーのまえにすでにたべていました。", "पार्टी से पहले मैं खा चुका था।"),
+                PatternExample("🏠", "They had left when we arrived.", "ゼイ ハド レフト ウェン ウィー アライヴド", "ついたときかれらはもうでていました。", "जब हम पहुँचे वे जा चुके थे।")
+            ),
+            "had + V3 — दो भूतकाल की घटनाओं में से पहली वाली के लिए।"
+        ),
+        Pattern(
+            "en18", "will — future predictions & decisions", "will 未来形", "en",
+            "will + verb: I will help you. Used for predictions (It will rain) and instant decisions (I'll take it!).",
+            "予測やその場での決断に使います。",
+            listOf(
+                PatternExample("🛒", "I'll take this one.", "アイ ウィル テイク ジス ワン", "これにします。", "मैं यह लूँगा।"),
+                PatternExample("🌧️", "It will rain tomorrow.", "イット ウィル レイン トゥモロー", "あしたはあめでしょう。", "कल बारिश होगी।")
+            ),
+            "will + क्रिया — भविष्यवाणी और तुरंत फ़ैसले के लिए।"
+        ),
+        Pattern(
+            "en19", "could / would / may — polite requests", "丁寧な依頼（could / would / may）", "en",
+            "Could you open the door? Would you help me? May I come in? These are softer and more polite than 'Can you…?'",
+            "Could / would / may はとても丁寧なお願いの表現です。",
+            listOf(
+                PatternExample("🚪", "Could you open the door?", "クッド ユー オウプン ザ ドア", "ドアをあけていただけますか。", "क्या आप दरवाज़ा खोल सकते हैं?"),
+                PatternExample("🆘", "Would you help me?", "ウッド ユー ヘルプ ミー", "てつだっていただけますか。", "क्या आप मेरी मदद करेंगे?")
+            ),
+            "could / would / may से विनम्र अनुरोध — 'Can you…' से ज़्यादा विनम्र।"
+        ),
+        Pattern(
+            "en20", "must / have to — obligation", "must / have to（義務）", "en",
+            "must + verb (strong, personal): I must study. have to (everyday): I have to go. Negative: mustn't = not allowed; don't have to = not necessary.",
+            "must は強い義務、have to は日常的な義務。",
+            listOf(
+                PatternExample("💊", "I must take my medicine.", "アイ マスト テイク マイ メディスン", "くすりをのまなければなりません。", "मुझे दवा लेनी ही होगी।"),
+                PatternExample("⏰", "I have to go now.", "アイ ハヴ トゥ ゴウ ナウ", "いまいかなくてはなりません。", "मुझे अभी जाना होगा।")
+            ),
+            "must = 'करना ही होगा' (अपनी ज़िम्मेदारी), have to = 'करना पड़ता है'।"
+        ),
+        Pattern(
+            "en21", "should — advice", "should（助言）", "en",
+            "should + verb = good idea: You should rest. You shouldn't worry.",
+            "should は「〜するべき」という助言に使います。",
+            listOf(
+                PatternExample("😴", "You should rest.", "ユー シュッド レスト", "やすむべきです。", "तुम्हें आराम करना चाहिए।"),
+                PatternExample("📖", "He should study more.", "ヒー シュッド スタディ モア", "かれはもっとべんきょうすべきです。", "उसे और पढ़ना चाहिए।")
+            ),
+            "should = 'करना चाहिए' — सलाह के लिए।"
+        ),
+        Pattern(
+            "en22", "Superlatives — the -est / most", "最上級（the -est / most）", "en",
+            "Short words: the biggest. Long words: the most beautiful. Always used with 'the'.",
+            "短い形容詞は the + est、長い形容詞は the most を使います。",
+            listOf(
+                PatternExample("🏔️", "This is the highest mountain.", "ジス イズ ザ ハイエスト マウンテン", "これはいちばんたかいやまです。", "यह सबसे ऊँचा पहाड़ है।"),
+                PatternExample("🌸", "She is the kindest person I know.", "シー イズ ザ カインデスト パーソン アイ ノウ", "かのじょはいちばんやさしいひとです。", "वह मेरी जानी सबसे दयालु इंसान है।")
+            ),
+            "सबसे ज़्यादा — छोटे शब्दों में -est, लंबे शब्दों में most।"
+        ),
+        Pattern(
+            "en23", "Conditionals — if sentences", "条件文（if）", "en",
+            "1st: If it rains, I will stay home. 2nd (hypothetical): If I were rich, I would travel. 3rd (past): If I had known, I would have come.",
+            "if 文で条件を表します。仮定には would を使います。",
+            listOf(
+                PatternExample("🌧️", "If it rains, I will stay home.", "イフ イット レインズ アイ ウィル ステイ ホーム", "あめならいえにいます。", "अगर बारिश हुई तो मैं घर पर रहूँगा।"),
+                PatternExample("💰", "If I were rich, I would travel.", "イフ アイ ワー リッチ アイ ウッド トラベル", "おかねもちならりょこうするのに。", "अगर मैं अमीर होता तो यात्रा करता।")
+            ),
+            "if = 'अगर'। काल्पनिक बातों के लिए would का प्रयोग।"
+        ),
+        Pattern(
+            "en24", "Passive voice — be + past participle", "受動態", "en",
+            "be + V3: The cake was eaten (by the dog). Focuses on the action or receiver, not the doer.",
+            "be動詞 + 過去分詞 で受動態を表します。動作を受ける側が主語になります。",
+            listOf(
+                PatternExample("🍰", "The cake was eaten.", "ザ ケイク ワズ イートゥン", "ケーキはたべられました。", "केक खा लिया गया।"),
+                PatternExample("🏗️", "This bridge was built in 2000.", "ジス ブリッジ ワズ ビルト イン トゥー サウザンド", "このはしは2000ねんにつくられました。", "यह पुल सन् 2000 में बनाया गया था।")
+            ),
+            "कर्मवाच्य — 'किया गया'। be + क्रिया का तीसरा रूप।"
+        ),
+        Pattern(
+            "en25", "Reported speech — 'she said…'", "間接話法", "en",
+            "Report what someone said, shifting the tense back: 'I am tired' → She said she was tired.",
+            "誰かの発言を伝えるとき、時制を一つ過去にずらします。",
+            listOf(
+                PatternExample("🗣️", "She said she was tired.", "シー セッド シー ワズ タイアド", "かのじょはつかれたと言いました。", "उसने कहा कि वह थकी हुई थी।"),
+                PatternExample("🧑", "He told me he would come.", "ヒー トールド ミー ヒー ウッド カム", "かれはくると言いました。", "उसने मुझसे कहा कि वह आएगा।")
+            ),
+            "किसी की बात दोहराते समय काल को एक पीछे ले जाते हैं।"
+        ),
+        Pattern(
+            "en26", "Gerunds & infinitives — -ing vs to + verb", "動名詞と不定詞", "en",
+            "Some verbs take -ing (enjoy reading), some take to + verb (want to go), and some change meaning (remember doing vs remember to do).",
+            "動詞によって -ing か to 不定詞のどちらかを取ります。",
+            listOf(
+                PatternExample("📚", "I enjoy reading books.", "アイ エンジョイ リーディング ブックス", "ほんをよむのがすきです。", "मुझे किताबें पढ़ना अच्छा लगता है।"),
+                PatternExample("✈️", "She wants to travel.", "シー ウォンツ トゥ トラベル", "かのじょはりょこうしたいです。", "वह यात्रा करना चाहती है।")
+            ),
+            "कुछ क्रियाओं के साथ -ing, कुछ के साथ to + क्रिया।"
+        ),
+        Pattern(
+            "en27", "too / enough", "too / enough", "en",
+            "too + adj = more than needed (too hot). adj + enough = sufficient (old enough, big enough).",
+            "too は「〜すぎる」、enough は「十分」の意味です。",
+            listOf(
+                PatternExample("🔥", "This tea is too hot.", "ジス ティー イズ トゥー ホット", "このおちゃはあつすぎます。", "यह चाय बहुत गर्म है।"),
+                PatternExample("🎂", "He is old enough to drive.", "ヒー イズ オウルド イナフ トゥ ドライヴ", "かれはうんてんできるおとしです。", "वह गाड़ी चलाने लायक़ है।")
+            ),
+            "too = बहुत ज़्यादा, enough = काफ़ी।"
+        ),
+        Pattern(
+            "en28", "used to — past habits", "used to（過去の習慣）", "en",
+            "used to + verb: I used to play soccer. For past habits that no longer happen.",
+            "過去にしていたが今はしていない習慣に使います。",
+            listOf(
+                PatternExample("⚽", "I used to play soccer.", "アイ ユーストゥ プレイ サッカー", "むかしサッカーをしていました。", "मैं पहले फ़ुटबॉल खेलता था।"),
+                PatternExample("🌙", "She used to live here.", "シー ユーストゥ リヴ ヒア", "かのじょはむかしここにすんでいました。", "वह पहले यहाँ रहती थी।")
+            ),
+            "used to = 'पहले करता था' (अब नहीं करता)।"
+        ),
+        Pattern(
+            "en29", "Question tags — '…, isn't it?'", "付加疑問文", "en",
+            "Positive statement + negative tag (You're tired, aren't you?) or negative + positive (It isn't cold, is it?).",
+            "肯定文 + 否定の付加疑問、否定文 + 肯定の付加疑問で確認を求めます。",
+            listOf(
+                PatternExample("🥱", "You're tired, aren't you?", "ヨーア タイアド アーント ユー", "つかれていますね。", "तुम थके हुए हो, है ना?"),
+                PatternExample("🌞", "It's a nice day, isn't it?", "イッツ ア ナイス デイ イズント イット", "いいおてんきですね。", "आज अच्छा दिन है, है ना?")
+            ),
+            "पुष्टि के लिए — 'है ना?' जैसे प्रश्न।"
+        ),
+        Pattern(
+            "en30", "Relative clauses — who / which / that", "関係詞（who / which / that）", "en",
+            "The person WHO called, the book WHICH/THAT I bought. Adds a description to a noun.",
+            "名詞の後ろに説明を付けます。人は who、物は which / that。",
+            listOf(
+                PatternExample("📞", "The person who called is my friend.", "ザ パーソン フー コールド イズ マイ フレンド", "でんわしたひとはともだちです。", "जिसने फ़ोन किया वह मेरा दोस्त है।"),
+                PatternExample("📖", "The book that I bought is interesting.", "ザ ブック ザット アイ ボート イズ インタレスティング", "かったほんはおもしろいです。", "जो किताब मैंने खरीदी वह दिलचस्प है।")
+            ),
+            "संज्ञा के बाद विवरण जोड़ने के लिए — who (व्यक्ति), which / that (वस्तु)।"
         )
     )
 }

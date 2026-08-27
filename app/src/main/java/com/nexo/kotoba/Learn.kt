@@ -61,14 +61,24 @@ data class QuizOption(val emoji: String, val label: String)
 @Composable
 fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var showKana by remember { mutableStateOf(false) }
+    var showKanji by remember { mutableStateOf(false) }
+    var showAlphabet by remember { mutableStateOf(false) }
     var openLesson by remember { mutableStateOf<Lesson?>(null) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
-    ) {
+    val learningJa = store.direction != Direction.ENGLISH
+    val learningEn = store.direction != Direction.JAPANESE
+
+    when {
+        showKana -> KanaScreen(store, speaker, modifier, onClose = { showKana = false })
+        showKanji -> KanjiScreen(store, speaker, modifier, onClose = { showKanji = false })
+        showAlphabet -> AlphabetScreen(store, speaker, modifier, onClose = { showAlphabet = false })
+        openLesson != null -> LessonFlow(store, speaker, openLesson!!, modifier, onClose = { openLesson = null })
+        else -> Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
         Text("Learn", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
         Text(
             "Master the writing system, then build vocabulary by topic.",
@@ -77,17 +87,46 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(20.dp))
 
-        KanaModuleCard(store, onClick = { showKana = true })
+        if (learningJa) {
+            KanaModuleCard(store, onClick = { showKana = true })
+            Spacer(Modifier.height(12.dp))
+            KanjiModuleCard(store, onClick = { showKanji = true })
+        }
+        if (learningEn) {
+            Spacer(Modifier.height(12.dp))
+            AlphabetModuleCard(store, onClick = { showAlphabet = true })
+        }
         Spacer(Modifier.height(24.dp))
+
+        val jaLessons = Data.allLessons.filter { it.lang == "ja" }
+        val enLessons = Data.allLessons.filter { it.lang == "en" }
+        val visible = (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList())
 
         Text("Lessons", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(
-            "${store.completedLessons.size}/${Data.allLessons.size} completed",
+            "${store.completedLessons.size}/${visible.size} completed",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
-        Data.allLessons.forEach { lesson ->
+        if (learningJa && learningEn) {
+            Text("Japanese", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+        }
+        jaLessons.forEach { lesson ->
+            LessonRow(
+                lesson = lesson,
+                done = lesson.id in store.completedLessons,
+                onClick = { openLesson = lesson }
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        if (learningEn && enLessons.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            Text("English", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+        }
+        enLessons.forEach { lesson ->
             LessonRow(
                 lesson = lesson,
                 done = lesson.id in store.completedLessons,
@@ -106,10 +145,8 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(10.dp))
         PhraseList(store, speaker)
         Spacer(Modifier.height(24.dp))
+        }
     }
-
-    if (showKana) KanaScreen(store, speaker, onClose = { showKana = false })
-    openLesson?.let { l -> LessonFlow(store, speaker, l, onClose = { openLesson = null }) }
 }
 
 @Composable
@@ -147,6 +184,90 @@ private fun KanaModuleCard(store: Store, onClick: () -> Unit) {
                     "Start kana →",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KanjiModuleCard(store: Store, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { store.kanjiProgress() / 100f },
+                    modifier = Modifier.size(72.dp),
+                    strokeWidth = 8.dp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surface
+                )
+                Text("${store.kanjiProgress()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Kanji (N5)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "47 essential kanji with readings and picture stories.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Start kanji →",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlphabetModuleCard(store: Store, onClick: () -> Unit) {
+    val learned = AlphabetData.alphabet.count { it.letter in store.learnedKana }
+    val pct = if (AlphabetData.alphabet.isEmpty()) 0 else learned * 100 / AlphabetData.alphabet.size
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+    ) {
+        Row(
+            Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    progress = { pct / 100f },
+                    modifier = Modifier.size(72.dp),
+                    strokeWidth = 8.dp,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    trackColor = MaterialTheme.colorScheme.surface
+                )
+                Text("$pct%", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text("English Alphabet", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "A to Z with sounds and example words — perfect for beginners.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Start ABC →",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }
@@ -216,7 +337,7 @@ private fun PhraseList(store: Store, speaker: Speaker) {
                 }
                 if (expanded == p.id) {
                     Spacer(Modifier.height(10.dp))
-                    Text(p.en, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Text(p.glossFor(store.nativeLang), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(6.dp))
                     Text(
                         p.chunks,
@@ -231,7 +352,7 @@ private fun PhraseList(store: Store, speaker: Speaker) {
 }
 
 @Composable
-private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: () -> Unit) {
+private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifier = Modifier, onClose: () -> Unit) {
     val words = lesson.words
     var introIndex by remember { mutableStateOf(0) }
     var quiz by remember { mutableStateOf<List<QuizQuestion>?>(null) }
@@ -240,7 +361,7 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
     var score by remember { mutableStateOf(0) }
     var finished by remember { mutableStateOf(false) }
 
-    val targetJa = store.direction != Direction.ENGLISH
+    val targetJa = lesson.lang != "en"
 
     fun buildQuiz(): List<QuizQuestion> {
         val rnd = java.util.Random()
@@ -262,7 +383,11 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
                 options = options.map { o ->
                     QuizOption(
                         emoji = o.emoji,
-                        label = if (targetJa) (if (store.showTranslations) o.en else "") else o.kana + (if (store.showRomaji) "\n" + o.romaji else "")
+                        label = when {
+                            store.showTranslations -> o.glossFor(store.nativeLang)
+                            targetJa -> o.romaji
+                            else -> ""
+                        }
                     )
                 },
                 correct = correct
@@ -270,6 +395,7 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
         }
     }
 
+    Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
     when {
         finished -> {
             ResultStage(
@@ -301,7 +427,7 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
                     }
                     Text("${introIndex + 1}/${words.size}", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { quiz = buildQuiz() }) { Text("Skip intro →") }
+                    TextButton(onClick = { quiz = buildQuiz() }) { Text("Skip intro") }
                 }
 
                 Card(
@@ -331,7 +457,7 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
                         if (store.showTranslations) {
                             Spacer(Modifier.height(14.dp))
                             Text(
-                                if (targetJa) "= ${w.en}" else "= ${w.kana}",
+                                "= ${w.glossFor(store.nativeLang)}",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
@@ -474,6 +600,7 @@ private fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, onClose: 
                 }
             }
         }
+    }
     }
 }
 

@@ -58,7 +58,11 @@ fun HomeScreen(
             fontWeight = FontWeight.ExtraBold
         )
         Text(
-            "Learn Japanese & English — no bridge language needed",
+            "Learn ${when (store.direction) {
+                Direction.JAPANESE -> "Japanese"
+                Direction.ENGLISH -> "English"
+                Direction.BOTH -> "Japanese & English"
+            }} — explained in ${nativeName(store.nativeLang)}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

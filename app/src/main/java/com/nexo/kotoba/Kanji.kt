@@ -18,28 +18,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,19 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
-    var tab by remember { mutableStateOf(0) }
+fun KanjiScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
     var quizMode by remember { mutableStateOf(false) }
 
-    val sets = listOf(
-        "Hiragana" to KanaData.hiragana,
-        "Katakana" to KanaData.katakana,
-        "Hiragana⁺" to KanaData.hiraganaDakuon,
-        "Katakana⁺" to KanaData.katakanaDakuon
-    )
-
     if (quizMode) {
-        KanaQuiz(store, speaker, sets[tab].second, modifier, onExit = { quizMode = false })
+        KanjiQuiz(store, modifier, onExit = { quizMode = false })
         return
     }
 
@@ -75,44 +61,32 @@ fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, on
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
             Column {
-                Text("Kana", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                Text("Kanji", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(
-                    "Master the Japanese sound system — each character is one sound.",
+                    "N5 essentials — the 47 kanji that unlock everyday Japanese.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { quizMode = true }) {
-                Icon(Icons.Filled.Quiz, contentDescription = "Kana quiz")
+                Icon(Icons.Filled.Quiz, contentDescription = "Kanji quiz")
             }
         }
         Spacer(Modifier.height(12.dp))
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            sets.forEachIndexed { i, (name, _) ->
-                FilterChip(
-                    selected = tab == i,
-                    onClick = { tab = i },
-                    label = { Text(name) }
-                )
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-
-        val chars = sets[tab].second
         LazyVerticalGrid(
-            columns = GridCells.Fixed(5),
+            columns = GridCells.Fixed(4),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(chars) { c ->
-                val learned = c.id in store.learnedKana
+            items(KanjiData.all) { k ->
+                val learned = k.id in store.learnedKana
                 var showDetail by remember { mutableStateOf(false) }
                 Card(
                     modifier = Modifier
-                        .aspectRatio(0.85f)
+                        .aspectRatio(1f)
                         .clickable { showDetail = true },
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
@@ -125,8 +99,13 @@ fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, on
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(c.kana, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                            Text(c.romaji, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(k.kanji, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                k.meaning,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
                         }
                         if (learned) {
                             Icon(
@@ -139,11 +118,10 @@ fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, on
                     }
                 }
                 if (showDetail) {
-                    KanaDetailDialog(
-                        c = c,
+                    KanjiDetailDialog(
+                        k = k,
                         learned = learned,
                         store = store,
-                        speaker = speaker,
                         onDismiss = { showDetail = false }
                     )
                 }
@@ -153,34 +131,41 @@ fun KanaScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, on
 }
 
 @Composable
-private fun KanaDetailDialog(
-    c: KanaChar,
+private fun KanjiDetailDialog(
+    k: KanjiChar,
     learned: Boolean,
     store: Store,
-    speaker: Speaker,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Text(c.kana, fontSize = 72.sp, fontWeight = FontWeight.ExtraBold)
-                Text(c.romaji, style = MaterialTheme.typography.titleMedium)
+                Text(k.kanji, fontSize = 72.sp, fontWeight = FontWeight.ExtraBold)
+                Text(k.meaning, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
         },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(c.mnemonic, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "ON: ${k.onyomi}   KUN: ${k.kunyomi}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    k.story,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         },
         confirmButton = {
             Row {
-                FilledIconButton(onClick = { speak(store, speaker, c.kana, true) }) {
-                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
-                }
-                Spacer(Modifier.width(10.dp))
                 Button(onClick = {
-                    store.toggleKana(c.id)
+                    store.toggleKana(k.id)
                     onDismiss()
                 }) {
                     Icon(Icons.Filled.Check, contentDescription = null)
@@ -195,28 +180,20 @@ private fun KanaDetailDialog(
 }
 
 @Composable
-private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modifier: Modifier = Modifier, onExit: () -> Unit) {
+private fun KanjiQuiz(store: Store, modifier: Modifier = Modifier, onExit: () -> Unit) {
     val rnd = remember { java.util.Random() }
     val questions = remember {
-        chars.shuffled(rnd).take(10).map { w ->
-            val audioOnly = rnd.nextBoolean()
-            val distractors = chars.filter { it.id != w.id }.shuffled(rnd).take(3)
+        KanjiData.all.shuffled(rnd).take(10).map { w ->
+            val showMeaning = rnd.nextBoolean()
+            val distractors = KanjiData.all.filter { it.id != w.id }.shuffled(rnd).take(3)
             val options = (distractors + w).shuffled(rnd)
-            Triple(audioOnly, options, options.indexOf(w))
+            Triple(showMeaning, options, options.indexOf(w))
         }
     }
     var index by remember { mutableStateOf(0) }
     var picked by remember { mutableStateOf<Int?>(null) }
     var score by remember { mutableStateOf(0) }
     var done by remember { mutableStateOf(false) }
-
-    val (audioOnly, options, correct) = questions[index]
-
-    if (!done) {
-        LaunchedEffect(index) {
-            if (audioOnly) speak(store, speaker, questions[index].second[questions[index].third].kana, true)
-        }
-    }
 
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,13 +213,14 @@ private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modi
             ) {
                 Text("🏆", fontSize = 64.sp)
                 Spacer(Modifier.height(12.dp))
-                Text("Kana quiz finished!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
+                Text("Kanji quiz finished!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(6.dp))
                 Text("Score: $score / 10", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(20.dp))
-                Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Back to kana") }
+                Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Back to kanji") }
             }
         } else {
+            val (showMeaning, options, correct) = questions[index]
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -252,21 +230,17 @@ private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modi
                     Modifier.fillMaxWidth().padding(vertical = 26.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (audioOnly) {
-                        Text("🔊 Listen", fontSize = 26.sp)
-                        Spacer(Modifier.height(6.dp))
-                        FilledIconButton(onClick = {
-                            speak(store, speaker, questions[index].second[questions[index].third].kana, true)
-                        }) {
-                            Icon(Icons.Filled.VolumeUp, contentDescription = "Hear again")
-                        }
-                    } else {
+                    if (showMeaning) {
                         Text(
-                            options[correct].romaji,
-                            fontSize = 34.sp,
-                            fontWeight = FontWeight.ExtraBold
+                            options[correct].meaning,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center
                         )
-                        Text("which character?", style = MaterialTheme.typography.bodyMedium)
+                        Text("which kanji? (ON: ${options[correct].onyomi})", style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        Text(options[correct].kanji, fontSize = 56.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("what does it mean?", style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -299,9 +273,11 @@ private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modi
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(opt.kana, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.width(10.dp))
-                        Text(opt.romaji, style = MaterialTheme.typography.bodyLarge)
+                        if (showMeaning) {
+                            Text(opt.kanji, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                        } else {
+                            Text(opt.meaning, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }
