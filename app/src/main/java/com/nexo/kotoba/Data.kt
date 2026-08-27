@@ -20,7 +20,8 @@ data class Lesson(
     val desc: String,
     val words: List<Word>,
     val lang: String = "ja",
-    val level: String = ""
+    val level: String = "",
+    val source: String = ""
 )
 
 data class Phrase(
@@ -50,7 +51,8 @@ data class Pattern(
     val ruleJa: String,
     val examples: List<PatternExample>,
     val ruleHi: String = "",
-    val level: String = ""
+    val level: String = "",
+    val source: String = ""
 )
 
 data class KanjiChar(
@@ -941,7 +943,8 @@ object Data {
             lang = "en"
         )
     ) + JpN5.lessons + JpN4.lessons + JpN3.lessons + JpN2.lessons + JpN1.lessons +
-        EnA1.lessons + EnA2.lessons + EnB1.lessons + EnB2.lessons + EnC1.lessons + EnC2.lessons
+        EnA1.lessons + EnA2.lessons + EnB1.lessons + EnB2.lessons + EnC1.lessons + EnC2.lessons +
+        Genki.lessons + Jfz.lessons + KanjiWords.categories + Oxford.lessons
 
     val allWords: List<Word> = allLessons.flatMap { it.words }
 
@@ -1515,5 +1518,6 @@ object Data {
             "संज्ञा के बाद विवरण जोड़ने के लिए — who (व्यक्ति), which / that (वस्तु)।"
         )
     ) + JpN5.patterns + JpN4.patterns + JpN3.patterns + JpN2.patterns + JpN1.patterns +
-        EnA1.patterns + EnA2.patterns + EnB1.patterns + EnB2.patterns + EnC1.patterns + EnC2.patterns
+        EnA1.patterns + EnA2.patterns + EnB1.patterns + EnB2.patterns + EnC1.patterns + EnC2.patterns +
+        Genki.patterns + Jfz.patterns
 }

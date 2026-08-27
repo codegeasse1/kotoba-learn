@@ -58,7 +58,7 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
 
         Text("Japanese patterns", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Data.allPatterns.filter { it.lang == "ja" }.groupBy { Levels.ofPattern(it) }
+        Data.allPatterns.filter { it.lang == "ja" && it.source.isEmpty() }.groupBy { Levels.ofPattern(it) }
             .toSortedMap(compareBy { Levels.order(it) })
             .forEach { (lv, ps) ->
                 Text(
@@ -75,10 +75,26 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                 Spacer(Modifier.height(10.dp))
             }
 
+        Spacer(Modifier.height(12.dp))
+        Text("Genki Textbook 1 grammar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        Genki.patterns.forEach { p ->
+            PatternRow(p, onClick = { open = p })
+            Spacer(Modifier.height(8.dp))
+        }
+        Spacer(Modifier.height(12.dp))
+        Text("Japanese From Zero grammar", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        Jfz.patterns.forEach { p ->
+            PatternRow(p, onClick = { open = p })
+            Spacer(Modifier.height(8.dp))
+        }
+        Spacer(Modifier.height(12.dp))
+
         Spacer(Modifier.height(20.dp))
         Text("English patterns", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Data.allPatterns.filter { it.lang == "en" }.groupBy { Levels.ofPattern(it) }
+        Data.allPatterns.filter { it.lang == "en" && it.source.isEmpty() }.groupBy { Levels.ofPattern(it) }
             .toSortedMap(compareBy { Levels.order(it) })
             .forEach { (lv, ps) ->
                 Text(

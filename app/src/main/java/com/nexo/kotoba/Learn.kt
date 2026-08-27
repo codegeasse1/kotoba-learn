@@ -98,9 +98,11 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(24.dp))
 
-        val jaLessons = Data.allLessons.filter { it.lang == "ja" }
-        val enLessons = Data.allLessons.filter { it.lang == "en" }
-        val visible = (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList())
+        val jaLessons = Data.allLessons.filter { it.lang == "ja" && it.source.isEmpty() }
+        val enLessons = Data.allLessons.filter { it.lang == "en" && it.source.isEmpty() }
+        val jaExtra = if (learningJa) Genki.lessons + Jfz.lessons + KanjiWords.categories else emptyList()
+        val enExtra = if (learningEn) Oxford.lessons else emptyList()
+        val visible = (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList()) + jaExtra + enExtra
 
         fun levelGroups(lang: String): List<Pair<String, List<Lesson>>> {
             val byLevel = (if (lang == "ja") jaLessons else enLessons).groupBy { Levels.ofLesson(it) }
@@ -140,6 +142,35 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
                     )
                     Spacer(Modifier.height(8.dp))
                 }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+
+        if (learningJa) {
+            Spacer(Modifier.height(12.dp))
+            SectionHeader("📗 Genki Textbook 1", "Official Genki 1 vocabulary — 12 lessons with grammar notes")
+            Genki.lessons.forEach { lesson ->
+                LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
+                Spacer(Modifier.height(8.dp))
+            }
+            Spacer(Modifier.height(12.dp))
+            SectionHeader("📖 Japanese From Zero", "Book 1 vocabulary — pre-lessons plus 13 lessons")
+            Jfz.lessons.forEach { lesson ->
+                LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
+                Spacer(Modifier.height(8.dp))
+            }
+            Spacer(Modifier.height(12.dp))
+            SectionHeader("🗾 5000 Kanji Words", "Kanji vocabulary by theme — 20 categories, daily life to advanced")
+            KanjiWords.categories.forEach { lesson ->
+                LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        if (learningEn && enExtra.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            SectionHeader("🇬🇧 Oxford 5000", "The official Oxford 5000 word list — A1 to C1, with Hindi meanings")
+            Oxford.lessons.forEach { lesson ->
+                LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
                 Spacer(Modifier.height(8.dp))
             }
         }
@@ -297,6 +328,17 @@ private fun LevelHeader(level: String, subtitle: String) {
             )
         }
     }
+    Spacer(Modifier.height(6.dp))
+}
+
+@Composable
+private fun SectionHeader(title: String, subtitle: String) {
+    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    Text(
+        subtitle,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
     Spacer(Modifier.height(6.dp))
 }
 
