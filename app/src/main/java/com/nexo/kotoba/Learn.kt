@@ -68,6 +68,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var showAlphabet by remember { mutableStateOf(false) }
     var openLesson by remember { mutableStateOf<Lesson?>(null) }
     var openCat by remember { mutableStateOf<SentenceCategory?>(null) }
+    var openRoleplay by remember { mutableStateOf<Roleplay?>(null) }
     val scroll = rememberScrollState()
 
     val learningJa = store.direction != Direction.ENGLISH
@@ -78,6 +79,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         showKanji -> KanjiScreen(store, speaker, modifier, onClose = { showKanji = false })
         showAlphabet -> AlphabetScreen(store, speaker, modifier, onClose = { showAlphabet = false })
         openCat != null -> SentenceCategoryScreen(openCat!!, store, speaker, onClose = { openCat = null })
+        openRoleplay != null -> RoleplayScreen(openRoleplay!!, store, speaker, onClose = { openRoleplay = null })
         openLesson != null -> LessonExplore(store, speaker, openLesson!!, modifier, onClose = { openLesson = null })
         else -> Column(
             modifier = modifier
@@ -179,6 +181,47 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
                 LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
                 Spacer(Modifier.height(8.dp))
             }
+        }
+
+        val wbLessons = WordBank.lessons.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }
+        if (wbLessons.isNotEmpty()) {
+            Spacer(Modifier.height(12.dp))
+            SectionHeader("🔥 Vocabulary Bank", "1,100+ everyday words in 14 topics plus numbers 1-100 — most frequent words first")
+            wbLessons.forEach { lesson ->
+                LessonRow(lesson = lesson, done = lesson.id in store.completedLessons, onClick = { openLesson = lesson })
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        SectionHeader("🎭 Roleplay Conversations", "Practice real two-person dialogues with translations and native audio")
+        Roleplay.all.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }.forEach { rp ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { openRoleplay = rp },
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(rp.emoji, fontSize = 30.sp)
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(rp.title, fontWeight = FontWeight.Bold)
+                        Text(
+                            rp.desc,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                        Text(
+                            "${rp.turns.size} stages · ${rp.lang.uppercase()}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Text("▶", fontSize = 18.sp)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
         }
         Spacer(Modifier.height(24.dp))
 

@@ -962,7 +962,7 @@ object Data {
         )
     ) + JpN5.lessons + JpN4.lessons + JpN3.lessons + JpN2.lessons + JpN1.lessons +
         EnA1.lessons + EnA2.lessons + EnB1.lessons + EnB2.lessons + EnC1.lessons + EnC2.lessons +
-        Genki.lessons + Jfz.lessons + KanjiWords.categories + Oxford.lessons
+        Genki.lessons + Jfz.lessons + KanjiWords.categories + Oxford.lessons + WordBank.lessons
 
     val allWords: List<Word> = allLessons.flatMap { it.words }
 
