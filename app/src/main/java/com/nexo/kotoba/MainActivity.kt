@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val store = Store(applicationContext)
         store.load()
+        KanjiData.init(applicationContext)
         speaker = Speaker(applicationContext)
 
         setContent {

@@ -1,5 +1,7 @@
 package com.nexo.kotoba
 
+import android.content.Context
+
 data class KanaChar(val id: String, val kana: String, val romaji: String, val mnemonic: String)
 
 data class Word(
@@ -79,7 +81,9 @@ data class KanjiChar(
     val meaning: String,
     val onyomi: String,
     val kunyomi: String,
-    val story: String
+    val jlpt: String,
+    val grade: Int,
+    val strokes: Int
 )
 
 data class AlphabetChar(
@@ -253,58 +257,27 @@ object KanaData {
 
 object KanjiData {
 
-    val kanji = listOf(
-        KanjiChar("kj1", "日", "sun / day", "ニチ・ジツ", "ひ・か", "A box with a line through it — the sun shining through a window. 日 also means 'day'."),
-        KanjiChar("kj2", "月", "moon / month", "ゲツ・ガツ", "つき", "The crescent moon shape. Two small strokes inside are the moon's shadow."),
-        KanjiChar("kj3", "火", "fire", "カ", "ひ", "A person standing between two flames — fire rising on both sides."),
-        KanjiChar("kj4", "水", "water", "スイ", "みず", "Four streams of running water, splashing off a surface."),
-        KanjiChar("kj5", "木", "tree / wood", "モク・ボク", "き", "A tree: the vertical stroke is the trunk, branches spread above, roots below."),
-        KanjiChar("kj6", "金", "gold / money", "キン・コン", "かね", "Gold nuggets ('八' below) under a lid ('人') in the ground — gold, hence money."),
-        KanjiChar("kj7", "土", "soil / ground", "ド・ト", "つち", "A seed ('十') planted in the ground (the horizontal bar)."),
-        KanjiChar("kj8", "山", "mountain", "サン", "やま", "Three mountain peaks side by side."),
-        KanjiChar("kj9", "川", "river", "セン", "かわ", "Three flowing lines of a river — the middle one curves like a stream."),
-        KanjiChar("kj10", "人", "person", "ジン・ニン", "ひと", "A person walking: two legs stepping forward."),
-        KanjiChar("kj11", "口", "mouth", "コウ", "くち", "An open mouth — a simple square."),
-        KanjiChar("kj12", "目", "eye", "モク", "め", "An upright eye: the two inner lines are the pupil lines."),
-        KanjiChar("kj13", "耳", "ear", "ジ", "みみ", "An ear seen from the side: the box is the outer ear, the lines the inner fold."),
-        KanjiChar("kj14", "手", "hand", "シュ", "て", "A hand from above: the horizontal strokes are fingers, the lower hook is the thumb."),
-        KanjiChar("kj15", "足", "foot / leg", "ソク", "あし", "A foot on a leg: the '口' is the knee, the lower strokes the foot."),
-        KanjiChar("kj16", "心", "heart", "シン", "こころ", "A stylized heart with three strokes showing its chambers."),
-        KanjiChar("kj17", "大", "big", "ダイ・タイ", "おおきい", "A person ('人') stretching arms wide — big!"),
-        KanjiChar("kj18", "小", "small", "ショウ", "ちいさい", "Three small strokes — little specks or a tiny tree."),
-        KanjiChar("kj19", "中", "middle / inside", "チュウ", "なか", "A line passing through the middle of a box."),
-        KanjiChar("kj20", "上", "up / above", "ジョウ", "うえ", "A short line above a baseline — pointing up."),
-        KanjiChar("kj21", "下", "down / below", "カ・ゲ", "した", "A short line below a baseline — pointing down."),
-        KanjiChar("kj22", "右", "right", "ウ・ユウ", "みぎ", "The right hand ('口') holding something to the mouth — the hand you eat with."),
-        KanjiChar("kj23", "左", "left", "サ", "ひだり", "The left hand ('工') holding a tool to build — the hand you work with."),
-        KanjiChar("kj24", "一", "one", "イチ", "ひと", "One stroke."),
-        KanjiChar("kj25", "二", "two", "ニ", "ふた", "Two strokes."),
-        KanjiChar("kj26", "三", "three", "サン", "みっ", "Three strokes."),
-        KanjiChar("kj27", "四", "four", "シ", "よん", "A window with four panes."),
-        KanjiChar("kj28", "五", "five", "ゴ", "いつ", "Four strokes meeting — the number five's outline."),
-        KanjiChar("kj29", "六", "six", "ロク", "むっ", "A point on top and two legs — the number six."),
-        KanjiChar("kj30", "七", "seven", "シチ", "なな", "A cross with a bent bottom stroke — like a seven."),
-        KanjiChar("kj31", "八", "eight", "ハチ", "やっ", "Two pieces splitting apart — eight."),
-        KanjiChar("kj32", "九", "nine", "キュウ", "ここの", "A curved hook — like a nine."),
-        KanjiChar("kj33", "十", "ten", "ジュウ", "とお", "A cross — ten."),
-        KanjiChar("kj34", "百", "hundred", "ヒャク", "", "One ('一') over 'white' ('白') — a hundred."),
-        KanjiChar("kj35", "千", "thousand", "セン", "", "'Ten' ('十') with a slash — a thousand."),
-        KanjiChar("kj36", "円", "yen / circle", "エン", "まる", "A circle with a mark inside — the yen symbol made into a character."),
-        KanjiChar("kj37", "学", "study / learn", "ガク", "まなぶ", "A child ('子') under a roof, hands up to learn — school."),
-        KanjiChar("kj38", "校", "school", "コウ", "", "'Tree' ('木') plus a cross — a school (study place)."),
-        KanjiChar("kj39", "生", "life / birth", "セイ・ショウ", "いきる", "A plant growing up out of the ground — life."),
-        KanjiChar("kj40", "時", "time / hour", "ジ", "とき", "The sun ('日') next to a temple ('寺') — time marked by the sun."),
-        KanjiChar("kj41", "年", "year", "ネン", "とし", "Grain stalks being harvested — a year's cycle."),
-        KanjiChar("kj42", "先", "ahead / teacher", "セン", "さき", "'Legs' ('儿') on the ground ahead — what comes before."),
-        KanjiChar("kj43", "電", "electricity", "デン", "", "Rain ('雨') over a field with a line — electricity from rain."),
-        KanjiChar("kj44", "車", "car / vehicle", "シャ", "くるま", "A car seen from above: body, wheels, and an axle."),
-        KanjiChar("kj45", "町", "town", "チョウ", "まち", "A town: a road with small plots on both sides."),
-        KanjiChar("kj46", "語", "language / word", "ゴ", "かたる", "Words ('言') with many mouths ('口') — language."),
-        KanjiChar("kj47", "本", "book / origin", "ホン", "もと", "A tree with its root marked — the origin, hence a book.")
-    )
+    @Volatile private var cache: List<KanjiChar>? = null
 
-    val all: List<KanjiChar> = kanji
-    val allIds: Set<String> = all.map { it.id }.toSet()
+    val all: List<KanjiChar> get() = cache ?: emptyList()
+    val allIds: Set<String> get() = all.mapTo(mutableSetOf()) { it.id }
+
+    fun init(context: Context) {
+        if (cache != null) return
+        synchronized(this) {
+            if (cache != null) return
+            cache = try {
+                context.assets.open("kanji.tsv").bufferedReader().use { reader ->
+                    reader.lineSequence().filter { it.isNotBlank() }.map { line ->
+                        val c = line.split("\t")
+                        KanjiChar(c[0], c[0], c[1], c[2], c[3], c[4], c.getOrElse(5) { "" }.toIntOrNull() ?: 0, c.getOrElse(6) { "" }.toIntOrNull() ?: 0)
+                    }.toList()
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
 }
 
 object AlphabetData {

@@ -24,7 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,30 +34,57 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private const val PAGE_SIZE = 50
+
 @Composable
 fun KanjiScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
+    val context = LocalContext.current
+    KanjiData.init(context)
     var quizMode by remember { mutableStateOf(false) }
 
     if (quizMode) {
         KanjiQuiz(store, modifier, onExit = { quizMode = false })
         return
     }
+
+    val all = KanjiData.all
+    var query by remember { mutableStateOf("") }
+    var page by remember { mutableIntStateOf(0) }
+    LaunchedEffect(query) { page = 0 }
+
+    val filtered = remember(all, query) {
+        val q = query.trim().lowercase()
+        if (q.isEmpty()) all
+        else all.filter { k ->
+            k.kanji.contains(q) || k.meaning.lowercase().contains(q) ||
+                k.onyomi.lowercase().contains(q) || k.kunyomi.lowercase().contains(q)
+        }
+    }
+    val pages = maxOf(1, (filtered.size + PAGE_SIZE - 1) / PAGE_SIZE)
+    val effPage = minOf(page, pages - 1)
+    val pageItems = if (filtered.isEmpty()) emptyList()
+    else filtered.subList(effPage * PAGE_SIZE, minOf((effPage + 1) * PAGE_SIZE, filtered.size))
 
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -65,7 +94,7 @@ fun KanjiScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, o
             Column {
                 Text("Kanji", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                 Text(
-                    "N5 essentials — the 47 kanji that unlock everyday Japanese.",
+                    "All ${all.size} Jōyō kanji — 50 per page, search any word or reading.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,56 +106,115 @@ fun KanjiScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, o
         }
         Spacer(Modifier.height(12.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(4),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(KanjiData.all) { k ->
-                val learned = k.id in store.learnedKana
-                var showDetail by remember { mutableStateOf(false) }
-                Card(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clickable { showDetail = true },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (learned) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface
-                    )
-                ) {
-                    Box(
-                        Modifier.fillMaxSize().padding(4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(k.kanji, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                            Text(
-                                k.meaning,
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
-                            )
-                        }
-                        if (learned) {
-                            Icon(
-                                Icons.Filled.CheckCircle,
-                                contentDescription = "Learned",
-                                modifier = Modifier.size(16.dp).align(Alignment.TopEnd),
-                                tint = MaterialTheme.colorScheme.tertiary
-                            )
-                        }
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text("Search: water, 水, すい, みず…") },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { query = "" }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Clear")
                     }
                 }
-                if (showDetail) {
-                    KanjiDetailDialog(
-                        k = k,
-                        learned = learned,
-                        store = store,
-                        onDismiss = { showDetail = false }
+            }
+        )
+        Spacer(Modifier.height(12.dp))
+
+        if (pageItems.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🔍", fontSize = 48.sp)
+                    Spacer(Modifier.height(8.dp))
+                    Text("No kanji found", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Try another word or reading.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(pageItems) { k ->
+                    val learned = k.id in store.learnedKana
+                    var showDetail by remember { mutableStateOf(false) }
+                    Card(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { showDetail = true },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (learned) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Box(
+                            Modifier.fillMaxSize().padding(4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(k.kanji, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    k.meaning.substringBefore(';'),
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                            if (learned) {
+                                Icon(
+                                    Icons.Filled.CheckCircle,
+                                    contentDescription = "Learned",
+                                    modifier = Modifier.size(16.dp).align(Alignment.TopEnd),
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                        }
+                    }
+                    if (showDetail) {
+                        KanjiDetailDialog(
+                            k = k,
+                            learned = learned,
+                            store = store,
+                            onDismiss = { showDetail = false }
+                        )
+                    }
+                }
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { page = (effPage - 1).coerceAtLeast(0) },
+                    enabled = effPage > 0
+                ) { Text("‹ Prev") }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "Page ${effPage + 1} of $pages",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "${filtered.size} kanji",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                OutlinedButton(
+                    onClick = { page = (effPage + 1).coerceAtMost(pages - 1) },
+                    enabled = effPage < pages - 1
+                ) { Text("Next ›") }
             }
         }
     }
@@ -144,21 +232,28 @@ private fun KanjiDetailDialog(
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(k.kanji, fontSize = 72.sp, fontWeight = FontWeight.ExtraBold)
-                Text(k.meaning, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(k.meaning, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             }
         },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "ON: ${k.onyomi}   KUN: ${k.kunyomi}",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "ON: ${k.onyomi.ifEmpty { "—" }}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "KUN: ${k.kunyomi.ifEmpty { "—" }}",
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(10.dp))
+                val gradeLabel = if (k.grade in 1..6) "Grade $k.grade" else "Jōyō (secondary)"
                 Text(
-                    k.story,
-                    style = MaterialTheme.typography.bodyMedium,
+                    "${k.jlpt.ifEmpty { "JLPT —" }} · $gradeLabel · ${k.strokes} strokes",
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -236,7 +331,7 @@ private fun KanjiQuiz(store: Store, modifier: Modifier = Modifier, onExit: () ->
                     if (showMeaning) {
                         Text(
                             options[correct].meaning,
-                            fontSize = 26.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.ExtraBold,
                             textAlign = TextAlign.Center
                         )
@@ -279,7 +374,7 @@ private fun KanjiQuiz(store: Store, modifier: Modifier = Modifier, onExit: () ->
                         if (showMeaning) {
                             Text(opt.kanji, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                         } else {
-                            Text(opt.meaning, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                            Text(opt.meaning, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                         }
                     }
                 }

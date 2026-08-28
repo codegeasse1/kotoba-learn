@@ -1,4 +1,4 @@
-name: Build APK
+name: Build & Release APK
 
 on:
   push:
@@ -6,11 +6,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_PATH: ${{ github.workspace }}/kotoba-release.jks
+      KEYSTORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,12 +32,29 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Decode signing keystore
+        run: echo "${{ secrets.SIGNING_KEY }}" | base64 -d > "$KEYSTORE_PATH"
+
+      - name: Build signed release APK
+        run: ./gradlew assembleRelease
+
+      - name: Get app version
+        id: version
+        run: echo "APP_VERSION=$(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle.kts | head -1)" >> "$GITHUB_ENV"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kotoba-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: kotoba-release-${{ env.APP_VERSION }}
+          path: app/build/outputs/apk/release/app-release.apk
           retention-days: 90
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Kotoba v${{ env.APP_VERSION }}
+          body: |
+            Signed release APK for Kotoba ${{ env.APP_VERSION }}.
+          files: app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
