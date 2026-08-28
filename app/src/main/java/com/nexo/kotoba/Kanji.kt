@@ -142,7 +142,7 @@ fun KanjiScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier, o
                 columns = GridCells.Fixed(4),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.weight(1f)
             ) {
                 items(pageItems) { k ->
                     val learned = k.id in store.learnedKana
