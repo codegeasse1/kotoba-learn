@@ -40,11 +40,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceError
 
 data class RpMsg(val speaker: String, val emoji: String, val text: String, val hi: String, val isUser: Boolean)
 data class RpOption(val text: String, val textHi: String, val feedback: String, val feedbackHi: String, val next: Int)
@@ -65,7 +72,7 @@ object Roleplays {
         // ================= JAPANESE =================
         rp("rp-ja-hotel", "Hotel Booking", "🏨", "Reserve a room, ask prices, get your key", "ja",
             t("いらっしゃいませ。何泊ですか。", "🧑‍💼", "स्वागत है। कितनी रातें?",
-                o("二泊お願いします。", "दो रातें, कृपया।", "かしこまりました。シングルルームでよろしいですか。", "ठीक है। सिंगल कमरा चाहिए?", 1),
+                o("二泊お願いします。", "दो रातें, कृपया।", "かしこまりました。シングルのお部屋を用意します。", "ठीक है। सिंगल कमरा चाहिए?", 1),
                 o("一泊だけです。", "सिर्फ एक रात।", "はい、承知しました。", "हाँ, समझ गया।", 1)),
             t("シングルで一泊五千円です。", "🧑‍💼", "सिंगल एक रात 5000 येन है।",
                 o("いいですね。お願いします。", "ठीक है, चलो।", "ありがとうございます。こちらが鍵です。", "धन्यवाद। ये रही आपकी चाबी।", 2),
@@ -95,7 +102,7 @@ object Roleplays {
         rp("rp-ja-taxi", "Taxi Ride", "🚕", "Tell the driver where to go and pay the fare", "ja",
             t("どちらまで行かれますか。", "👨‍✈️", "कहाँ चलना है?",
                 o("駅までお願いします。", "स्टेशन तक, कृपया।", "はい。十分ぐらいかかります。", "हाँ, लगभग 10 मिनट लगेंगे।", 1),
-                o("このホテルまでお願いします。", "इस होटल तक, कृपया।", "かしこまりました。", "बिल्कुल।", 1)),
+                o("このホテルまでお願いします。", "इस होटल तक, कृपया।", "はい、ここですね。", "बिल्कुल।", 1)),
             t("ここでよろしいですか。", "👨‍✈️", "क्या यहाँ ठीक है?",
                 o("はい。いくらですか。", "हाँ। कितना हुआ?", "二千円です。", "2000 येन।", 2),
                 o("もう少し先でお願いします。", "थोड़ा आगे, कृपया।", "ここですか。", "यहाँ?", 2)),
@@ -115,7 +122,7 @@ object Roleplays {
         rp("rp-ja-doctor", "At the Doctor", "🩺", "Describe symptoms and get medicine", "ja",
             t("どうしましたか。", "👨‍⚕️", "क्या हुआ है?",
                 o("頭が痛いです。", "मेरे सिर में दर्द है।", "いつからですか。", "कब से?", 1),
-                o("熱があります。", "मुझे बुखार है।", "そうですか。体を休めてください。", "ठीक है। आराम कीजिए।", 1)),
+                o("熱があります。", "मुझे बुखार है।", "そうですか。少し診せてください。", "ठीक है। आराम कीजिए।", 1)),
             t("お薬を出しますね。", "👨‍⚕️", "मैं दवा लिख देता हूँ।",
                 o("一日何回飲みますか。", "दिन में कितनी बार लूँ?", "一日三回です。", "दिन में तीन बार।", 2),
                 o("ひどいですか。", "क्या गंभीर है?", "心配いりませんよ。", "चिंता मत कीजिए।", 2)),
@@ -123,20 +130,23 @@ object Roleplays {
                 o("分かりました。ありがとうございました。", "समझ गया। धन्यवाद।", "お大事に。", "जल्दी ठीक हों।", -1),
                 o("いつ治りますか。", "कब ठीक होगा?", "二、三日でよくなりますよ。", "दो-तीन दिन में ठीक हो जाएगा।", -1))),
         rp("rp-ja-cafe", "At the Cafe", "☕", "Order a drink and choose to stay or take out", "ja",
-            t("ご注文はどうされますか。", "👩‍💼", "आप क्या लेंगे?",
+            t("ご注文はどうされましたか。", "👩‍💼", "आप क्या लेंगे?",
                 o("コーヒーを一つください。", "एक कॉफ़ी, कृपया।", "ホットですか、アイスですか。", "गरम या ठंडी?", 1),
-                o("抹茶ラテをお願いします。", "माचा लट्टे, कृपया।", "かしこまりました。", "बिल्कुल।", 1)),
+                o("抹茶ラテをお願いします。", "माचा लट्टे, कृपया।", "かしこまりました。お席でお召し上がりですか。", "बिल्कुल। यहीं खाएँगे?", 2)),
+            t("ホットですか、アイスですか。", "👩‍💼", "गरम या ठंडी?",
+                o("ホットでお願いします。", "गरम, कृपया।", "かしこまりました。お席でお召し上がりですか。", "बिल्कुल। यहीं खाएँगे?", 2),
+                o("アイスでお願いします。", "ठंडी, कृपया।", "かしこまりました。お席でお召し上がりですか।", "बिल्कुल। यहीं खाएँगे?", 2)),
             t("お席でお召し上がりですか。", "👩‍💼", "यहीं खाएँगे?",
-                o("ここで飲みます。", "यहीं पीऊँगा।", "はい、どうぞ。", "हाँ, लीजिए।", 2),
-                o("テイクアウトです。", "टेकअवे है।", "少々お待ちください。", "थोड़ा रुकिए।", 2)),
-            t("お待たせしました。どうぞ。", "👩‍💼", "आपका इंतज़ार हुआ। लीजिए।",
-                o("ありがとうございます。", "धन्यवाद।", "ごゆっくりどうぞ。", "आराम से लीजिए।", -1))),
+                o("ここで飲みます।", "यहीं पीऊँगा।", "はい、どうぞ।", "हाँ, लीजिए।", 3),
+                o("テイクアウトです।", "टेकअवे है।", "少々お待ちください।", "थोड़ा रुकिए।", 3)),
+            t("お待たせしました。どうぞ।", "👩‍💼", "आपका इंतज़ार हुआ। लीजिए।",
+                o("ありがとうございます।", "धन्यवाद।", "ごゆっくりどうぞ।", "आराम से लीजिए।", -1))),
         rp("rp-ja-airport", "At the Airport", "✈️", "Check in, hand over baggage and find the gate", "ja",
             t("パスポートと搭乗券を見せてください。", "🧑‍✈️", "पासपोर्ट और बोर्डिंग पास दिखाइए।",
                 o("はい、どうぞ。", "हाँ, लीजिए।", "ありがとうございます。ゲートは十二番です。", "धन्यवाद। गेट 12 है।", 1),
                 o("搭乗券をなくしました。", "मैंने बोर्डिंग पास खो दिया।", "こちらで再発行できますよ。", "यहाँ दोबारा जारी हो सकता है।", 1)),
             t("お荷物はお預けになりますか。", "🧑‍✈️", "सामान चेक करवाएँगे?",
-                o("はい、お願いします。", "हाँ, कृपया।", "何個ですか。", "कितने हैं?", 2),
+                o("はい、お願いします。", "हाँ, कृपया।", "かしこまりました。お預かりします。", "कितने हैं?", 2),
                 o("機内に持ち込みます。", "मैं साथ ले जाऊँगा।", "かしこまりました。", "बिल्कुल।", 2)),
             t("搭乗は三十分前からです。", "🧑‍✈️", "बोर्डिंग 30 मिनट पहले शुरू होगी।",
                 o("ありがとうございます。", "धन्यवाद।", "よい旅を！", "शुभ यात्रा!", -1),
@@ -185,14 +195,14 @@ object Roleplays {
                 o("I'm looking for a gift for my sister.", "मैं अपनी बहन के लिए तोहफ़ा ढूँढ रहा हूँ।", "These scarves are lovely and popular.", "ये स्कार्फ़ बहुत अच्छे और लोकप्रिय हैं।", 1),
                 o("How much is this scarf?", "यह स्कार्फ़ कितने का है?", "This one is 15 dollars.", "यह 15 डॉलर का है।", 1)),
             t("Would you like it wrapped as a gift?", "🧑‍💼", "क्या आप इसे उपहार के रूप में लपेटवाना चाहेंगे?",
-                o("Yes, please. That would be great.", "हाँ, कृपया। बहुत अच्छा रहेगा।", "Of course. Anything else?", "बिल्कुल। और कुछ?", 2),
+                o("Yes, please. That would be great.", "हाँ, कृपया। बहुत अच्छा रहेगा।", "Of course. I'll wrap it up for you.", "बिल्कुल। और कुछ?", 2),
                 o("No thanks, that's all.", "नहीं धन्यवाद, बस इतना ही।", "Alright. The counter is over there.", "ठीक है। काउंटर वहाँ है।", 2)),
             t("That's 15 dollars, please. Cash or card?", "🧑‍💼", "15 डॉलर हुए, कृपया। नकद या कार्ड?",
                 o("Card, please.", "कार्ड, कृपया।", "Done! Here's your receipt.", "हो गया! यह रही आपकी रसीद।", -1),
                 o("Cash.", "नकद।", "Perfect. Here's your change.", "बढ़िया। यह रहा आपका बदला।", -1))),
         rp("rp-en-doctor", "At the Doctor's Office", "🩺", "Explain your symptoms and get a prescription", "en",
             t("Hello, what seems to be the problem?", "👨‍⚕️", "नमस्ते, क्या समस्या है?",
-                o("I have a headache and a fever.", "मेरे सिर में दर्द है और बुखार है।", "I see. How long have you felt this way?", "समझा। ऐसा कब से महसूस कर रहे हैं?", 1),
+                o("I have a headache and a fever.", "मेरे सिर में दर्द है और बुखार है।", "I see. Let me take a look.", "समझा। ऐसा कब से महसूस कर रहे हैं?", 1),
                 o("My throat hurts when I swallow.", "निगलते समय मेरे गले में दर्द होता है।", "Let me take a look. Open wide.", "मुझे देखने दीजिए। मुँह खोलिए।", 1)),
             t("It looks like a mild infection. I'll prescribe some medicine.", "👨‍⚕️", "हल्का संक्रमण लग रहा है। मैं कुछ दवा लिख देता हूँ।",
                 o("How many times a day should I take it?", "दिन में कितनी बार लेनी है?", "Three times a day, after meals.", "दिन में तीन बार, खाने के बाद।", 2),
@@ -202,10 +212,13 @@ object Roleplays {
         rp("rp-en-cafe", "Ordering at a Cafe", "☕", "Order a drink and decide to stay or take away", "en",
             t("Hi! What can I get for you today?", "👩‍💼", "नमस्ते! आज आपके लिए क्या लाऊँ?",
                 o("A cappuccino, please.", "एक कैपुचीनो, कृपया।", "Would you like it hot or iced?", "गरम या ठंडा?", 1),
-                o("An iced latte, please.", "एक आइस्ड लट्टे, कृपया।", "Coming right up!", "अभी आया!", 1)),
+                o("An iced latte, please.", "एक आइस्ड लट्टे, कृपया।", "Coming right up!", "अभी आया!", 2)),
+            t("Would you like it hot or iced?", "👩‍💼", "गरम या ठंडा?",
+                o("Hot, please.", "गरम, कृपया।", "For here or to go?", "यहीं या पैक?", 2),
+                o("Iced, please.", "ठंडा, कृपया।", "For here or to go?", "यहीं या पैक?", 2)),
             t("Anything to eat with that?", "👩‍💼", "साथ में कुछ खाने के लिए?",
-                o("A blueberry muffin, please.", "एक ब्लूबेरी मफिन, कृपया।", "Great! For here or to go?", "बढ़िया! यहीं या पैक?", 2),
-                o("No thanks, just the drink.", "नहीं धन्यवाद, सिर्फ़ ड्रिंक।", "No problem. For here or to go?", "कोई बात नहीं। यहीं या पैक?", 2)),
+                o("A blueberry muffin, please.", "एक ब्लूबेरी मफिन, कृपया।", "Great! For here or to go?", "बढ़िया! यहीं या पैक?", 3),
+                o("No thanks, just the drink.", "नहीं धन्यवाद, सिर्फ़ ड्रिंक।", "No problem. For here or to go?", "कोई बात नहीं। यहीं या पैक?", 3)),
             t("That's 8 dollars. Here's your order!", "👩‍💼", "8 डॉलर हुए। यह रहा आपका ऑर्डर!",
                 o("Thank you!", "धन्यवाद!", "Enjoy your coffee!", "कॉफ़ी का आनंद लीजिए!", -1))),
         rp("rp-en-airport", "Airport Check-In", "✈️", "Show your documents, check your baggage, find your gate", "en",
@@ -229,6 +242,7 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
     var msgs by remember { mutableStateOf(listOf<RpMsg>()) }
     var finished by remember { mutableStateOf(false) }
     var revealed by remember { mutableStateOf<Int?>(null) }
+    var showAiTalk by remember { mutableStateOf(false) }
 
     LaunchedEffect(rp.id) {
         turn = 0
@@ -244,6 +258,10 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (showAiTalk) {
+            AiTalkScreen(rp = rp, isJa = isJa, onClose = { showAiTalk = false })
+            return
+        }
         Row(
             Modifier
                 .fillMaxWidth()
@@ -304,6 +322,11 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Start over") }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { showAiTalk = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("✨ Free Talk with AI") }
             }
         } else {
             val cur = rp.turns[turn]
@@ -345,6 +368,11 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
                         }
                     }
                 }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { showAiTalk = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("✨ Free Talk with AI") }
             }
         }
     }
@@ -406,6 +434,68 @@ private fun MessageBubble(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiTalkScreen(rp: Roleplay, isJa: Boolean, onClose: () -> Unit) {
+    BackHandler(onBack = onClose)
+    var loading by remember { mutableStateOf(true) }
+    var loadError by remember { mutableStateOf(false) }
+    var webView by remember { mutableStateOf<WebView?>(null) }
+    val lang = if (isJa) "ja" else "en"
+    val url = "https://perchance.org/codegeassenexo?mode=roleplay&lang=$lang&scene=${rp.id}"
+    Box(Modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { ctx ->
+                WebView(ctx).apply {
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    webViewClient = object : WebViewClient() {
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            loading = false
+                        }
+                        override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                            loading = false
+                            loadError = true
+                        }
+                    }
+                    loadUrl(url)
+                }
+            },
+            update = { webView = it },
+            modifier = Modifier.fillMaxSize()
+        )
+        if (loading) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+        if (loadError) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                    .padding(24.dp)
+            ) {
+                Text(
+                    "Couldn't load the AI chat. Check your internet connection and try again.",
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {
+                        loadError = false
+                        loading = true
+                        webView?.reload()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Retry") }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onClose,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Back") }
             }
         }
     }
