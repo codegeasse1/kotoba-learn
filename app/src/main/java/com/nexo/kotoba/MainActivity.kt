@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
         val store = Store(applicationContext)
         store.load()
         KanjiData.init(applicationContext)
+        Thread { DictionaryData.init(applicationContext) }.start()
         speaker = Speaker(applicationContext)
 
         setContent {
