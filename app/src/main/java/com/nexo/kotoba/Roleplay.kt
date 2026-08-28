@@ -221,7 +221,7 @@ object Roleplays {
 }
 
 @Composable
-fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, onClose: () -> Unit) {
+fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val isJa = rp.lang != "en"
     val listState = rememberLazyListState()
@@ -240,7 +240,7 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, onClose: () -> 
     }
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {

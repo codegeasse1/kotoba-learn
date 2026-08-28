@@ -78,8 +78,8 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         showKana -> KanaScreen(store, speaker, modifier, onClose = { showKana = false })
         showKanji -> KanjiScreen(store, speaker, modifier, onClose = { showKanji = false })
         showAlphabet -> AlphabetScreen(store, speaker, modifier, onClose = { showAlphabet = false })
-        openCat != null -> SentenceCategoryScreen(openCat!!, store, speaker, onClose = { openCat = null })
-        openRoleplay != null -> RoleplayScreen(openRoleplay!!, store, speaker, onClose = { openRoleplay = null })
+        openCat != null -> SentenceCategoryScreen(openCat!!, store, speaker, modifier, onClose = { openCat = null })
+        openRoleplay != null -> RoleplayScreen(openRoleplay!!, store, speaker, modifier, onClose = { openRoleplay = null })
         openLesson != null -> LessonExplore(store, speaker, openLesson!!, modifier, onClose = { openLesson = null })
         else -> Column(
             modifier = modifier
@@ -800,11 +800,11 @@ private fun ResultStage(
 }
 
 @Composable
-fun SentenceCategoryScreen(cat: SentenceCategory, store: Store, speaker: Speaker, onClose: () -> Unit) {
+fun SentenceCategoryScreen(cat: SentenceCategory, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
     val isJa = cat.lang != "en"
     BackHandler(onBack = onClose)
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
