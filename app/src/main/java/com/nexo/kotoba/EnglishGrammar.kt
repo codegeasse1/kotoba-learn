@@ -244,7 +244,7 @@ We were watching the match together.||私たちは一緒に試合を見ていま
 He was running to catch the train.||彼は電車に間に合うように走っていました।|वह ट्रेन पकड़ने दौड़ रहा था।
 She was singing in the shower.||彼女はシャワーで歌っていました।|वह स्नान करते हुए गा रही थी।
 The dog was barking all night.||犬が一晩中吠えていました।|कुत्ता पूरी रात भौंक रहा था।
-What was he doing there?||彼はそこで何をしていましたか।|वह वहाँ क्या कर रहा था? """);
+What was he doing there?||彼はそこで何をしていましたか।|वह वहाँ क्या कर रहा था? """),
         eg("eg8", "present perfect — have + past participle", "現在完了", "A2",
             "USAGE: We use the present perfect for past actions that connect to the present, or for experiences without saying when.\nWHEN: Use it for life experiences (I have visited Japan), recent events (She has just left), results that matter now (I have lost my keys), and unfinished time (I have worked all day today).\nFORM: have/has + past participle (been, gone, seen, eaten, worked). Negative: haven't / hasn't. Question: Have/Has + subject + participle.\nTIP: Never use present perfect with finished time words like 'yesterday' or 'last year'. Say 'I saw him yesterday', not 'I have seen him yesterday'.",
             "उपयोग: present perfect का प्रयोग उन अतीत की क्रियाओं के लिए होता है जो वर्तमान से जुड़ी हों, या अनुभवों के लिए जब समय न बताया जाए।\nकब: जीवन के अनुभव, हाल की घटनाएँ, वर्तमान पर प्रभाव, अधूरा समय।\nरूप: have/has + past participle। नकारात्मक: haven't / hasn't। प्रश्न: Have/Has + कर्ता + participle।\nटिप: 'yesterday', 'last year' जैसे समाप्त समय शब्दों के साथ present perfect का प्रयोग कभी न करें।",
@@ -277,7 +277,7 @@ I have been very busy lately.||最近とても忙しいです。|मैं ह�
 She has become a great singer.||彼女は素晴らしい歌手になりました।|वह एक बेहतरीन गायिका बन गई है।
 He has learned to drive.||彼は運転を覚えました।|उसने गाड़ी चलाना सीख लिया है।
 We have eaten at that restaurant many times.||私たちはそのレストランで何度も食事をしました।|हमने उस रेस्तरां में कई बार खाया है।
-I have never seen such a beautiful sunset.||こんなに美しい夕日は見たことがありません।|मैंने इतना सुंदर सूर्यास्त कभी नहीं देखा।""");
+I have never seen such a beautiful sunset.||こんなに美しい夕日は見たことがありません।|मैंने इतना सुंदर सूर्यास्त कभी नहीं देखा।"""),
 
         eg("eg9", "present perfect continuous — how long", "現在完了進行形", "B1",
             "USAGE: We use the present perfect continuous for an action that started in the past and is still happening now.\nWHEN: Use it to say how long something has been going on: I have been working here for five years, She has been studying since morning.\nFORM: have/has + been + verb-ing. Negative: haven't / hasn't been + verb-ing. Question: Have/Has + subject + been + verb-ing.\nTIP: The main point is the DURATION — you can almost always answer 'How long...?' with this tense.",
@@ -311,7 +311,7 @@ I have been thinking about your offer.||あなたの申し出について考え�
 We have been planning this party for a month.||このパーティーを一ヶ月計画しています।|हम एक महीने से इस पार्टी की योजना बना रहे हैं।
 Have you been taking your medicine?||薬を飲んでいますか।|क्या तुम दवा ले रहे हो?
 She has been learning to cook.||彼女は料理を学んでいます。|वह खाना बनाना सीख रही है।
-I have been practicing the piano every day.||毎日ピアノを練習しています।|मैं रोज़ पियानो का अभ्यास कर रहा हूँ।""");
+I have been practicing the piano every day.||毎日ピアノを練習しています।|मैं रोज़ पियानो का अभ्यास कर रहा हूँ।"""),
         eg("eg10", "past perfect — the past of the past", "過去完了", "B1",
             "USAGE: We use the past perfect for an action that finished BEFORE another action in the past.\nWHEN: Use it to show order: The train had left before we arrived. Use it with 'by the time', 'after', 'already', 'never'.\nFORM: had + past participle (had gone, had seen, had eaten). Negative: hadn't + participle. Question: Had + subject + participle.\nTIP: Use it only when you need to show that one past event happened before another. For one simple past action, don't use it.",
             "उपयोग: past perfect का प्रयोग उस क्रिया के लिए होता है जो अतीत की किसी अन्य क्रिया से पहले समाप्त हो चुकी थी।\nकब: क्रम दिखाने के लिए — The train had left before we arrived.\nरूप: had + past participle। नकारात्मक: hadn't + participle। प्रश्न: Had + कर्ता + participle।\nटिप: केवल तभी प्रयोग करें जब दो अतीत की घटनाओं का क्रम दिखाना हो।",
@@ -344,7 +344,7 @@ She had studied hard before the exam.||彼女は試験の前に一生懸命勉�
 He had saved enough money for the trip.||彼は旅行のためにお金を十分貯めていました।|उसने यात्रा के लिए पर्याप्त पैसे बचा लिए थे।
 We had heard about that restaurant before.||私たちはそのレストランについて前に聞いていました।|हमने उस रेस्तरां के बारे में पहले सुना था।
 The guests had arrived before midnight.||客は真夜中前に到着していました।|मेहमान आधी रात से पहले पहुँच चुके थे।
-I had never felt so happy.||こんなに幸せを感じたことはありませんでした।|मैंने कभी इतनी खुशी महसूस नहीं की थी।""");
+I had never felt so happy.||こんなに幸せを感じたことはありませんでした।|मैंने कभी इतनी खुशी महसूस नहीं की थी।"""),
         eg("eg11", "will — future predictions & decisions", "will（未来）", "A2",
             "USAGE: We use will for future predictions, promises, offers, and decisions made at the moment of speaking.\nWHEN: Use it for quick decisions (I'll take the job!), promises (I will call you), offers (I'll help you), and predictions (It will rain tomorrow).\nFORM: will + base verb. Short form: 'll. Negative: won't. Question: Will + subject + verb.\nTIP: For predictions you can use 'will' — for plans already made, use 'going to' instead.",
             "उपयोग: will का प्रयोग भविष्य की भविष्यवाणियों, वादों, प्रस्तावों और बोलते समय लिए गए निर्णयों के लिए होता है।\nकब: तुरंत निर्णय, वादे, प्रस्ताव, भविष्यवाणियाँ।\nरूप: will + मूल क्रिया। संक्षिप्त: 'll। नकारात्मक: won't। प्रश्न: Will + कर्ता + क्रिया।\nटिप: योजना बनाई जा चुकी हो तो 'going to' का प्रयोग करें।",
@@ -377,7 +377,7 @@ He won't be angry with you.||彼はあなたに怒らないでしょう।|व�
 Will you help me with this?||これを手伝ってくれますか।|क्या तुम इसमें मेरी मदद करोगे?
 It won't take long.||長くはかかりません।|इसमें ज़्यादा समय नहीं लगेगा।
 We'll have dinner at eight.||八時に夕食をとります。|हम आठ बजे खाना खाएँगे।
-I think she will agree.||彼女は同意すると思います।|मुझे लगता है वह मान जाएगी।""");
+I think she will agree.||彼女は同意すると思います।|मुझे लगता है वह मान जाएगी।"""),
         eg("eg12", "going to — plans & intentions", "going to（予定）", "A2",
             "USAGE: We use going to for future plans and intentions that were already decided, and for predictions based on evidence.\nWHEN: Use it for plans (I am going to visit my parents), intentions (We are going to buy a house), and predictions with evidence (Look at those clouds! It is going to rain).\nFORM: am/is/are + going to + base verb. Negative: am not / isn't / aren't going to. Question: Am/Is/Are + subject + going to + verb.\nTIP: If you decided BEFORE speaking → going to. If you decide at the moment → will.",
             "उपयोग: going to का प्रयोग पहले से तय योजनाओं, इरादों और सबूत पर आधारित भविष्यवाणियों के लिए होता है।\nकब: योजनाएँ, इरादे, और संकेतों से भविष्यवाणी।\nरूप: am/is/are + going to + मूल क्रिया।\nटिप: पहले से तय हो तो going to, बोलते समय तय हो तो will।",
@@ -410,7 +410,7 @@ I'm going to learn to swim this summer.||この夏、泳ぎを覚えるつもり
 The team is going to win tonight.||チームは今夜勝つでしょう।|टीम आज रात जीतने वाली है।
 Are you going to tell her the truth?||彼女に真実を話すつもりですか।|क्या तुम उसे सच बताने वाले हो?
 They are going to move to Delhi.||彼らはデリーに引っ越すつもりです।|वे दिल्ली जाने वाले हैं।
-I'm going to cook dinner tonight.||今夜は夕食を作るつもりです।|मैं आज रात खाना बनाने जा रहा हूँ।""");
+I'm going to cook dinner tonight.||今夜は夕食を作るつもりです।|मैं आज रात खाना बनाने जा रहा हूँ।"""),
         eg("eg13", "future continuous — will be doing", "未来進行形", "B1",
             "USAGE: We use the future continuous for an action that will be in progress at a specific time in the future.\nWHEN: Use it for actions at a future moment (At 8 PM I will be watching the match), for things that will be happening anyway (I will be passing your office, so I can drop by), and to ask politely about plans (Will you be using the car?).\nFORM: will be + verb-ing. Negative: won't be + verb-ing. Question: Will + subject + be + verb-ing.\nTIP: Use it to sound more natural and polite when asking about someone's future plans.",
             "उपयोग: future continuous का प्रयोग भविष्य के किसी क्षण में जारी रहने वाली क्रिया के लिए होता है।\nकब: भविष्य के क्षण में चल रही क्रिया, वैसे ही होने वाली बातें, विनम्र पूछताछ।\nरूप: will be + क्रिया-ing। नकारात्मक: won't be + क्रिया-ing। प्रश्न: Will + कर्ता + be + क्रिया-ing।\nटिप: भविष्य की योजनाओं के बारे में विनम्रता से पूछने के लिए इसका प्रयोग करें।",
@@ -443,7 +443,7 @@ The teacher will be checking our homework.||先生は宿題をチェックして
 They will be having a meeting at that time.||彼らはその時間会議をしているでしょう।|वे उस समय मीटिंग कर रहे होंगे।
 Don't call at ten — I will be sleeping.||十時に電話しないで、寝ているから।|दस बजे फ़ोन मत करना — मैं सो रहा होऊँगा।
 I'll be thinking of you.||あなたのことを考えているでしょう।|मैं तुम्हारे बारे में सोच रहा होऊँगा।
-By then, he will be driving home.||その頃には彼は家に向かって運転しているでしょう।|तब तक वह घर की ओर गाड़ी चला रहा होगा।""");
+By then, he will be driving home.||その頃には彼は家に向かって運転しているでしょう।|तब तक वह घर की ओर गाड़ी चला रहा होगा।"""),
         eg("eg14", "future perfect — will have done", "未来完了", "B2",
             "USAGE: We use the future perfect for an action that will be finished before a certain time in the future.\nWHEN: Use it with 'by' (By 2028 I will have graduated), 'by the time' (By the time you arrive, we will have eaten), and 'before' (I will have finished before lunch).\nFORM: will have + past participle. Negative: won't have + participle. Question: Will + subject + have + participle.\nTIP: The key word is 'by' — it marks the deadline. No deadline, no future perfect.",
             "उपयोग: future perfect का प्रयोग उस क्रिया के लिए होता है जो भविष्य के किसी समय से पहले समाप्त हो चुकी होगी।\nकब: by, by the time, before के साथ।\nरूप: will have + past participle। नकारात्मक: won't have + participle। प्रश्न: Will + कर्ता + have + participle।\nटिप: मुख्य शब्द 'by' है — यह समय सीमा दर्शाता है।",
@@ -476,7 +476,7 @@ They will have built the bridge by 2029.||彼らは二〇二九年までに橋�
 By then, I will have forgotten his name.||その頃には彼の名前を忘れているでしょう।|तब तक मैं उसका नाम भूल चुका होऊँगा।
 He won't have finished his homework yet.||彼はまだ宿題を終えていないでしょう।|वह अभी तक होमवर्क खत्म नहीं कर चुका होगा।
 Will you have decided by tomorrow?||明日までに決めていますか।|क्या तुम कल तक तय कर चुके होगे?
-By the end of the year, we will have visited five countries.||年末までに五か国を訪れているでしょう।|साल के अंत तक हम पाँच देशों की यात्रा कर चुके होंगे।""");
+By the end of the year, we will have visited five countries.||年末までに五か国を訪れているでしょう।|साल के अंत तक हम पाँच देशों की यात्रा कर चुके होंगे।"""),
         eg("eg15", "can / could — ability & permission", "can/could（能力・許可）", "A1",
             "USAGE: We use can and could to talk about ability, permission, and possibility.\nWHEN: can = present ability (I can swim), permission (Can I go?), informal requests (Can you help me?). could = past ability (I could run fast when I was young), polite requests (Could you open the door?), polite permission (Could I leave early?).\nFORM: can/could + base verb. Negative: can't, couldn't. Question: Can/Could + subject + verb.\nTIP: For POLITE requests, 'could' is softer than 'can'. 'Could you...?' is very polite and common.",
             "उपयोग: can/could का प्रयोग क्षमता, अनुमति और संभावना के लिए होता है।\nकब: can = वर्तमान क्षमता, अनुमति, सामान्य अनुरोध। could = अतीत की क्षमता, विनम्र अनुरोध।\nरूप: can/could + मूल क्रिया। नकारात्मक: can't, couldn't। प्रश्न: Can/Could + कर्ता + क्रिया।\nटिप: विनम्र अनुरोध के लिए 'could' अधिक नरम और विनम्र होता है।",
@@ -509,7 +509,7 @@ You can't smoke in here.||ここではタバコを吸えません।|तुम �
 It can get very cold here in winter.||ここは冬はとても寒くなることがあります।|यहाँ सर्दियों में बहुत ठंड पड़ सकती है।
 Anyone can learn to cook.||誰でも料理を学べます।|कोई भी खाना बनाना सीख सकता है।
 Can you hear that noise?||あの音が聞こえますか।|क्या तुम वह आवाज़ सुन सकते हो?
-I could help you with that.||それを手伝うことができます。|मैं उसमें तुम्हारी मदद कर सकता था।""");
+I could help you with that.||それを手伝うことができます。|मैं उसमें तुम्हारी मदद कर सकता था।"""),
         eg("eg16", "may / might — possibility", "may/might（可能性）", "B1",
             "USAGE: We use may and might to talk about possibility — something that is possible but not certain.\nWHEN: Use them for guesses (He may be at home), future possibility (It might rain later), and permission (May I come in? — formal). 'may' is slightly more certain than 'might'.\nFORM: may/might + base verb. Negative: may not / might not. There is no 'mayn't' for possibility.\nTIP: For POLITE PERMISSION use 'may': 'May I use your phone?' For guesses about the present, also use may/might: 'She might be at work now'.",
             "उपयोग: may/might का प्रयोग संभावना बताने के लिए होता है — कुछ संभव है पर निश्चित नहीं।\nकब: अनुमान, भविष्य की संभावना, और औपचारिक अनुमति। 'may' 'might' से थोड़ा अधिक निश्चित है।\nरूप: may/might + मूल क्रिया। नकारात्मक: may not / might not।\nटिप: विनम्र अनुमति के लिए 'may' का प्रयोग करें।",
@@ -542,7 +542,7 @@ She might not be feeling well.||彼女は気分が良くないかもしれませ
 You may borrow my book.||私の本を借りていいですよ।|तुम मेरी किताब उधार ले सकते हो।
 It might snow tonight.||今夜は雪が降るかもしれません।|आज रात बर्फबारी हो सकती है।
 I may be a little late to the party.||パーティーに少し遅れるかもしれません।|मैं पार्टी में थोड़ा देर से आ सकता हूँ।
-He might be the new manager.||彼が新しいマネージャーかもしれません।|वह नया मैनेजर हो सकता है।""");
+He might be the new manager.||彼が新しいマネージャーかもしれません।|वह नया मैनेजर हो सकता है।"""),
 
         eg("eg17", "must / have to — obligation", "must / have to（義務）", "A2",
             "USAGE: Both 'must' and 'have to' express obligation or necessity — something you are required to do.\\nWHEN: 'must' is often personal or strong (I must study hard); 'have to' often comes from outside rules (We have to wear a uniform at school). 'must not' = forbidden, 'don't have to' = not necessary.\\nFORM: must / have to + base verb, for all persons. Past: had to. Negative: must not (mustn't) / don't have to. Question: Do you have to...? / Must I...?\\nTIP: 'don't have to' and 'mustn't' are opposites: 'You don't have to go' = optional; 'You mustn't go' = forbidden.",

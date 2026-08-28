@@ -60,7 +60,7 @@ private fun t(npc: String, npcEmoji: String, npcHi: String, vararg options: RpOp
 private fun o(text: String, textHi: String, feedback: String, feedbackHi: String, next: Int) =
     RpOption(text, textHi, feedback, feedbackHi, next)
 
-object Roleplay {
+object Roleplays {
     val all: List<Roleplay> = listOf(
         // ================= JAPANESE =================
         rp("rp-ja-hotel", "Hotel Booking", "🏨", "Reserve a room, ask prices, get your key", "ja",
@@ -217,7 +217,7 @@ object Roleplay {
                 o("I'll carry it on board.", "मैं इसे साथ ले जाऊँगा।", "That's fine. Remember, liquids must be under 100ml.", "ठीक है। याद रखें, तरल 100 मिली से कम हो।", 2)),
             t("Boarding starts 30 minutes before departure.", "🧑‍✈️", "बोर्डिंग प्रस्थान से 30 मिनट पहले शुरू होगी।",
                 o("Which gate do I need?", "मुझे किस गेट पर जाना है?", "Gate 12, to your left.", "गेट 12, आपके बाएँ।", -1),
-                o("Thank you very much!", "बहुत धन्यवाद!", "Have a great flight!", "आपकी उड़ान शुभ हो!", -1)))
+                o("Thank you very much!", "बहुत धन्यवाद!", "Have a great flight!", "आपकी उड़ान शुभ हो!", -1))))
 }
 
 @Composable

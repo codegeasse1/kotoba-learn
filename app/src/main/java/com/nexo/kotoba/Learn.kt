@@ -194,7 +194,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(12.dp))
         SectionHeader("🎭 Roleplay Conversations", "Practice real two-person dialogues with translations and native audio")
-        Roleplay.all.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }.forEach { rp ->
+        Roleplays.all.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }.forEach { rp ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
