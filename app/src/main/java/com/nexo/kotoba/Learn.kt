@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,12 +52,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.min
 
+enum class QuizType { CHOICE, TYPE_WORD, TYPE_AUDIO }
+
 data class QuizQuestion(
+    val type: QuizType = QuizType.CHOICE,
     val promptText: String?,
-    val promptAudio: String,
+    val promptAudio: String?,
     val promptIsJa: Boolean,
     val options: List<QuizOption>,
-    val correct: Int
+    val correct: Int,
+    val answer: String = ""
 )
 
 data class QuizOption(val emoji: String, val label: String)
@@ -511,14 +516,10 @@ private fun PhraseList(store: Store, speaker: Speaker) {
 @Composable
 fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifier = Modifier, onClose: () -> Unit) {
     val words = lesson.words
-    var introIndex by remember { mutableStateOf(0) }
-    var quiz by remember { mutableStateOf<List<QuizQuestion>?>(null) }
-    var qIndex by remember { mutableStateOf(0) }
-    var picked by remember { mutableStateOf<Int?>(null) }
-    var score by remember { mutableStateOf(0) }
-    var finished by remember { mutableStateOf(false) }
-
     val targetJa = lesson.lang != "en"
+
+    fun norm(s: String): String =
+        s.trim().lowercase().replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()
 
     fun buildQuiz(): List<QuizQuestion> {
         val rnd = java.util.Random()
@@ -526,38 +527,74 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
         val count = min(10, words.size)
         val targets = words.shuffled(rnd).take(count)
         return targets.map { w ->
-            val audioOnly = rnd.nextBoolean()
-            val distractors = pool.filter { it.id != w.id }.shuffled(rnd).take(3)
-            val options = (distractors + w).shuffled(rnd)
-            val correct = options.indexOf(w)
-            QuizQuestion(
-                promptText = if (audioOnly) null else {
-                    if (targetJa) w.kana + (if (store.showRomaji) "\n" + w.romaji else "")
-                    else w.en + "\n" + w.ipa
-                },
-                promptAudio = if (targetJa) w.kana else w.en,
-                promptIsJa = targetJa,
-                options = options.map { o ->
-                    QuizOption(
-                        emoji = o.emoji,
-                        label = when {
-                            store.showTranslations -> o.glossFor(store.nativeLang)
-                            targetJa -> o.romaji
-                            else -> ""
-                        }
+            val type = when {
+                !targetJa && store.nativeLang == "hi" && w.hi.isNotEmpty() && rnd.nextFloat() < 0.4f -> QuizType.TYPE_WORD
+                !targetJa && rnd.nextFloat() < 0.3f -> QuizType.TYPE_AUDIO
+                else -> QuizType.CHOICE
+            }
+            when (type) {
+                QuizType.TYPE_WORD -> QuizQuestion(
+                    type = QuizType.TYPE_WORD,
+                    promptText = w.hi,
+                    promptAudio = null,
+                    promptIsJa = false,
+                    options = emptyList(),
+                    correct = -1,
+                    answer = w.en
+                )
+                QuizType.TYPE_AUDIO -> QuizQuestion(
+                    type = QuizType.TYPE_AUDIO,
+                    promptText = null,
+                    promptAudio = w.en,
+                    promptIsJa = false,
+                    options = emptyList(),
+                    correct = -1,
+                    answer = w.en
+                )
+                QuizType.CHOICE -> {
+                    val distractors = pool.filter { it.id != w.id }.shuffled(rnd).take(3)
+                    val options = (distractors + w).shuffled(rnd)
+                    QuizQuestion(
+                        type = QuizType.CHOICE,
+                        promptText = if (targetJa) {
+                            w.kana + (if (store.showRomaji) "\n" + w.romaji else "")
+                        } else {
+                            w.en + "\n" + w.ipa
+                        },
+                        promptAudio = if (targetJa) w.kana else w.en,
+                        promptIsJa = targetJa,
+                        options = options.map { o ->
+                            QuizOption(
+                                emoji = o.emoji,
+                                label = when {
+                                    store.showTranslations -> o.glossFor(store.nativeLang)
+                                    targetJa -> o.romaji
+                                    else -> o.en
+                                }
+                            )
+                        },
+                        correct = options.indexOf(w),
+                        answer = ""
                     )
-                },
-                correct = correct
-            )
+                }
+            }
         }
     }
+
+    var quiz by remember { mutableStateOf(buildQuiz()) }
+    var qIndex by remember { mutableStateOf(0) }
+    var picked by remember { mutableStateOf<Int?>(null) }
+    var typed by remember { mutableStateOf("") }
+    var checked by remember { mutableStateOf(false) }
+    var score by remember { mutableStateOf(0) }
+    var finished by remember { mutableStateOf(false) }
 
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
     when {
         finished -> {
             ResultStage(
                 score = score,
-                total = quiz?.size ?: 0,
+                total = quiz.size,
                 lesson = lesson,
                 store = store,
                 onClose = onClose,
@@ -565,89 +602,18 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                     quiz = buildQuiz()
                     qIndex = 0
                     picked = null
+                    typed = ""
+                    checked = false
                     score = 0
                     finished = false
                 }
             )
         }
 
-        quiz == null -> {
-            val w = words[introIndex]
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(20.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                    Text("${introIndex + 1}/${words.size}", style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.weight(1f))
-                    TextButton(onClick = { quiz = buildQuiz() }) { Text("Skip intro") }
-                }
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 40.dp, horizontal = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(w.emoji, fontSize = 88.sp)
-                        Spacer(Modifier.height(16.dp))
-                        if (targetJa) {
-                            Text(w.kana, fontSize = 42.sp, fontWeight = FontWeight.ExtraBold)
-                            if (store.showRomaji) {
-                                Spacer(Modifier.height(4.dp))
-                                Text(w.romaji, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        } else {
-                            Text(w.en, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
-                            Spacer(Modifier.height(4.dp))
-                            Text(w.ipa, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        if (store.showTranslations) {
-                            Spacer(Modifier.height(14.dp))
-                            Text(
-                                "= ${w.glossFor(store.nativeLang)}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(14.dp))
-
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FilledIconButton(onClick = { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) }) {
-                        Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
-                    }
-                    Spacer(Modifier.width(16.dp))
-                    Button(
-                        onClick = {
-                            if (introIndex == words.lastIndex) quiz = buildQuiz() else introIndex++
-                        }
-                    ) {
-                        Text(if (introIndex == words.lastIndex) "Start quiz" else "Next")
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-            }
-        }
-
         else -> {
-            val q = quiz!![qIndex]
+            val q = quiz[qIndex]
             LaunchedEffect(quiz, qIndex) {
-                speak(store, speaker, q.promptAudio, q.promptIsJa)
+                if (q.promptAudio != null) speak(store, speaker, q.promptAudio, q.promptIsJa)
             }
             Column(
                 Modifier
@@ -658,7 +624,7 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                     TextButton(onClick = onClose) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                    Text("Quiz ${qIndex + 1}/${quiz!!.size}", style = MaterialTheme.typography.labelLarge)
+                    Text("Quiz ${qIndex + 1}/${quiz.size}", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.weight(1f))
                     Text("⭐ $score", style = MaterialTheme.typography.labelLarge)
                 }
@@ -674,85 +640,158 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                             .padding(vertical = 28.dp, horizontal = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (q.promptText == null) {
-                            Text("🔊 Listen", fontSize = 26.sp)
-                            Spacer(Modifier.height(8.dp))
-                            FilledIconButton(onClick = { speak(store, speaker, q.promptAudio, q.promptIsJa) }) {
-                                Icon(Icons.Filled.VolumeUp, contentDescription = "Hear again")
+                        when (q.type) {
+                            QuizType.TYPE_WORD -> {
+                                Text(
+                                    "Type the English word",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Text(
+                                    q.promptText ?: "",
+                                    fontSize = 30.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        } else {
-                            Text(q.promptText, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                            QuizType.TYPE_AUDIO -> {
+                                Text("🔊 Listen and type what you hear", fontSize = 22.sp, textAlign = TextAlign.Center)
+                                Spacer(Modifier.height(8.dp))
+                                FilledIconButton(onClick = { speak(store, speaker, q.promptAudio ?: "", false) }) {
+                                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear again")
+                                }
+                            }
+                            QuizType.CHOICE -> {
+                                if (q.promptText == null) {
+                                    Text("🔊 Listen", fontSize = 26.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    FilledIconButton(onClick = { speak(store, speaker, q.promptAudio ?: "", q.promptIsJa) }) {
+                                        Icon(Icons.Filled.VolumeUp, contentDescription = "Hear again")
+                                    }
+                                } else {
+                                    Text(q.promptText, fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+                                }
+                            }
                         }
                     }
                 }
                 Spacer(Modifier.height(16.dp))
 
-                q.options.forEachIndexed { i, opt ->
-                    val isCorrect = i == q.correct
-                    val isPicked = i == picked
-                    val borderColor = when {
-                        picked == null -> Color.Transparent
-                        isCorrect -> Color(0xFF2E9E5B)
-                        isPicked -> Color(0xFFD64545)
-                        else -> Color.Transparent
-                    }
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
-                            .clickable(enabled = picked == null) {
-                                if (picked == null) {
-                                    picked = i
-                                    if (isCorrect) score++
-                                }
-                            },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (picked != null && isCorrect) Color(0xFFE4F6EA)
-                            else if (picked != null && isPicked) Color(0xFFFBE5E5)
-                            else MaterialTheme.colorScheme.surface
-                        )
-                    ) {
-                        Row(
-                            Modifier
+                if (q.type == QuizType.CHOICE) {
+                    q.options.forEachIndexed { i, opt ->
+                        val isCorrect = i == q.correct
+                        val isPicked = i == picked
+                        val borderColor = when {
+                            picked == null -> Color.Transparent
+                            isCorrect -> Color(0xFF2E9E5B)
+                            isPicked -> Color(0xFFD64545)
+                            else -> Color.Transparent
+                        }
+                        Card(
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(opt.emoji, fontSize = 26.sp)
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                opt.label,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (opt.label.isNotEmpty()) FontWeight.Medium else FontWeight.Normal
+                                .padding(vertical = 4.dp)
+                                .border(2.dp, borderColor, RoundedCornerShape(16.dp))
+                                .clickable(enabled = picked == null) {
+                                    if (picked == null) {
+                                        picked = i
+                                        if (isCorrect) score++
+                                    }
+                                },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (picked != null && isCorrect) Color(0xFFE4F6EA)
+                                else if (picked != null && isPicked) Color(0xFFFBE5E5)
+                                else MaterialTheme.colorScheme.surface
                             )
+                        ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(opt.emoji, fontSize = 26.sp)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    opt.label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (opt.label.isNotEmpty()) FontWeight.Medium else FontWeight.Normal
+                                )
+                            }
                         }
                     }
-                }
 
-                if (picked != null) {
-                    Spacer(Modifier.height(10.dp))
-                    val correctOpt = q.options[q.correct]
-                    Text(
-                        if (picked == q.correct) "✅ Correct!" else "→ ${correctOpt.emoji} ${correctOpt.label}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                    if (picked != null) {
+                        Spacer(Modifier.height(10.dp))
+                        val correctOpt = q.options[q.correct]
+                        Text(
+                            if (picked == q.correct) "✅ Correct!" else "→ ${correctOpt.emoji} ${correctOpt.label}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                if (qIndex == quiz.lastIndex) {
+                                    store.completeLesson(lesson.id, words.map { it.id })
+                                    finished = true
+                                } else {
+                                    qIndex++
+                                    picked = null
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (qIndex == quiz.lastIndex) "Finish" else "Next question")
+                        }
+                    }
+                } else {
+                    OutlinedTextField(
+                        value = typed,
+                        onValueChange = { typed = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(if (q.type == QuizType.TYPE_AUDIO) "Type the word you heard" else "Type the English word") },
+                        shape = RoundedCornerShape(16.dp)
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            if (qIndex == quiz!!.lastIndex) {
-                                store.completeLesson(lesson.id, words.map { it.id })
-                                finished = true
-                            } else {
-                                qIndex++
-                                picked = null
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(if (qIndex == quiz!!.lastIndex) "Finish" else "Next question")
+                    Spacer(Modifier.height(10.dp))
+                    if (!checked) {
+                        Button(
+                            onClick = {
+                                checked = true
+                                if (norm(typed) == norm(q.answer)) score++
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = typed.isNotBlank()
+                        ) {
+                            Text("Check")
+                        }
+                    } else {
+                        val ok = norm(typed) == norm(q.answer)
+                        Text(
+                            if (ok) "✅ Correct!" else "❌ Answer: ${q.answer}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                if (qIndex == quiz.lastIndex) {
+                                    store.completeLesson(lesson.id, words.map { it.id })
+                                    finished = true
+                                } else {
+                                    qIndex++
+                                    picked = null
+                                    typed = ""
+                                    checked = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (qIndex == quiz.lastIndex) "Finish" else "Next question")
+                        }
                     }
                 }
             }

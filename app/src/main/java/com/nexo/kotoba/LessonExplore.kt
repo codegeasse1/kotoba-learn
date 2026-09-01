@@ -167,6 +167,7 @@ private fun FlashcardBrowse(store: Store, speaker: Speaker, lesson: Lesson, onSt
     val words = lesson.words
     var i by remember { mutableStateOf(0) }
     var flipped by remember { mutableStateOf(false) }
+    var exampleWord by remember { mutableStateOf<Word?>(null) }
     val w = words[min(i, words.lastIndex)]
     val targetJa = lesson.lang != "en"
 
@@ -246,10 +247,29 @@ private fun FlashcardBrowse(store: Store, speaker: Speaker, lesson: Lesson, onSt
             }
         }
         Spacer(Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+        ) {
             FilledIconButton(onClick = { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) }) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
             }
+            TextButton(
+                onClick = { exampleWord = w },
+                modifier = Modifier.size(width = 52.dp, height = 44.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("💬", fontSize = 18.sp)
+            }
+        }
+
+        if (exampleWord != null) {
+            ExampleSheet(
+                word = exampleWord!!,
+                store = store,
+                speaker = speaker,
+                onDismiss = { exampleWord = null }
+            )
         }
     }
 }
@@ -371,6 +391,7 @@ private fun WordGridBrowser(
 ) {
     val words = lesson.words
     val targetJa = lesson.lang != "en"
+    var exampleWord by remember { mutableStateOf<Word?>(null) }
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(bottom = 8.dp),
@@ -389,7 +410,7 @@ private fun WordGridBrowser(
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
+                        .padding(start = 12.dp, end = 12.dp, top = 12.dp)
                         .clickable { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -409,9 +430,26 @@ private fun WordGridBrowser(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+                    Spacer(Modifier.height(2.dp))
+                    TextButton(
+                        onClick = { exampleWord = w },
+                        modifier = Modifier.size(width = 40.dp, height = 30.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text("💬", fontSize = 14.sp)
+                    }
                 }
             }
         }
+    }
+
+    if (exampleWord != null) {
+        ExampleSheet(
+            word = exampleWord!!,
+            store = store,
+            speaker = speaker,
+            onDismiss = { exampleWord = null }
+        )
     }
 }
 
@@ -556,6 +594,7 @@ private fun ExampleSheet(
     onDismiss: () -> Unit
 ) {
     val examples = remember(word.en) { Examples.forWord(word) }
+    val hindi = remember(word.en) { Examples.hindiFor(word) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             Modifier
@@ -569,31 +608,43 @@ private fun ExampleSheet(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "Example sentences",
+                "Example sentences with translations",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(12.dp))
-            examples.forEach { ex ->
+            examples.forEachIndexed { i, ex ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(14.dp)
                 ) {
-                    Row(
-                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
-                        Text("💬", fontSize = 14.sp)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            ex,
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        IconButton(onClick = { speak(store, speaker, ex, false) }) {
-                            Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("💬", fontSize = 14.sp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                ex,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            IconButton(onClick = { speak(store, speaker, ex, false) }) {
+                                Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                            }
+                        }
+                        if (i < hindi.size && hindi[i].isNotBlank()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                hindi[i],
+                                modifier = Modifier.padding(start = 24.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
