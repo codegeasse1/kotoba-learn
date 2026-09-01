@@ -3364,13 +3364,13 @@ object Examples {
         if (k.isEmpty()) return emptyList()
         val h = word.hi.trim()
         val frames = if (k.endsWith("い")) listOf(
-            "これはとても$kです。",
-            "あれはあまり$kではありません。",
-            "とても$kですね。"
+            "これはとても${k}です。",
+            "あれはあまり${k}ではありません。",
+            "とても${k}ですね。"
         ) else listOf(
-            "「$k」はどういういみですか。",
-            "「$k」ということばをききました。",
-            "「$k」のいみをおしえてください。"
+            "「${k}」はどういういみですか。",
+            "「${k}」ということばをききました。",
+            "「${k}」のいみをおしえてください。"
         )
         return frames.map { JaEx(it, "", h) }
     }
