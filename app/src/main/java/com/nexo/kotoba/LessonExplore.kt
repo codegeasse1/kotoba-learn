@@ -35,10 +35,13 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -260,6 +263,7 @@ private fun WordListBrowser(
 ) {
     val words = lesson.words
     var q by remember { mutableStateOf("") }
+    var exampleWord by remember { mutableStateOf<Word?>(null) }
     val listState = rememberLazyListState()
     val query = q.trim().lowercase()
     val filtered = remember(query, words) {
@@ -335,9 +339,25 @@ private fun WordListBrowser(
                         ) {
                             Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
                         }
+                        TextButton(
+                            onClick = { exampleWord = w },
+                            modifier = Modifier.size(width = 40.dp, height = 34.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("💬", fontSize = 15.sp)
+                        }
                     }
                 }
             }
+        }
+
+        if (exampleWord != null) {
+            ExampleSheet(
+                word = exampleWord!!,
+                store = store,
+                speaker = speaker,
+                onDismiss = { exampleWord = null }
+            )
         }
     }
 }
@@ -407,6 +427,7 @@ private fun WordDetail(
     val w = words[index]
     val targetJa = w.kana.isNotEmpty()
     val isLearned = w.id in store.srs
+    var showExamples by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -490,6 +511,14 @@ private fun WordDetail(
         }
         Spacer(Modifier.height(12.dp))
 
+        OutlinedButton(
+            onClick = { showExamples = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("💬 See example sentences")
+        }
+        Spacer(Modifier.height(8.dp))
+
         Button(
             onClick = { store.toggleCard(w.id) },
             modifier = Modifier.fillMaxWidth()
@@ -506,5 +535,69 @@ private fun WordDetail(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+
+        if (showExamples) {
+            ExampleSheet(
+                word = w,
+                store = store,
+                speaker = speaker,
+                onDismiss = { showExamples = false }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExampleSheet(
+    word: Word,
+    store: Store,
+    speaker: Speaker,
+    onDismiss: () -> Unit
+) {
+    val examples = remember(word.en) { Examples.forWord(word) }
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 28.dp)
+        ) {
+            Text(
+                word.en,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Example sentences",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(12.dp))
+            examples.forEach { ex ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("💬", fontSize = 14.sp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            ex,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        IconButton(onClick = { speak(store, speaker, ex, false) }) {
+                            Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
