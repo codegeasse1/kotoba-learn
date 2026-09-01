@@ -3,103 +3,241 @@ package com.nexo.kotoba
 object EnB1 {
 
     val lessons = listOf(
-        L.en("e3-01", "Work & career", "💼", "Interviews, salaries and deadlines.", "B1", """
-            career|/kəˈrɪər/|करियर
-            experience|/ɪkˈspɪəriəns/|अनुभव
-            interview|/ˈɪntərvjuː/|साक्षात्कार
-            salary|/ˈsæləri/|वेतन
-            manager|/ˈmænɪdʒər/|प्रबंधक
-            colleague|/ˈkɒliːɡ/|सहकर्मी
-            meeting|/ˈmiːtɪŋ/|बैठक
-            project|/ˈprɒdʒekt/|परियोजना
-            deadline|/ˈdedlaɪn/|समय-सीमा
-            promotion|/prəˈmoʊʃən/|पदोन्नति
-        """),
-        L.en("e3-02", "Education & learning", "🎓", "Courses, exams and improving yourself.", "B1", """
-            subject|/ˈsʌbdʒɪkt/|विषय
-            exam|/ɪɡˈzæm/|परीक्षा
-            course|/kɔːrs/|पाठ्यक्रम
-            degree|/dɪˈɡriː/|डिग्री
-            university|/ˌjuːnɪˈvɜːrsəti/|विश्वविद्यालय
-            skill|/skɪl/|कौशल
-            knowledge|/ˈnɒlɪdʒ/|ज्ञान
-            practice|/ˈpræktɪs/|अभ्यास
-            improve|/ɪmˈpruːv/|सुधारना
-            goal|/ɡoʊl/|लक्ष्य
-        """),
-        L.en("e3-03", "Travel & culture", "🌍", "Traditions, festivals and foreign places.", "B1", """
-            culture|/ˈkʌltʃər/|संस्कृति
-            tradition|/trəˈdɪʃən/|परंपरा
-            custom|/ˈkʌstəm/|रीति-रिवाज़
-            festival|/ˈfestɪvəl/|त्योहार
-            tourist|/ˈtʊərɪst/|पर्यटक
-            guide|/ɡaɪd/|गाइड
-            journey|/ˈdʒɜːrni/|यात्रा
-            souvenir|/ˌsuːvəˈnɪər/|स्मृति-चिह्न
-            abroad|/əˈbrɔːd/|विदेश
-            local|/ˈloʊkəl/|स्थानीय
-        """),
-        L.en("e3-04", "Environment", "🌱", "Pollution, energy and protecting the planet.", "B1", """
-            environment|/ɪnˈvaɪrənmənt/|पर्यावरण
-            pollution|/pəˈluːʃən/|प्रदूषण
-            climate|/ˈklaɪmət/|जलवायु
-            energy|/ˈenərdʒi/|ऊर्जा
-            recycle|/ˌriːˈsaɪkəl/|रीसाइकिल करना
-            protect|/prəˈtekt/|रक्षा करना
-            nature|/ˈneɪtʃər/|प्रकृति
-            planet|/ˈplænɪt/|ग्रह
-            waste|/weɪst/|कचरा / बर्बादी
-            resource|/rɪˈsɔːrs/|संसाधन
-        """),
-        L.en("e3-05", "Technology", "💻", "The internet, apps and everyday devices.", "B1", """
-            computer|/kəmˈpjuːtər/|कंप्यूटर
-            internet|/ˈɪntərnet/|इंटरनेट
-            phone|/foʊn/|फ़ोन
-            app|/æp/|ऐप
-            website|/ˈwebsaɪt/|वेबसाइट
-            screen|/skriːn/|स्क्रीन
-            download|/ˌdaʊnˈloʊd/|डाउनलोड
-            message|/ˈmesɪdʒ/|संदेश
-            online|/ˌɒnˈlaɪn/|ऑनलाइन
-            password|/ˈpæswɜːrd/|पासवर्ड
-        """),
-        L.en("e3-06", "Relationships", "🤝", "Trust, respect and the people around you.", "B1", """
-            partner|/ˈpɑːrtnər/|साथी
-            neighbour|/ˈneɪbər/|पड़ोसी
-            relative|/ˈrelətɪv/|रिश्तेदार
-            guest|/ɡest/|मेहमान
-            host|/hoʊst/|मेज़बान
-            relationship|/rɪˈleɪʃənʃɪp/|रिश्ता
-            trust|/trʌst/|भरोसा
-            respect|/rɪˈspekt/|सम्मान
-            support|/səˈpɔːrt/|सहारा
-            argue|/ˈɑːrɡjuː/|बहस करना
-        """),
-        L.en("e3-07", "Media & news", "📰", "Headlines, interviews and broadcasting.", "B1", """
-            news|/nuːz/|समाचार
-            newspaper|/ˈnuːzpeɪpər/|समाचार-पत्र
-            article|/ˈɑːrtɪkəl/|लेख
-            channel|/ˈtʃænəl/|चैनल
-            reporter|/rɪˈpɔːrtər/|पत्रकार
-            interview|/ˈɪntərvjuː/|साक्षात्कार
-            headline|/ˈhedlaɪn/|शीर्षक
-            broadcast|/ˈbrɔːdkæst/|प्रसारण
-            social media|/ˈsoʊʃəl ˈmiːdiə/|सोशल मीडिया
-            story|/ˈstɔːri/|कहानी / ख़बर
-        """),
-        L.en("e3-08", "Health & lifestyle", "🧘", "Exercise, diet and healthy habits.", "B1", """
-            exercise|/ˈeksərsaɪz/|व्यायाम
-            diet|/ˈdaɪət/|आहार
-            sleep|/sliːp/|नींद
-            stress|/stres/|तनाव
-            relax|/rɪˈlæks/|आराम करना
-            routine|/ruːˈtiːn/|दिनचर्या
-            habit|/ˈhæbɪt/|आदत
-            balanced|/ˈbælənst/|संतुलित
-            active|/ˈæktɪv/|सक्रिय
-            lifestyle|/ˈlaɪfstaɪl/|जीवनशैली
-        """)
-    )
+L.en("e3-01", "Work & career", "💼", "Interviews, salaries and deadlines.", "B1", """
+career|/kəˈrɪər/|करियर
+experience|/ɪkˈspɪəriəns/|अनुभव
+interview|/ˈɪntərvjuː/|साक्षात्कार
+salary|/ˈsæləri/|वेतन
+wage|/weɪdʒ/|मज़दूरी
+manager|/ˈmænɪdʒər/|प्रबंधक
+colleague|/ˈkɒliːɡ/|सहकर्मी
+meeting|/ˈmiːtɪŋ/|बैठक
+project|/ˈprɒdʒekt/|परियोजना
+deadline|/ˈdedlaɪn/|समय-सीमा
+promotion|/prəˈmoʊʃən/|पदोन्नति
+hire|/haɪər/|नियुक्त करना
+fire|/faɪər/|नौकरी से निकालना
+apply|/əˈplaɪ/|आवेदन करना
+training|/ˈtreɪnɪŋ/|प्रशिक्षण
+skill|/skɪl/|कौशल
+resume|/ˈrezjumeɪ/|बायोडाटा
+boss|/bɒs/|मालिक
+team|/tiːm/|टीम
+task|/tæsk/|कार्य
+responsibility|/rɪˌspɒnsəˈbɪləti/|ज़िम्मेदारी
+customer|/ˈkʌstəmər/|ग्राहक
+client|/ˈklaɪənt/|ग्राहक
+office|/ˈɒfɪs/|कार्यालय
+workplace|/ˈwɜːrkpleɪs/|कार्यस्थल
+retire|/rɪˈtaɪər/|सेवानिवृत्त होना
+achievement|/əˈtʃiːvmənt/|उपलब्धि
+employee|/ɪmˈplɔɪiː/|कर्मचारी
+employer|/ɪmˈplɔɪər/|नियोक्ता
+opportunity|/ˌɒpərˈtjuːnəti/|अवसर
+"""),
+L.en("e3-02", "Education & learning", "🎓", "Courses, exams and improving yourself.", "B1", """
+subject|/ˈsʌbdʒɪkt/|विषय
+exam|/ɪɡˈzæm/|परीक्षा
+course|/kɔːrs/|पाठ्यक्रम
+degree|/dɪˈɡriː/|डिग्री
+university|/ˌjuːnɪˈvɜːrsəti/|विश्वविद्यालय
+skill|/skɪl/|कौशल
+knowledge|/ˈnɒlɪdʒ/|ज्ञान
+practice|/ˈpræktɪs/|अभ्यास
+improve|/ɪmˈpruːv/|सुधारना
+goal|/ɡoʊl/|लक्ष्य
+lesson|/ˈlesən/|पाठ
+homework|/ˈhoʊmwɜːrk/|गृह-कार्य
+essay|/ˈeseɪ/|निबंध
+lecture|/ˈlektʃər/|व्याख्यान
+professor|/prəˈfesər/|प्रोफ़ेसर
+student|/ˈstuːdənt/|छात्र
+graduate|/ˈɡrædʒueɪt/|स्नातक होना
+scholarship|/ˈskɒlərʃɪp/|छात्रवृत्ति
+research|/rɪˈsɜːrtʃ/|शोध
+tutor|/ˈtjuːtər/|ट्यूटर
+campus|/ˈkæmpəs/|परिसर
+diploma|/dɪˈploʊmə/|डिप्लोमा
+education|/ˌedʒuˈkeɪʃən/|शिक्षा
+learn|/lɜːrn/|सीखना
+understand|/ˌʌndərˈstænd/|समझना
+memorize|/ˈmeməraɪz/|रटना
+study|/ˈstʌdi/|पढ़ाई करना
+"""),
+L.en("e3-03", "Travel & culture", "🌍", "Traditions, festivals and foreign places.", "B1", """
+culture|/ˈkʌltʃər/|संस्कृति
+tradition|/trəˈdɪʃən/|परंपरा
+custom|/ˈkʌstəm/|रीति-रिवाज़
+festival|/ˈfestɪvəl/|त्योहार
+tourist|/ˈtʊərɪst/|पर्यटक
+guide|/ɡaɪd/|गाइड
+journey|/ˈdʒɜːrni/|यात्रा
+souvenir|/ˌsuːvəˈnɪər/|स्मृति-चिह्न
+abroad|/əˈbrɔːd/|विदेश
+local|/ˈloʊkəl/|स्थानीय
+trip|/trɪp/|यात्रा
+vacation|/veɪˈkeɪʃən/|छुट्टियाँ
+holiday|/ˈhɒlədeɪ/|छुट्टी
+hotel|/hoʊˈtel/|होटल
+passport|/ˈpæspɔːrt/|पासपोर्ट
+visa|/ˈviːzə/|वीज़ा
+luggage|/ˈlʌɡɪdʒ/|सामान
+ticket|/ˈtɪkɪt/|टिकट
+landmark|/ˈlændmɑːrk/|ऐतिहासिक स्थल
+temple|/ˈtempəl/|मंदिर
+museum|/mjuˈziːəm/|संग्रहालय
+village|/ˈvɪlɪdʒ/|गाँव
+city|/ˈsɪti/|शहर
+country|/ˈkʌntri/|देश
+foreign|/ˈfɒrən/|विदेशी
+explore|/ɪkˈsplɔːr/|खोजबीन करना
+visit|/ˈvɪzɪt/|भ्रमण करना
+experience|/ɪkˈspɪəriəns/|अनुभव करना
+"""),
+L.en("e3-04", "Environment", "🌱", "Pollution, energy and protecting the planet.", "B1", """
+environment|/ɪnˈvaɪrənmənt/|पर्यावरण
+pollution|/pəˈluːʃən/|प्रदूषण
+climate|/ˈklaɪmət/|जलवायु
+energy|/ˈenərdʒi/|ऊर्जा
+recycle|/ˌriːˈsaɪkəl/|रीसाइकिल करना
+protect|/prəˈtekt/|रक्षा करना
+nature|/ˈneɪtʃər/|प्रकृति
+planet|/ˈplænɪt/|ग्रह
+waste|/weɪst/|कचरा / बर्बादी
+resource|/rɪˈsɔːrs/|संसाधन
+plastic|/ˈplæstɪk/|प्लास्टिक
+forest|/ˈfɒrɪst/|जंगल
+ocean|/ˈoʊʃən/|महासागर
+river|/ˈrɪvər/|नदी
+mountain|/ˈmaʊntən/|पहाड़
+air|/eər/|हवा
+water|/ˈwɔːtər/|पानी
+soil|/sɔɪl/|मिट्टी
+animal|/ˈænɪməl/|जानवर
+plant|/plænt/|पौधा
+greenhouse|/ˈɡriːnhaʊs/|ग्रीनहाउस
+temperature|/ˈtemprətʃər/|तापमान
+wildlife|/ˈwaɪldlaɪf/|वन्यजीवन
+solar|/ˈsoʊlər/|सौर
+renewable|/rɪˈnjuːəbəl/|नवीकरणीय
+carbon|/ˈkɑːrbən/|कार्बन
+emission|/ɪˈmɪʃən/|उत्सर्जन
+eco-friendly|/ˈiːkoʊ ˈfrendli/|पर्यावरण-अनुकूल
+"""),
+L.en("e3-05", "Technology", "💻", "The internet, apps and everyday devices.", "B1", """
+computer|/kəmˈpjuːtər/|कंप्यूटर
+laptop|/ˈlæptɒp/|लैपटॉप
+internet|/ˈɪntərnet/|इंटरनेट
+phone|/foʊn/|फ़ोन
+smartphone|/ˈsmɑːrtfoʊn/|स्मार्टफ़ोन
+app|/æp/|ऐप
+website|/ˈwebsaɪt/|वेबसाइट
+screen|/skriːn/|स्क्रीन
+keyboard|/ˈkiːbɔːrd/|कीबोर्ड
+mouse|/maʊs/|माउस
+download|/ˌdaʊnˈloʊd/|डाउनलोड
+upload|/ˌʌpˈloʊd/|अपलोड
+message|/ˈmesɪdʒ/|संदेश
+email|/ˈiːmeɪl/|ईमेल
+online|/ˌɒnˈlaɪn/|ऑनलाइन
+offline|/ˌɒfˈlaɪn/|ऑफ़लाइन
+password|/ˈpæswɜːrd/|पासवर्ड
+account|/əˈkaʊnt/|खाता
+network|/ˈnetwɜːrk/|नेटवर्क
+wireless|/ˈwaɪərləs/|वायरलेस
+device|/dɪˈvaɪs/|उपकरण
+software|/ˈsɒftweər/|सॉफ़्टवेयर
+hardware|/ˈhɑːrdweər/|हार्डवेयर
+update|/ʌpˈdeɪt/|अपडेट
+search|/sɜːrtʃ/|खोजना
+click|/klɪk/|क्लिक करना
+social media|/ˈsoʊʃəl ˈmiːdiə/|सोशल मीडिया
+digital|/ˈdɪdʒɪtəl/|डिजिटल
+"""),
+L.en("e3-06", "Relationships", "🤝", "Trust, respect and the people around you.", "B1", """
+partner|/ˈpɑːrtnər/|साथी
+neighbour|/ˈneɪbər/|पड़ोसी
+relative|/ˈrelətɪv/|रिश्तेदार
+guest|/ɡest/|मेहमान
+host|/hoʊst/|मेज़बान
+relationship|/rɪˈleɪʃənʃɪp/|रिश्ता
+trust|/trʌst/|भरोसा
+respect|/rɪˈspekt/|सम्मान
+support|/səˈpɔːrt/|सहारा
+argue|/ˈɑːrɡjuː/|बहस करना
+agree|/əˈɡriː/|सहमत होना
+disagree|/ˌdɪsəˈɡriː/|असहमत होना
+friendship|/ˈfrendʃɪp/|दोस्ती
+loyal|/ˈlɔɪəl/|वफ़ादार
+honest|/ˈɒnɪst/|ईमानदार
+kind|/kaɪnd/|दयालु
+helpful|/ˈhelpfəl/|सहायक
+polite|/pəˈlaɪt/|विनम्र
+rude|/ruːd/|अशिष्ट
+jealous|/ˈdʒeləs/|ईर्ष्यालु
+rely|/rɪˈlaɪ/|भरोसा करना
+depend|/dɪˈpend/|निर्भर होना
+get along|/ɡet əˈlɒŋ/|मिलजुल कर रहना
+share|/ʃeər/|साझा करना
+care|/keər/|परवाह करना
+accept|/əkˈsept/|स्वीकार करना
+forgive|/fərˈɡɪv/|माफ़ करना
+"""),
+L.en("e3-07", "Media & news", "📰", "Headlines, interviews and broadcasting.", "B1", """
+news|/nuːz/|समाचार
+newspaper|/ˈnuːzpeɪpər/|समाचार-पत्र
+magazine|/ˈmæɡəziːn/|पत्रिका
+article|/ˈɑːrtɪkəl/|लेख
+channel|/ˈtʃænəl/|चैनल
+reporter|/rɪˈpɔːrtər/|पत्रकार
+journalist|/ˈdʒɜːrnəlɪst/|पत्रकार
+interview|/ˈɪntərvjuː/|साक्षात्कार
+headline|/ˈhedlaɪn/|शीर्षक
+broadcast|/ˈbrɔːdkæst/|प्रसारण
+social media|/ˈsoʊʃəl ˈmiːdiə/|सोशल मीडिया
+story|/ˈstɔːri/|कहानी / ख़बर
+radio|/ˈreɪdioʊ/|रेडियो
+television|/ˈtelɪvɪʒən/|टेलीविज़न
+advertisement|/ˌædvərˈtaɪzmənt/|विज्ञापन
+audience|/ˈɔːdiəns/|दर्शक
+public|/ˈpʌblɪk/|जनता
+opinion|/əˈpɪnjən/|राय
+fact|/fækt/|तथ्य
+rumour|/ˈruːmər/|अफ़वाह
+update|/ʌpˈdeɪt/|ताज़ा ख़बर
+breaking news|/ˈbreɪkɪŋ nuːz/|ताज़ा समाचार
+report|/rɪˈpɔːrt/|रिपोर्ट करना
+publish|/ˈpʌblɪʃ/|प्रकाशित करना
+celebrity|/səˈlebrəti/|मशहूर हस्ती
+"""),
+L.en("e3-08", "Health & lifestyle", "🧘", "Exercise, diet and healthy habits.", "B1", """
+exercise|/ˈeksərsaɪz/|व्यायाम
+diet|/ˈdaɪət/|आहार
+sleep|/sliːp/|नींद
+stress|/stres/|तनाव
+relax|/rɪˈlæks/|आराम करना
+routine|/ruːˈtiːn/|दिनचर्या
+habit|/ˈhæbɪt/|आदत
+balanced|/ˈbælənst/|संतुलित
+active|/ˈæktɪv/|सक्रिय
+lifestyle|/ˈlaɪfstaɪl/|जीवनशैली
+yoga|/ˈjoʊɡə/|योग
+meditation|/ˌmedɪˈteɪʃən/|ध्यान
+nutrition|/njuːˈtrɪʃən/|पोषण
+protein|/ˈproʊtiːn/|प्रोटीन
+calorie|/ˈkæləri/|कैलोरी
+weight|/weɪt/|वज़न
+energy|/ˈenərdʒi/|ऊर्जा
+health|/helθ/|स्वास्थ्य
+wellness|/ˈwelnəs/|तंदुरुस्ती
+fitness|/ˈfɪtnəs/|फिटनेस
+muscle|/ˈmʌsəl/|मांसपेशी
+heart|/hɑːrt/|दिल
+sugar|/ˈʃʊɡər/|चीनी
+smoking|/ˈsmoʊkɪŋ/|धूम्रपान
+healthy|/ˈhelθi/|स्वस्थ
+strong|/strɒŋ/|मज़बूत
+""")    )
 
     val patterns = listOf(
         L.ep("epB1-a", "Present perfect — have/has + past participle", "現在完了形",

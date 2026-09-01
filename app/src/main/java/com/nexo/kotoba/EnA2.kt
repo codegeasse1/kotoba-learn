@@ -3,103 +3,277 @@ package com.nexo.kotoba
 object EnA2 {
 
     val lessons = listOf(
-        L.en("e2-01", "Daily routine", "🌅", "Your day from morning to night.", "A2", """
-            wake up|/weɪk ʌp/|जागना
-            get up|/ɡet ʌp/|उठना
-            shower|/ˈʃaʊər/|स्नान
-            breakfast|/ˈbrekfəst/|नाश्ता
-            leave|/liːv/|निकलना / छोड़ना
-            arrive|/əˈraɪv/|पहुँचना
-            lunch|/lʌntʃ/|दोपहर का भोजन
-            dinner|/ˈdɪnər/|रात का भोजन
-            sleep|/sliːp/|सोना
-            work|/wɜːrk/|काम
-        """),
-        L.en("e2-02", "Weather & seasons", "🌦️", "Describe the weather outside.", "A2", """
-            sunny|/ˈsʌni/|धूपदार
-            rainy|/ˈreɪni/|बरसाती
-            cloudy|/ˈklaʊdi/|बादलदार
-            snowy|/ˈsnoʊi/|बर्फीला
-            hot|/hɒt/|गर्म
-            cold|/koʊld/|ठंडा
-            warm|/wɔːrm/|गुनगुना
-            cool|/kuːl/|ठंडा-ठंडा
-            windy|/ˈwɪndi/|हवादार
-            foggy|/ˈfɒɡi/|कोहरेदार
-        """),
-        L.en("e2-03", "Shopping", "🛒", "Money, sizes and buying things.", "A2", """
-            buy|/baɪ/|ख़रीदना
-            sell|/sel/|बेचना
-            price|/praɪs/|क़ीमत
-            cheap|/tʃiːp/|सस्ता
-            expensive|/ɪkˈspensɪv/|महँगा
-            money|/ˈmʌni/|पैसा
-            shop|/ʃɒp/|दुकान
-            supermarket|/ˈsuːpərmɑːrkɪt/|सुपरमार्केट
-            size|/saɪz/|साइज़
-            pay|/peɪ/|भुगतान करना
-        """),
-        L.en("e2-04", "Feelings", "🎭", "How do you feel right now?", "A2", """
-            happy|/ˈhæpi/|खुश
-            sad|/sæd/|उदास
-            angry|/ˈæŋɡri/|गुस्सा
-            tired|/ˈtaɪərd/|थका हुआ
-            hungry|/ˈhʌŋɡri/|भूखा
-            thirsty|/ˈθɜːrsti/|प्यासा
-            worried|/ˈwʌrid/|चिंतित
-            excited|/ɪkˈsaɪtɪd/|उत्साहित
-            bored|/bɔːrd/|ऊबा हुआ
-            scared|/skeərd/|डरा हुआ
-        """),
-        L.en("e2-05", "Hobbies & free time", "🎨", "What you do for fun.", "A2", """
-            music|/ˈmjuːzɪk/|संगीत
-            movie|/ˈmuːvi/|फ़िल्म
-            sport|/spɔːrt/|खेल
-            game|/ɡeɪm/|खेल (गेम)
-            reading|/ˈriːdɪŋ/|पढ़ना
-            painting|/ˈpeɪntɪŋ/|चित्रकला
-            dancing|/ˈdænsɪŋ/|नृत्य
-            singing|/ˈsɪŋɪŋ/|गायन
-            cooking|/ˈkʊkɪŋ/|खाना बनाना
-            travel|/ˈtrævəl/|यात्रा
-        """),
-        L.en("e2-06", "Health", "🩺", "Doctor visits and how you feel.", "A2", """
-            doctor|/ˈdɒktər/|डॉक्टर
-            medicine|/ˈmedɪsən/|दवा
-            hospital|/ˈhɒspɪtəl/|अस्पताल
-            pain|/peɪn/|दर्द
-            headache|/ˈhedeɪk/|सिरदर्द
-            fever|/ˈfiːvər/|बुखार
-            cough|/kɒf/|खाँसी
-            rest|/rest/|आराम
-            healthy|/ˈhelθi/|स्वस्थ
-            sick|/sɪk/|बीमार
-        """),
-        L.en("e2-07", "Places in town", "🏙️", "Find your way around a city.", "A2", """
-            bank|/bæŋk/|बैंक
-            post office|/poʊst ˈɒfɪs/|डाकघर
-            library|/ˈlaɪbreri/|पुस्तकालय
-            museum|/mjuˈziːəm/|संग्रहालय
-            park|/pɑːrk/|पार्क
-            station|/ˈsteɪʃən/|स्टेशन
-            airport|/ˈeəpɔːrt/|हवाई अड्डा
-            market|/ˈmɑːrkɪt/|बाज़ार
-            street|/striːt/|गली
-            bridge|/brɪdʒ/|पुल
-        """),
-        L.en("e2-08", "Transport", "🚌", "How you get around.", "A2", """
-            bus|/bʌs/|बस
-            train|/treɪn/|रेलगाड़ी
-            car|/kɑːr/|कार
-            bike|/baɪk/|साइकिल
-            taxi|/ˈtæksi/|टैक्सी
-            plane|/pleɪn/|हवाई जहाज़
-            boat|/boʊt/|नाव
-            ticket|/ˈtɪkɪt/|टिकट
-            station|/ˈsteɪʃən/|स्टेशन
-            journey|/ˈdʒɜːrni/|यात्रा
-        """)
-    )
+L.en("e2-01", "Daily routine", "🌅", "Your day from morning to night.", "A2", """
+wake up|/weɪk ʌp/|जागना
+get up|/ɡet ʌp/|उठना
+get dressed|/ɡet drest/|कपड़े पहनना
+wash|/wɒʃ/|धोना
+brush|/brʌʃ/|ब्रश करना
+shower|/ˈʃaʊər/|स्नान
+breakfast|/ˈbrekfəst/|नाश्ता
+leave|/liːv/|निकलना / छोड़ना
+arrive|/əˈraɪv/|पहुँचना
+work|/wɜːrk/|काम
+lunch|/lʌntʃ/|दोपहर का भोजन
+break|/breɪk/|अवकाश
+return|/rɪˈtɜːrn/|लौटना
+home|/hoʊm/|घर
+dinner|/ˈdɪnər/|रात का भोजन
+relax|/rɪˈlæks/|आराम करना
+watch|/wɒtʃ/|देखना
+read|/riːd/|पढ़ना
+sleep|/sliːp/|सोना
+go to bed|/ɡoʊ tə bed/|सोने जाना
+morning|/ˈmɔːrnɪŋ/|सुबह
+evening|/ˈiːvnɪŋ/|शाम
+early|/ˈɜːrli/|जल्दी
+late|/leɪt/|देर
+busy|/ˈbɪzi/|व्यस्त
+free|/friː/|खाली
+weekday|/ˈwiːkdeɪ/|कार्यदिवस
+weekend|/ˌwiːkˈend/|सप्ताहांत
+daily|/ˈdeɪli/|दैनिक
+usual|/ˈjuːʒuəl/|सामान्य
+start|/stɑːrt/|शुरू करना
+finish|/ˈfɪnɪʃ/|ख़त्म करना
+prepare|/prɪˈpeər/|तैयार करना
+rest|/rest/|आराम
+tired|/ˈtaɪərd/|थका हुआ
+"""),
+L.en("e2-02", "Weather & seasons", "🌦️", "Describe the weather outside.", "A2", """
+sunny|/ˈsʌni/|धूपदार
+rainy|/ˈreɪni/|बरसाती
+cloudy|/ˈklaʊdi/|बादलदार
+snowy|/ˈsnoʊi/|बर्फीला
+hot|/hɒt/|गर्म
+cold|/koʊld/|ठंडा
+warm|/wɔːrm/|गुनगुना
+cool|/kuːl/|ठंडा-ठंडा
+windy|/ˈwɪndi/|हवादार
+foggy|/ˈfɒɡi/|कोहरेदार
+rain|/reɪn/|बारिश
+snow|/snoʊ/|बर्फ़
+storm|/stɔːrm/|तूफ़ान
+thunder|/ˈθʌndər/|गरज
+lightning|/ˈlaɪtnɪŋ/|बिजली
+rainbow|/ˈreɪnboʊ/|इंद्रधनुष
+sky|/skaɪ/|आकाश
+cloud|/klaʊd/|बादल
+sun|/sʌn/|सूरज
+moon|/muːn/|चाँद
+star|/stɑːr/|तारा
+wind|/wɪnd/|हवा
+temperature|/ˈtemprətʃər/|तापमान
+weather|/ˈweðər/|मौसम
+forecast|/ˈfɔːrkæst/|मौसम का पूर्वानुमान
+season|/ˈsiːzən/|मौसम
+spring|/sprɪŋ/|वसंत
+summer|/ˈsʌmər/|गर्मी
+autumn|/ˈɔːtəm/|पतझड़
+winter|/ˈwɪntər/|सर्दी
+dry|/draɪ/|सूखा
+wet|/wet/|गीला
+humid|/ˈhjuːmɪd/|आर्द्र
+freezing|/ˈfriːzɪŋ/|बहुत ठंडा
+"""),
+L.en("e2-03", "Shopping", "🛒", "Money, sizes and buying things.", "A2", """
+buy|/baɪ/|ख़रीदना
+sell|/sel/|बेचना
+price|/praɪs/|क़ीमत
+cheap|/tʃiːp/|सस्ता
+expensive|/ɪkˈspensɪv/|महँगा
+money|/ˈmʌni/|पैसा
+cash|/kæʃ/|नकद
+card|/kɑːrd/|कार्ड
+shop|/ʃɒp/|दुकान
+store|/stɔːr/|दुकान
+supermarket|/ˈsuːpərmɑːrkɪt/|सुपरमार्केट
+market|/ˈmɑːrkɪt/|बाज़ार
+mall|/mɔːl/|मॉल
+size|/saɪz/|साइज़
+small|/smɔːl/|छोटा
+medium|/ˈmiːdiəm/|मध्यम
+large|/lɑːrdʒ/|बड़ा
+pay|/peɪ/|भुगतान करना
+cost|/kɒst/|क़ीमत लगना
+spend|/spend/|ख़र्च करना
+save|/seɪv/|बचाना
+sale|/seɪl/|बिक्री / सेल
+discount|/ˈdɪskaʊnt/|छूट
+receipt|/rɪˈsiːt/|रसीद
+change|/tʃeɪndʒ/|खुले पैसे
+customer|/ˈkʌstəmər/|ग्राहक
+assistant|/əˈsɪstənt/|सहायक
+basket|/ˈbæskɪt/|टोकरी
+trolley|/ˈtrɒli/|ट्रॉली
+clothes|/kloʊðz/|कपड़े
+shoe|/ʃuː/|जूता
+try on|/traɪ ɒn/|पहन कर देखना
+choose|/tʃuːz/|चुनना
+return|/rɪˈtɜːrn/|वापस करना
+bargain|/ˈbɑːrɡən/|सौदा
+"""),
+L.en("e2-04", "Feelings", "🎭", "How do you feel right now?", "A2", """
+happy|/ˈhæpi/|खुश
+sad|/sæd/|उदास
+angry|/ˈæŋɡri/|गुस्सा
+tired|/ˈtaɪərd/|थका हुआ
+hungry|/ˈhʌŋɡri/|भूखा
+thirsty|/ˈθɜːrsti/|प्यासा
+worried|/ˈwʌrid/|चिंतित
+excited|/ɪkˈsaɪtɪd/|उत्साहित
+bored|/bɔːrd/|ऊबा हुआ
+scared|/skeərd/|डरा हुआ
+afraid|/əˈfreɪd/|डरा हुआ
+surprised|/sərˈpraɪzd/|हैरान
+nervous|/ˈnɜːrvəs/|घबराया हुआ
+calm|/kɑːm/|शांत
+proud|/praʊd/|गर्वित
+jealous|/ˈdʒeləs/|ईर्ष्यालु
+lonely|/ˈloʊnli/|अकेला
+shy|/ʃaɪ/|शर्मीला
+confident|/ˈkɒnfɪdənt/|आत्मविश्वासी
+confused|/kənˈfjuːzd/|भ्रमित
+sick|/sɪk/|बीमार
+fine|/faɪn/|ठीक
+great|/ɡreɪt/|बहुत अच्छा
+upset|/ʌpˈset/|परेशान
+annoyed|/əˈnɔɪd/|चिढ़ा हुआ
+disappointed|/ˌdɪsəˈpɔɪntɪd/|निराश
+embarrassed|/ɪmˈbærəst/|शर्मिंदा
+relieved|/rɪˈliːvd/|राहत महसूस करने वाला
+grateful|/ˈɡreɪtfəl/|आभारी
+feel|/fiːl/|महसूस करना
+mood|/muːd/|मनोदशा
+emotion|/ɪˈmoʊʃən/|भावना
+"""),
+L.en("e2-05", "Hobbies & free time", "🎨", "What you do for fun.", "A2", """
+music|/ˈmjuːzɪk/|संगीत
+song|/sɒŋ/|गाना
+movie|/ˈmuːvi/|फ़िल्म
+film|/fɪlm/|फ़िल्म
+sport|/spɔːrt/|खेल
+game|/ɡeɪm/|खेल (गेम)
+reading|/ˈriːdɪŋ/|पढ़ना
+painting|/ˈpeɪntɪŋ/|चित्रकला
+drawing|/ˈdrɔːɪŋ/|रेखाचित्र
+dancing|/ˈdænsɪŋ/|नृत्य
+singing|/ˈsɪŋɪŋ/|गायन
+cooking|/ˈkʊkɪŋ/|खाना बनाना
+travel|/ˈtrævəl/|यात्रा
+swimming|/ˈswɪmɪŋ/|तैराकी
+fishing|/ˈfɪʃɪŋ/|मछली पकड़ना
+hiking|/ˈhaɪkɪŋ/|पैदल यात्रा
+photography|/fəˈtɒɡrəfi/|फ़ोटोग्राफ़ी
+garden|/ˈɡɑːrdən/|बाग़वानी
+volunteer|/ˌvɒlənˈtɪər/|स्वयंसेवा
+team|/tiːm/|टीम
+hobby|/ˈhɒbi/|शौक़
+fun|/fʌn/|मज़ा
+relax|/rɪˈlæks/|आराम करना
+enjoy|/ɪnˈdʒɔɪ/|आनंद लेना
+interesting|/ˈɪntrəstɪŋ/|दिलचस्प
+boring|/ˈbɔːrɪŋ/|उबाऊ
+free time|/friː taɪm/|खाली समय
+weekend|/ˌwiːkˈend/|सप्ताहांत
+party|/ˈpɑːrti/|पार्टी
+concert|/ˈkɒnsərt/|संगीत समारोह
+"""),
+L.en("e2-06", "Health", "🩺", "Doctor visits and how you feel.", "A2", """
+doctor|/ˈdɒktər/|डॉक्टर
+nurse|/nɜːrs/|नर्स
+medicine|/ˈmedɪsən/|दवा
+tablet|/ˈtæblət/|गोली
+hospital|/ˈhɒspɪtəl/|अस्पताल
+clinic|/ˈklɪnɪk/|क्लिनिक
+pain|/peɪn/|दर्द
+headache|/ˈhedeɪk/|सिरदर्द
+stomachache|/ˈstʌməkeɪk/|पेट दर्द
+toothache|/ˈtuːθeɪk/|दाँत दर्द
+fever|/ˈfiːvər/|बुखार
+cough|/kɒf/|खाँसी
+cold|/koʊld/|ज़ुकाम
+flu|/fluː/|फ्लू
+rest|/rest/|आराम
+healthy|/ˈhelθi/|स्वस्थ
+sick|/sɪk/|बीमार
+hurt|/hɜːrt/|चोट लगना
+injured|/ˈɪndʒərd/|घायल
+appointment|/əˈpɔɪntmənt/|अपॉइंटमेंट
+check-up|/ˈtʃek ʌp/|जाँच
+prescription|/prɪˈskrɪpʃən/|नुस्ख़ा
+treatment|/ˈtriːtmənt/|इलाज
+advice|/ədˈvaɪs/|सलाह
+exercise|/ˈeksərsaɪz/|व्यायाम
+vitamin|/ˈvaɪtəmɪn/|विटामिन
+vaccine|/vækˈsiːn/|टीका
+recover|/rɪˈkʌvər/|ठीक होना
+feel better|/fiːl ˈbetər/|बेहतर महसूस करना
+"""),
+L.en("e2-07", "Places in town", "🏙️", "Find your way around a city.", "A2", """
+bank|/bæŋk/|बैंक
+post office|/poʊst ˈɒfɪs/|डाकघर
+library|/ˈlaɪbreri/|पुस्तकालय
+museum|/mjuˈziːəm/|संग्रहालय
+park|/pɑːrk/|पार्क
+station|/ˈsteɪʃən/|स्टेशन
+airport|/ˈeəpɔːrt/|हवाई अड्डा
+market|/ˈmɑːrkɪt/|बाज़ार
+street|/striːt/|गली
+road|/roʊd/|सड़क
+bridge|/brɪdʒ/|पुल
+building|/ˈbɪldɪŋ/|इमारत
+hospital|/ˈhɒspɪtəl/|अस्पताल
+school|/skuːl/|स्कूल
+restaurant|/ˈrestrɒnt/|रेस्तराँ
+café|/ˈkæfeɪ/|कैफ़े
+hotel|/hoʊˈtel/|होटल
+church|/tʃɜːrtʃ/|चर्च
+temple|/ˈtempəl/|मंदिर
+mosque|/mɒsk/|मस्जिद
+cinema|/ˈsɪnəmə/|सिनेमा
+theatre|/ˈθɪətər/|थिएटर
+shop|/ʃɒp/|दुकान
+office|/ˈɒfɪs/|कार्यालय
+square|/skweər/|चौक
+corner|/ˈkɔːrnər/|कोना
+direction|/dəˈrekʃən/|दिशा
+map|/mæp/|नक्शा
+turn|/tɜːrn/|मुड़ना
+straight|/streɪt/|सीधा
+"""),
+L.en("e2-08", "Transport", "🚌", "How you get around.", "A2", """
+bus|/bʌs/|बस
+train|/treɪn/|रेलगाड़ी
+car|/kɑːr/|कार
+bike|/baɪk/|साइकिल
+taxi|/ˈtæksi/|टैक्सी
+plane|/pleɪn/|हवाई जहाज़
+airplane|/ˈeərpleɪn/|हवाई जहाज़
+boat|/boʊt/|नाव
+ship|/ʃɪp/|जहाज़
+metro|/ˈmetroʊ/|मेट्रो
+ticket|/ˈtɪkɪt/|टिकट
+station|/ˈsteɪʃən/|स्टेशन
+platform|/ˈplætfɔːrm/|प्लेटफ़ॉर्म
+journey|/ˈdʒɜːrni/|यात्रा
+trip|/trɪp/|यात्रा
+driver|/ˈdraɪvər/|चालक
+passenger|/ˈpæsɪndʒər/|यात्री
+traffic|/ˈtræfɪk/|यातायात
+traffic jam|/ˈtræfɪk dʒæm/|यातायात जाम
+route|/ruːt/|मार्ग
+map|/mæp/|नक्शा
+drive|/draɪv/|गाड़ी चलाना
+ride|/raɪd/|सवारी करना
+fly|/flaɪ/|उड़ना
+catch|/kætʃ/|पकड़ना
+miss|/mɪs/|छूट जाना
+arrive|/əˈraɪv/|पहुँचना
+depart|/dɪˈpɑːrt/|रवाना होना
+delay|/dɪˈleɪ/|देरी
+schedule|/ˈʃedjuːl/|समय-सारणी
+""")    )
 
     val patterns = listOf(
         L.ep("epA2-a", "was / were — past of 'be'", "be動詞の過去",

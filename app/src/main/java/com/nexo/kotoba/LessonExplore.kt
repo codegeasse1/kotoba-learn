@@ -81,7 +81,7 @@ fun LessonExplore(
 
     when {
         openIndex != null -> WordDetail(
-            store, speaker, lesson.words, openIndex!!,
+            store, speaker, lesson.words, lesson.lang, openIndex!!,
             onNavigate = { openIndex = it },
             onClose = { openIndex = null }
         )
@@ -268,6 +268,7 @@ private fun FlashcardBrowse(store: Store, speaker: Speaker, lesson: Lesson, onSt
                 word = exampleWord!!,
                 store = store,
                 speaker = speaker,
+                lang = lesson.lang,
                 onDismiss = { exampleWord = null }
             )
         }
@@ -376,6 +377,7 @@ private fun WordListBrowser(
                 word = exampleWord!!,
                 store = store,
                 speaker = speaker,
+                lang = lesson.lang,
                 onDismiss = { exampleWord = null }
             )
         }
@@ -448,6 +450,7 @@ private fun WordGridBrowser(
             word = exampleWord!!,
             store = store,
             speaker = speaker,
+            lang = lesson.lang,
             onDismiss = { exampleWord = null }
         )
     }
@@ -458,6 +461,7 @@ private fun WordDetail(
     store: Store,
     speaker: Speaker,
     words: List<Word>,
+    lang: String,
     index: Int,
     onNavigate: (Int) -> Unit,
     onClose: () -> Unit
@@ -579,6 +583,7 @@ private fun WordDetail(
                 word = w,
                 store = store,
                 speaker = speaker,
+                lang = lang,
                 onDismiss = { showExamples = false }
             )
         }
@@ -591,10 +596,13 @@ private fun ExampleSheet(
     word: Word,
     store: Store,
     speaker: Speaker,
+    lang: String = "en",
     onDismiss: () -> Unit
 ) {
-    val examples = remember(word.en) { Examples.forWord(word) }
-    val hindi = remember(word.en) { Examples.hindiFor(word) }
+    val isJa = lang == "ja"
+    val jaEx = if (isJa) remember(word.kana) { Examples.jaForWord(word) } else emptyList()
+    val examples = if (isJa) emptyList() else remember(word.en) { Examples.forWord(word) }
+    val hindi = if (isJa) emptyList() else remember(word.en) { Examples.hindiFor(word) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             Modifier
@@ -603,48 +611,96 @@ private fun ExampleSheet(
                 .padding(bottom = 28.dp)
         ) {
             Text(
-                word.en,
+                if (isJa) word.kana.ifEmpty { word.en } else word.en,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "Example sentences with translations",
+                if (isJa) "日本語の例文 + हिंदी अर्थ" else "Example sentences with translations",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(12.dp))
-            examples.forEachIndexed { i, ex ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(14.dp)
-                ) {
-                    Column(
-                        Modifier
+            if (isJa) {
+                jaEx.forEach { ex ->
+                    Card(
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(14.dp)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("💬", fontSize = 14.sp)
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                ex,
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            IconButton(onClick = { speak(store, speaker, ex, false) }) {
-                                Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("💬", fontSize = 14.sp)
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    ex.ja,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                IconButton(onClick = { speak(store, speaker, ex.ja, true) }) {
+                                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                                }
+                            }
+                            if (ex.romaji.isNotBlank()) {
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    ex.romaji,
+                                    modifier = Modifier.padding(start = 24.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (ex.hi.isNotBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    ex.hi,
+                                    modifier = Modifier.padding(start = 24.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-                        if (i < hindi.size && hindi[i].isNotBlank()) {
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                hindi[i],
-                                modifier = Modifier.padding(start = 24.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    }
+                }
+            } else {
+                examples.forEachIndexed { i, ex ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("💬", fontSize = 14.sp)
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    ex,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                IconButton(onClick = { speak(store, speaker, ex, false) }) {
+                                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
+                                }
+                            }
+                            if (i < hindi.size && hindi[i].isNotBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    hindi[i],
+                                    modifier = Modifier.padding(start = 24.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
