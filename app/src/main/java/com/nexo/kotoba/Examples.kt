@@ -10,7 +10,7 @@ package com.nexo.kotoba
  */
 object Examples {
 
-    private val CURATED: Map<String, List<String>> = mapOf(
+    private val CURATED: Map<String, List<String>> by lazy { mapOf(
         "a" to listOf("I have a small dog.", "She is a talented artist.", "Give me a hand here."),
         "a double-edged sword" to listOf("Fame is often a double-edged sword.", "This new law is a double-edged sword.", "His talent can be a double-edged sword."),
         "a moot point" to listOf("That is a moot point now.", "It's a moot point since we lost.", "Whether it rains is a moot point."),
@@ -919,9 +919,9 @@ object Examples {
         "yesterday" to listOf("I saw him yesterday afternoon.", "Yesterday was a holiday.", "It rained all day yesterday."),
         "younger brother" to listOf("My younger brother is annoying.", "He has one younger brother.", "I play soccer with my younger brother."),
         "younger sister" to listOf("Her younger sister is five.", "My younger sister lives in London.", "I help my younger sister study.")
-    )
+    ) }
 
-    private val CURATED_HI: Map<String, List<String>> = mapOf(
+    private val CURATED_HI: Map<String, List<String>> by lazy { mapOf(
         "a" to listOf("मेरे पास एक छोटा कुत्ता है.", "वह एक प्रतिभाशाली कलाकार हैं.", "मुझे यहाँ एक हाथ दो."),
         "a double-edged sword" to listOf("प्रसिद्धि अक्सर दोधारी तलवार होती है।", "यह नया कानून दोधारी तलवार है.", "उनकी प्रतिभा दोधारी तलवार हो सकती है।"),
         "a moot point" to listOf("यह अब एक विवादास्पद मुद्दा है.", "हमारे हारने के बाद से यह एक विवादास्पद मुद्दा है।", "बारिश होगी या नहीं यह एक विवादास्पद मुद्दा है।"),
@@ -1830,7 +1830,7 @@ object Examples {
         "yesterday" to listOf("मैंने उसे कल दोपहर को देखा।", "कल छुट्टी थी.", "कल पूरे दिन बारिश होती रही."),
         "younger brother" to listOf("मेरा छोटा भाई परेशान है.", "उनका एक छोटा भाई है.", "मैं अपने छोटे भाई के साथ फुटबॉल खेलता हूं।"),
         "younger sister" to listOf("उसकी छोटी बहन पांच साल की है।", "मेरी छोटी बहन लंदन में रहती है.", "मैं अपनी छोटी बहन की पढ़ाई में मदद करता हूं।"),
-    )
+    ) }
 
     private val POS: Map<String, String> = run {
         val m = mutableMapOf<String, String>()
