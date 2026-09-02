@@ -5,7 +5,8 @@ object Oxford {
     private fun ow(raw: String): List<Word> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Word("o${oid++}", "•", "", "", "", c[0], c.getOrElse(1) { "" }, c.getOrElse(2) { "" })
         }.toList()
 

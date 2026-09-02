@@ -5,7 +5,8 @@ object Genki {
     private fun gw(raw: String): List<Word> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Word("g${gid++}", "•", c[0], c[1], c[2], c[3], "", c.getOrElse(4) { "" })
         }.toList()
 
@@ -15,7 +16,8 @@ object Genki {
     private fun ex(raw: String): List<PatternExample> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             PatternExample("•", c[0], c[1], c[2], c.getOrElse(3) { "" })
         }.toList()
 

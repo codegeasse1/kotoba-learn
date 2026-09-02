@@ -5,7 +5,8 @@ object KanjiWords {
     private fun kw(raw: String): List<Word> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Word("k${kid++}", "•", c[0], c[1], c[2], c[3], "", c.getOrElse(4) { "" })
         }.toList()
 

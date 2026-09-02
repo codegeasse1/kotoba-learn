@@ -7,14 +7,16 @@ object Sentences {
     private fun sc(raw: String): List<Sentence> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Sentence("s${sid++}", c[0], c[1], c[2], c[3], c.getOrElse(4) { "" })
         }.toList()
 
     private fun sec(raw: String): List<Sentence> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Sentence("s${sid++}", c[0], c[1], "", c[1], c.getOrElse(2) { "" })
         }.toList()
 

@@ -72,14 +72,16 @@ object L {
     private fun jaWords(raw: String): List<Word> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Word("w${wid++}", "•", c[0], c[1], c.getOrElse(2) { "" }, c.getOrElse(3) { "" }, "", c.getOrElse(4) { "" })
         }.toList()
 
     private fun enWords(raw: String): List<Word> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             Word("w${wid++}", "•", "", "", "", c[0], c.getOrElse(1) { "" }, c.getOrElse(2) { "" })
         }.toList()
 
@@ -92,7 +94,8 @@ object L {
     private fun ex(raw: String): List<PatternExample> = raw.trim().lineSequence()
         .filter { it.isNotBlank() }
         .map { line ->
-            val c = line.split("|")
+            val l = line.trim()
+            val c = l.split("|")
             PatternExample("•", c[0], c[1], c[2], c.getOrElse(3) { "" })
         }.toList()
 
