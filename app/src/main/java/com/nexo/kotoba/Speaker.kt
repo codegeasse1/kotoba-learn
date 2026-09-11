@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.widget.Toast
 import java.io.File
 import java.net.HttpURLConnection
@@ -21,9 +22,10 @@ import java.util.Locale
  *   1. try the exact locale (e.g. `de-DE`),
  *   2. then the bare language (e.g. `de`),
  *   3. then any installed variant of that language,
- * and if none of those exist we download the phrase from the network TTS service
- * so the learner still hears the word. The network path only runs when there is
- * no usable on-device voice, and needs an internet connection.
+ * and if none of those exist — or the engine reports an error — we download the
+ * phrase from the network TTS service so the learner still hears the word. The
+ * network path only runs when the on-device voice can't handle the phrase, and
+ * needs an internet connection.
  */
 class Speaker(context: Context) {
 
@@ -38,6 +40,9 @@ class Speaker(context: Context) {
     private var warnedNoLang = false
     private var warnedPending = false
     private var media: MediaPlayer? = null
+    private var speakSeq = 0
+    private var lastUtteranceId: String? = null
+    private var lastFallback: Pair<String, String>? = null
 
     init {
         try {
@@ -45,6 +50,20 @@ class Speaker(context: Context) {
                 if (status == TextToSpeech.SUCCESS) {
                     ready = true
                     tts?.setSpeechRate(rate)
+                    tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String?) {}
+
+                        override fun onDone(utteranceId: String?) {}
+
+                        @Deprecated("Deprecated in Java")
+                        override fun onError(utteranceId: String?) {
+                            fallbackIfCurrent(utteranceId)
+                        }
+
+                        override fun onError(utteranceId: String?, errorCode: Int) {
+                            fallbackIfCurrent(utteranceId)
+                        }
+                    })
                     pending?.let { p ->
                         pending = null
                         speak(p.first, p.second)
@@ -105,6 +124,14 @@ class Speaker(context: Context) {
         return false
     }
 
+    /** The engine failed to play the current phrase — try the network voice. */
+    private fun fallbackIfCurrent(utteranceId: String?) {
+        if (utteranceId == null || utteranceId != lastUtteranceId) return
+        val p = lastFallback ?: return
+        lastFallback = null
+        speakOnline(p.first, p.second)
+    }
+
     private fun releaseMedia() {
         val mp = media ?: return
         media = null
@@ -120,7 +147,7 @@ class Speaker(context: Context) {
 
     /**
      * Downloads and plays [text] from the network TTS service. Used only when the
-     * device has no installed voice for [lang]; requires an internet connection.
+     * on-device voice can't speak [lang]; requires an internet connection.
      */
     private fun speakOnline(text: String, lang: String) {
         val code = localeFor(lang).substringBefore('-')
@@ -210,6 +237,7 @@ class Speaker(context: Context) {
             if (pending == null) pending = text to lang
             return
         }
+        lastFallback = null
         releaseMedia()
         try {
             t.stop()
@@ -220,12 +248,17 @@ class Speaker(context: Context) {
             speakOnline(text, lang)
             return
         }
+        speakSeq += 1
+        val id = "k" + speakSeq
+        lastUtteranceId = id
+        lastFallback = text to lang
         val result = try {
-            t.speak(text, TextToSpeech.QUEUE_FLUSH, null, "kotoba")
+            t.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
         } catch (e: Exception) {
             TextToSpeech.ERROR
         }
         if (result == TextToSpeech.ERROR) {
+            lastFallback = null
             if (!warnedNoEngine) {
                 warnedNoEngine = true
                 toastIfOnce("Using online audio for ${nativeName(lang)}. Install the device voice in Settings → Text-to-speech for offline use.")
@@ -235,11 +268,13 @@ class Speaker(context: Context) {
     }
 
     fun stop() {
+        lastFallback = null
         tts?.stop()
         releaseMedia()
     }
 
     fun shutdown() {
+        lastFallback = null
         tts?.stop()
         tts?.shutdown()
         tts = null
