@@ -23,6 +23,7 @@ data class UpdateInfo(
 object Updater {
 
     const val REPO = "codegeasse1/kotoba-learn"
+    const val REPO_URL = "https://github.com/$REPO"
     const val RELEASES_PAGE = "https://github.com/$REPO/releases/latest"
     private const val API = "https://api.github.com/repos/$REPO/releases/latest"
 

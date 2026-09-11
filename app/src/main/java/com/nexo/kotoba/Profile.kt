@@ -215,6 +215,31 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
         }
         Spacer(Modifier.height(12.dp))
 
+        Text("About", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Kotoba is a free, offline-first language-learning app. Learn Japanese, English, " +
+                "Spanish, Hindi and 8 more — with vocabulary, example sentences, grammar " +
+                "patterns and conversations explained in your own language.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Version ${Updater.currentVersion(ctx)}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = { Updater.openReleasePage(ctx, Updater.REPO_URL) }) {
+                Text("Source on GitHub")
+            }
+            TextButton(onClick = { Updater.openReleasePage(ctx, Updater.RELEASES_PAGE) }) {
+                Text("Releases")
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+
         OutlinedButton(
             onClick = { showReset = true },
             modifier = Modifier.fillMaxWidth()
