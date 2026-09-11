@@ -9,7 +9,7 @@ Built on well-established language-learning research:
 - **Chunking / sentence patterns** — learners study whole high-frequency sentences ("I like ~", "please ~") rather than isolated words, matching how fluency is actually built.
 - **Kana before kanji, with mnemonics** — the 46 kana characters (×2 scripts, plus voiced variants) each get a picture mnemonic, because connecting sounds to memorable images is the fastest proven route to literacy.
 - **Input-first, low-stakes quizzing** — tapping, listening and repeating; every interaction is graded gently into the SRS.
-- **Audio from day one** — native TextToSpeech pronunciation for every word, phrase and sentence, with adjustable speed.
+- **Audio from day one** — TextToSpeech pronunciation for every word, phrase and sentence, with adjustable speed. The speaker tries the exact locale, then the bare language, then any installed variant, so it keeps working even when a device only has some voices; if the device has no voice for a language at all it falls back to the network TTS service so nothing is silent.
 
 ## Features
 
