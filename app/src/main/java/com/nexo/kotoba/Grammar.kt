@@ -117,19 +117,19 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                 Spacer(Modifier.height(16.dp))
             } else {
                 if (learningJa) {
-                    SectionList("Japanese patterns", jaCore, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("Japanese patterns", jaCore, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
-                    SectionList("Genki Textbook 1", genki, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("Genki Textbook 1", genki, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
-                    SectionList("Japanese From Zero", jfz, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("Japanese From Zero", jfz, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
-                    SectionList("Japanese Essentials", jg, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("Japanese Essentials", jg, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
                 }
                 if (learningEn) {
-                    SectionList("English patterns", enCore, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("English patterns", enCore, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
-                    SectionList("English Grammar Essentials", eg, query.isNotEmpty(), onClick = { open = it })
+                    SectionList("English Grammar Essentials", eg, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
                 }
             }
@@ -139,7 +139,7 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
 }
 
 @Composable
-private fun SectionList(title: String, ps: List<Pattern>, isSearch: Boolean, onClick: (Pattern) -> Unit) {
+private fun SectionList(title: String, ps: List<Pattern>, isSearch: Boolean, native: String, onClick: (Pattern) -> Unit) {
     if (ps.isEmpty()) return
     Text(
         title,
@@ -156,13 +156,13 @@ private fun SectionList(title: String, ps: List<Pattern>, isSearch: Boolean, onC
     }
     Spacer(Modifier.height(6.dp))
     ps.forEach { p ->
-        PatternRow(p, onClick = { onClick(p) })
+        PatternRow(p, native, onClick = { onClick(p) })
         Spacer(Modifier.height(8.dp))
     }
 }
 
 @Composable
-private fun PatternRow(p: Pattern, onClick: () -> Unit) {
+private fun PatternRow(p: Pattern, native: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,11 +175,14 @@ private fun PatternRow(p: Pattern, onClick: () -> Unit) {
         ) {
             Column(Modifier.weight(1f)) {
                 Text(p.titleEn, fontWeight = FontWeight.Bold)
-                Text(
-                    p.titleJa,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                val sub = patternSubtitle(p, native)
+                if (sub.isNotEmpty()) {
+                    Text(
+                        sub,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             Icon(
                 Icons.Filled.ChevronRight,
@@ -188,6 +191,12 @@ private fun PatternRow(p: Pattern, onClick: () -> Unit) {
             )
         }
     }
+}
+
+private fun patternSubtitle(p: Pattern, native: String): String {
+    if (p.lang == "ja" || native == "ja") return p.titleJa
+    if (native == "en" || native.isBlank()) return ""
+    return Gloss.lookup(p.titleEn) ?: ""
 }
 
 @Composable
@@ -201,7 +210,10 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
             }
             Column {
                 Text(p.titleEn, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(p.titleJa, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val sub = patternSubtitle(p, store.nativeLang)
+                if (sub.isNotEmpty()) {
+                    Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
         Spacer(Modifier.height(6.dp))
