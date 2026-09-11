@@ -3485,7 +3485,12 @@ object Examples {
             }
             else -> forWord(word).forEach { e ->
                 val t = Gloss.lookupTarget(e) ?: return@forEach
-                out.add(ExLine(t, "", if (showGloss) englishGloss(e, word, native) else ""))
+                val gloss = when {
+                    !showGloss -> ""
+                    native == "en" -> e
+                    else -> englishGloss(e, word, native).ifBlank { e }
+                }
+                out.add(ExLine(t, "", gloss))
             }
         }
         if (out.size < 10) {
