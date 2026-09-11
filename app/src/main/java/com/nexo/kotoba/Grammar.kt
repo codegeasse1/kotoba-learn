@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf<Pattern?>(null) }
+    var autoQuiz by remember { mutableStateOf(false) }
     var q by remember { mutableStateOf("") }
     val scroll = rememberScrollState()
     val targetLang = store.target
@@ -62,7 +63,7 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
     }
 
     when {
-        open != null -> PatternDetail(open!!, store, speaker, modifier, onClose = { open = null })
+        open != null -> PatternDetail(open!!, store, speaker, modifier, autoQuiz = autoQuiz, onClose = { open = null; autoQuiz = false })
         else -> Column(
             modifier = modifier
                 .fillMaxSize()
@@ -115,6 +116,28 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             val total = (if (learningJa) jaCore.size + genki.size + jfz.size + jg.size else 0) +
                 (if (learningEn) enCore.size + eg.size else 0) +
                 (if (learningOther) otherCoreMatches.size + otherEssentials.size else 0)
+
+            val practicePool = when {
+                learningJa -> Data.allPatterns.filter { it.lang == "ja" && it.source.isEmpty() } +
+                    Genki.patterns + Jfz.patterns + JapaneseGrammar.patterns
+                learningEn -> Data.allPatterns.filter { it.lang == "en" && it.source.isEmpty() } +
+                    EnglishGrammar.patterns
+                else -> otherCore
+            }
+
+            if (practicePool.isNotEmpty()) {
+                Button(
+                    onClick = {
+                        autoQuiz = true
+                        open = practicePool.random()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("🎯 Practice random grammar")
+                }
+                Spacer(Modifier.height(14.dp))
+            }
 
             if (query.isNotEmpty() && total == 0) {
                 Text(
@@ -217,8 +240,8 @@ private fun patternSubtitle(p: Pattern, native: String): String {
 }
 
 @Composable
-private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
-    var quiz by remember { mutableStateOf(false) }
+private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, autoQuiz: Boolean = false, onClose: () -> Unit) {
+    var quiz by remember { mutableStateOf(autoQuiz) }
     if (quiz) {
         PatternQuiz(p, store, speaker, modifier, onClose = { quiz = false })
         return
