@@ -47,8 +47,10 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
     var open by remember { mutableStateOf<Pattern?>(null) }
     var q by remember { mutableStateOf("") }
     val scroll = rememberScrollState()
-    val learningJa = store.direction != Direction.ENGLISH
-    val learningEn = store.direction != Direction.JAPANESE
+    val targetLang = store.target
+    val learningJa = targetLang == "ja"
+    val learningEn = targetLang == "en"
+    val learningOther = !learningJa && !learningEn
     val query = q.trim().lowercase()
 
     fun matches(p: Pattern): Boolean {
@@ -105,8 +107,12 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             val jfz = Jfz.patterns.filter { matches(it) }
             val jg = JapaneseGrammar.patterns.filter { matches(it) }
             val eg = EnglishGrammar.patterns.filter { matches(it) }
+            val otherCore = if (learningOther) remember(targetLang) { TargetContent.patterns(targetLang) } else emptyList()
+            val otherCoreMatches = otherCore.filter { it.source.isEmpty() && matches(it) }
+            val otherEssentials = otherCore.filter { it.source == "english" && matches(it) }
             val total = (if (learningJa) jaCore.size + genki.size + jfz.size + jg.size else 0) +
-                (if (learningEn) enCore.size + eg.size else 0)
+                (if (learningEn) enCore.size + eg.size else 0) +
+                (if (learningOther) otherCoreMatches.size + otherEssentials.size else 0)
 
             if (query.isNotEmpty() && total == 0) {
                 Text(
@@ -115,6 +121,11 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(16.dp))
+            } else if (learningOther) {
+                SectionList("${nativeName(targetLang).substringAfter(' ')} patterns", otherCoreMatches, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
+                Spacer(Modifier.height(12.dp))
+                SectionList("Grammar essentials", otherEssentials, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
+                Spacer(Modifier.height(12.dp))
             } else {
                 if (learningJa) {
                     SectionList("Japanese patterns", jaCore, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
@@ -194,6 +205,10 @@ private fun PatternRow(p: Pattern, native: String, onClick: () -> Unit) {
 }
 
 private fun patternSubtitle(p: Pattern, native: String): String {
+    if (p.lang != "ja" && p.lang != "en") {
+        if (native == "en" || native.isBlank()) return ""
+        return Gloss.lookup(p.titleEn) ?: ""
+    }
     if (p.lang == "ja" || native == "ja") return p.titleJa
     if (native == "en" || native.isBlank()) return ""
     return Gloss.lookup(p.titleEn) ?: ""
@@ -256,7 +271,7 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
                             Text(ex.glossFor(store.nativeLang, p.lang), style = MaterialTheme.typography.bodyMedium)
                         }
                         FilledIconButton(
-                            onClick = { speak(store, speaker, ex.ja, p.lang == "ja") },
+                            onClick = { speak(store, speaker, ex.ja, p.lang != "en") },
                             modifier = Modifier.size(38.dp)
                         ) {
                             Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(18.dp))

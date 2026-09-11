@@ -23,8 +23,9 @@ Built on well-established language-learning research:
 - 🗣️ **Phrase bank** — real-world chunked sentences with word-by-word breakdowns.
 - 📐 **Grammar patterns** — JLPT/CEFR patterns plus Genki 1 and JFZ grammar, taught as *patterns with audio examples*, explained in English, Japanese *and Hindi*.
 - 🌍 **12 native languages** — pick English, Hindi, Japanese, Spanish, Arabic, French, German, Bengali, Tamil, Telugu, Urdu or Kannada and every word, phrase, sentence and grammar pattern is shown with a meaning in that language (hand-written for Hindi/Japanese, an offline bundled gloss table for the rest). Empty glosses fall back to the English meaning.
+- 🎯 **Learn any language** — the \"I'm learning…\" picker offers all 12 languages, so an English native can learn Spanish, Arabic, French… and a Hindi native can learn Japanese or German. For anything other than the hand-written Japanese/English tracks, the app builds the full curriculum (vocabulary, example sentences, grammar patterns and roleplay conversations) on the fly by translating the English course through the same offline gloss tables, so every lesson, example and grammar rule is available in the language you picked.
 - 🎮 **Gamification** — XP, levels, daily streaks, stats, and progress tracking that make daily practice a habit.
-- 🌍 **Direction-independent** — switch between learning Japanese, English, or both; toggle romaji and translations to taper off scaffolding.
+- 🌍 **Direction-independent** — study any of the 12 languages (Japanese and English are hand-authored; the rest are auto-translated from the English course); toggle romaji and translations to taper off scaffolding.
 
 ## Screens
 

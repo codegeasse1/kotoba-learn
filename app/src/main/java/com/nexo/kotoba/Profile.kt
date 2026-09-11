@@ -116,26 +116,26 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
         Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
             Column(Modifier.padding(20.dp)) {
                 Text("I'm learning…", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Pick any language to study — vocabulary, example sentences and grammar are all translated into it.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = store.direction == Direction.JAPANESE,
-                        onClick = { store.direction = Direction.JAPANESE },
-                        label = { Text("Japanese") }
-                    )
-                    FilterChip(
-                        selected = store.direction == Direction.ENGLISH,
-                        onClick = { store.direction = Direction.ENGLISH },
-                        label = { Text("English") }
-                    )
-                    FilterChip(
-                        selected = store.direction == Direction.BOTH,
-                        onClick = { store.direction = Direction.BOTH },
-                        label = { Text("Both") }
-                    )
+                NATIVE_LANGUAGES.chunked(2).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { (code, name) ->
+                            FilterChip(
+                                selected = store.target == code,
+                                onClick = { store.setTarget(code) },
+                                label = { Text(name) }
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
                 }
                 Text(
-                    "Japanese: learn Japanese with ${nativeName(store.nativeLang)} meanings. English: learn English with ${nativeName(store.nativeLang)} meanings. Both: mix of both worlds.",
+                    "Learning ${nativeName(store.target)} with ${nativeName(store.nativeLang)} explanations.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

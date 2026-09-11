@@ -1845,6 +1845,10 @@ object Examples {
 
     fun forWord(word: Word): List<String> = forWordText(word.en)
 
+    /** English example sentences translated into the language being learned. */
+    fun targetForWord(word: Word): List<String> =
+        forWord(word).map { Gloss.lookupTarget(it) ?: it }
+
     fun forWordText(en: String): List<String> {
         val key = normalize(en)
         CURATED[key]?.let { return it }

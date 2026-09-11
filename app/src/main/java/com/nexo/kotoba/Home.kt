@@ -48,7 +48,7 @@ fun HomeScreen(
             .padding(20.dp)
     ) {
         Text(
-            "こんにちは 👋",
+            if (store.target == "ja") "こんにちは 👋" else "Hello 👋",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.secondary
         )
@@ -58,11 +58,7 @@ fun HomeScreen(
             fontWeight = FontWeight.ExtraBold
         )
         Text(
-            "Learn ${when (store.direction) {
-                Direction.JAPANESE -> "Japanese"
-                Direction.ENGLISH -> "English"
-                Direction.BOTH -> "Japanese & English"
-            }} — explained in ${nativeName(store.nativeLang)}",
+            "Learn ${languageLabel(store.target)} — explained in ${languageLabel(store.nativeLang)}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

@@ -45,8 +45,13 @@ import androidx.compose.ui.unit.sp
 fun ReviewScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var session by remember { mutableStateOf<List<Word>?>(null) }
 
+    val pool = if (store.target == "ja" || store.target == "en") Data.allWords
+    else TargetContent.words(store.target)
+
     fun loadDue(): List<Word> =
-        store.dueCards(25).mapNotNull { (id, _) -> Data.allWords.firstOrNull { it.id == id } }
+        store.dueCards(25).mapNotNull { (id, _) ->
+            pool.firstOrNull { it.id == id } ?: Data.allWords.firstOrNull { it.id == id }
+        }
 
     if (session == null) {
         ReviewHome(
@@ -55,7 +60,7 @@ fun ReviewScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) 
             onStart = { session = loadDue().ifEmpty { null } },
             onAddNew = {
                 val known = store.srs.keys
-                val fresh = Data.allWords.filter { it.id !in known }.shuffled(java.util.Random()).take(10)
+                val fresh = pool.filter { it.id !in known }.shuffled(java.util.Random()).take(10)
                 store.addNewCards(fresh.map { it.id })
                 session = loadDue().ifEmpty { null }
             }
@@ -155,7 +160,7 @@ private fun ReviewSession(
     var index by remember { mutableStateOf(0) }
     var revealed by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(false) }
-    val targetJa = store.direction != Direction.ENGLISH
+    val targetJa = store.target != "en"
 
     fun next() {
         if (index == queue.lastIndex) done = true else {
@@ -202,7 +207,7 @@ private fun ReviewSession(
             Text("Card ${index + 1}/${queue.size}", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.weight(1f))
             Text(
-                if (targetJa) "Japanese → English" else "English → Japanese",
+                "${languageLabel(store.target)} → ${languageLabel(store.nativeLang)}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

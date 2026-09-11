@@ -45,7 +45,7 @@ fun DictionaryScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifi
     val query = q.trim()
     var results by remember { mutableStateOf<List<DictEntry>>(emptyList()) }
 
-    LaunchedEffect(query) {
+    LaunchedEffect(query, store.target) {
         if (query.isEmpty()) {
             results = emptyList()
             return@LaunchedEffect
@@ -53,6 +53,18 @@ fun DictionaryScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifi
         kotlinx.coroutines.delay(160)
         if (!DictionaryData.loaded) return@LaunchedEffect
         results = DictionaryData.searchRanked(query)
+        if (store.target != "ja" && store.target != "en") {
+            val t = store.target
+            val extra = TargetContent.words(t)
+                .filter { key ->
+                    key.kana.contains(query, ignoreCase = true) ||
+                        key.en.contains(query, ignoreCase = true) ||
+                        key.hi.contains(query)
+                }
+                .take(60)
+                .map { DictEntry.App(it) }
+            results = extra + results
+        }
     }
 
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp)) {
@@ -175,7 +187,7 @@ private fun EnResultCard(e: EnEntry, store: Store, speaker: Speaker) {
                 )
             }
             FilledIconButton(
-                onClick = { speak(store, speaker, e.head, false) },
+                onClick = { speakIn(store, speaker, e.head, "en") },
                 modifier = Modifier.size(34.dp)
             ) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
@@ -222,7 +234,7 @@ private fun JaResultCard(j: JaEntry, store: Store, speaker: Speaker) {
                 }
             }
             FilledIconButton(
-                onClick = { speak(store, speaker, j.kana.ifEmpty { j.kanji }, true) },
+                onClick = { speakIn(store, speaker, j.kana.ifEmpty { j.kanji }, "ja") },
                 modifier = Modifier.size(34.dp)
             ) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
@@ -264,7 +276,14 @@ private fun AppResultCard(w: Word, store: Store, speaker: Speaker) {
                 )
             }
             FilledIconButton(
-                onClick = { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) },
+                onClick = {
+                    speakIn(
+                        store,
+                        speaker,
+                        if (targetJa) w.kana else w.en,
+                        if (w.lang != "ja" && w.lang != "en") w.lang else if (targetJa) "ja" else "en"
+                    )
+                },
                 modifier = Modifier.size(34.dp)
             ) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))

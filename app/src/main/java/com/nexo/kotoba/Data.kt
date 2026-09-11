@@ -12,7 +12,8 @@ data class Word(
     val kanji: String = "",
     val en: String,
     val ipa: String,
-    val hi: String = ""
+    val hi: String = "",
+    val lang: String = "ja"
 )
 
 data class Lesson(

@@ -2,11 +2,9 @@ package com.nexo.kotoba
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -27,12 +25,7 @@ import androidx.compose.ui.unit.dp
 fun OnboardingDialog(store: Store, onDone: () -> Unit) {
     var step by remember { mutableStateOf(0) }
     var native by remember { mutableStateOf("en") }
-
-    val targets = listOf(
-        Direction.JAPANESE to "🇯🇵 Japanese",
-        Direction.ENGLISH to "🇬🇧 English",
-        Direction.BOTH to "🌍 Both"
-    )
+    var target by remember { mutableStateOf("ja") }
 
     AlertDialog(
         onDismissRequest = {},
@@ -59,31 +52,24 @@ fun OnboardingDialog(store: Store, onDone: () -> Unit) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "Kotoba teaches you with explanations in YOUR language. " +
-                            "More languages are always being added — if yours isn't listed yet, English works as a fallback.",
+                            "If yours isn't listed yet, English works as a fallback.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    targets.forEach { (dir, name) ->
+                    NATIVE_LANGUAGES.forEach { (code, name) ->
                         FilterChip(
-                            selected = when (dir) {
-                                Direction.JAPANESE -> store.direction == Direction.JAPANESE
-                                Direction.ENGLISH -> store.direction == Direction.ENGLISH
-                                Direction.BOTH -> store.direction == Direction.BOTH
-                            },
-                            onClick = {
-                                store.finishOnboarding(native, dir)
-                                onDone()
-                            },
+                            selected = target == code,
+                            onClick = { target = code },
                             label = { Text(name) }
                         )
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (native == "en")
-                            "English is set as your teaching language."
+                        if (target == native)
+                            "Learning and native language are the same — pick a different one to study if you can."
                         else
-                            "Meanings and translations will be shown in ${nativeName(native)}.",
+                            "You'll study ${nativeName(target)} with ${nativeName(native)} explanations.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -93,14 +79,21 @@ fun OnboardingDialog(store: Store, onDone: () -> Unit) {
         confirmButton = {
             if (step == 0) {
                 TextButton(onClick = { step = 1 }) { Text("Next") }
+            } else {
+                TextButton(onClick = {
+                    store.finishOnboarding(native, target)
+                    onDone()
+                }) { Text("Start learning") }
             }
         },
         dismissButton = {
             if (step == 0) {
                 TextButton(onClick = {
-                    store.finishOnboarding("en", Direction.JAPANESE)
+                    store.finishOnboarding("en", "ja")
                     onDone()
                 }) { Text("Skip") }
+            } else {
+                TextButton(onClick = { step = 0 }) { Text("Back") }
             }
         }
     )

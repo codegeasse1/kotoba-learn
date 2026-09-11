@@ -61,12 +61,14 @@ class MainActivity : ComponentActivity() {
         KanjiData.init(applicationContext)
         Gloss.attach(applicationContext)
         Gloss.ensure(store.nativeLang)
+        Gloss.ensureTarget(store.target)
         Thread { DictionaryData.init(applicationContext) }.start()
         speaker = Speaker(applicationContext)
 
         setContent {
             KotobaTheme {
                 Gloss.ensure(store.nativeLang)
+                Gloss.ensureTarget(store.target)
                 var screen by remember { mutableStateOf(Screen.HOME) }
                 BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
                 if (!store.onboarded) {
@@ -100,7 +102,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { pad ->
                     val contentMod = Modifier.padding(pad)
-                    key(store.nativeLang) {
+                    key(store.nativeLang, store.target) {
                         when (screen) {
                             Screen.HOME -> HomeScreen(store, speaker, contentMod, onNav = { screen = it })
                             Screen.LEARN -> LearnScreen(store, speaker, contentMod)

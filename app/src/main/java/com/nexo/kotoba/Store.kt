@@ -10,8 +10,6 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-enum class Direction { JAPANESE, ENGLISH, BOTH }
-
 data class Card(
     var interval: Int = 0,
     var ease: Double = 2.5,
@@ -37,8 +35,8 @@ class Store(private val ctx: Context) {
     var srs by mutableStateOf(mapOf<String, Card>())
         private set
 
-    var direction by mutableStateOf(Direction.JAPANESE)
     var nativeLang by mutableStateOf("en")
+    var target by mutableStateOf("ja")
     var onboarded by mutableStateOf(false)
     var showRomaji by mutableStateOf(true)
     var showTranslations by mutableStateOf(true)
@@ -55,7 +53,8 @@ class Store(private val ctx: Context) {
             streak = o.optInt("streak", 0)
             bestStreak = o.optInt("best", 0)
             lastDay = o.optLong("lastDay", 0)
-            direction = runCatching { Direction.valueOf(o.optString("direction", "JAPANESE")) }.getOrDefault(Direction.JAPANESE)
+            val legacy = o.optString("direction", "JAPANESE")
+            target = o.optString("target", "").ifEmpty { if (legacy == "ENGLISH") "en" else "ja" }
             nativeLang = o.optString("native", "en")
             onboarded = o.optBoolean("onboarded", false)
             showRomaji = o.optBoolean("showRomaji", true)
@@ -94,7 +93,7 @@ class Store(private val ctx: Context) {
             o.put("streak", streak)
             o.put("best", bestStreak)
             o.put("lastDay", lastDay)
-            o.put("direction", direction.name)
+            o.put("target", target)
             o.put("native", nativeLang)
             o.put("onboarded", onboarded)
             o.put("showRomaji", showRomaji)
@@ -223,14 +222,19 @@ class Store(private val ctx: Context) {
         save()
     }
 
+    fun setTarget(lang: String) {
+        target = lang
+        save()
+    }
+
     fun setOnboarded() {
         onboarded = true
         save()
     }
 
-    fun finishOnboarding(native: String, dir: Direction) {
+    fun finishOnboarding(native: String, targetLang: String) {
         nativeLang = native
-        direction = dir
+        target = targetLang
         onboarded = true
         save()
     }

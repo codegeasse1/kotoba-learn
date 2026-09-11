@@ -349,6 +349,7 @@ object Roleplays {
 fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val isJa = rp.lang != "en"
+    val synth = rp.lang != "ja" && rp.lang != "en"
     val listState = rememberLazyListState()
     var turn by remember { mutableStateOf(0) }
     var msgs by remember { mutableStateOf(listOf<RpMsg>()) }
@@ -403,6 +404,7 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
                 MessageBubble(
                     m = m,
                     isJa = isJa,
+                    synth = synth,
                     store = store,
                     speaker = speaker,
                     revealed = revealed == i,
@@ -466,7 +468,8 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
                     ) {
                         Column(Modifier.padding(12.dp)) {
                             Text(opt.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                            val optTr = if (store.nativeLang == "hi") opt.textHi else Gloss.lookup(opt.text) ?: ""
+                            val optTr = if (synth) synthGloss(store, opt.text, opt.textHi)
+                            else if (store.nativeLang == "hi") opt.textHi else Gloss.lookup(opt.text) ?: ""
                             if (optTr.isNotBlank()) {
                                 Text(
                                     optTr,
@@ -487,6 +490,7 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
 private fun MessageBubble(
     m: RpMsg,
     isJa: Boolean,
+    synth: Boolean,
     store: Store,
     speaker: Speaker,
     revealed: Boolean,
@@ -530,7 +534,8 @@ private fun MessageBubble(
             ) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                     Text(m.text, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-                    val tr = if (store.nativeLang == "hi") m.hi else Gloss.lookup(m.text) ?: ""
+                    val tr = if (synth) synthGloss(store, m.text, m.hi)
+                    else if (store.nativeLang == "hi") m.hi else Gloss.lookup(m.text) ?: ""
                     if (revealed && tr.isNotBlank()) {
                         Spacer(Modifier.height(4.dp))
                         Text(
@@ -543,4 +548,9 @@ private fun MessageBubble(
             }
         }
     }
+}
+
+private fun synthGloss(store: Store, text: String, english: String): String = when (store.nativeLang) {
+    "en" -> if (english.isNotEmpty() && english != text) english else ""
+    else -> Gloss.lookup(text) ?: (if (english.isNotEmpty()) nativeMeaning(english, "", store.nativeLang) else "")
 }

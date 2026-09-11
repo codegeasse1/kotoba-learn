@@ -10,7 +10,7 @@ class Speaker(context: Context) {
     private var tts: TextToSpeech? = null
     private var ready = false
     private var initFailed = false
-    private var pending: Pair<String, Boolean>? = null
+    private var pending: Pair<String, String>? = null
     private var rate = 0.85f
     private val appCtx = context.applicationContext
     private var warnedNoEngine = false
@@ -50,7 +50,7 @@ class Speaker(context: Context) {
         tts?.setSpeechRate(r)
     }
 
-    fun speak(text: String, japanese: Boolean) {
+    fun speak(text: String, lang: String) {
         val t = tts
         if (t == null || initFailed) {
             toastIfOnce("Audio isn't ready — install/check Text-to-Speech in device settings.")
@@ -62,22 +62,22 @@ class Speaker(context: Context) {
                 warnedPending = true
                 toastIfOnce("Audio is starting up… tap the sound button again in a second.")
             }
-            if (pending == null) pending = text to japanese
+            if (pending == null) pending = text to lang
             return
         }
         try {
             t.setSpeechRate(rate)
-            val target = if (japanese) Locale.JAPANESE else Locale.US
+            val target = Locale.forLanguageTag(localeFor(lang))
             val res = t.setLanguage(target)
             if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
-                val fallback = if (japanese) Locale("ja") else Locale.ENGLISH
+                val fallback = Locale(lang)
                 if (t.isLanguageAvailable(fallback) >= TextToSpeech.LANG_AVAILABLE) {
                     t.setLanguage(fallback)
                 } else {
                     t.setLanguage(Locale.getDefault())
                     if (!warnedNoLang) {
                         warnedNoLang = true
-                        toastIfOnce("No ${if (japanese) "Japanese" else "English"} voice found — using your device's default voice. Download the voice in Text-to-Speech settings for the best sound.")
+                        toastIfOnce("No ${nativeName(lang)} voice found — using your device's default voice. Download the voice in Text-to-Speech settings for the best sound.")
                     }
                 }
             }

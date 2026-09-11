@@ -76,8 +76,10 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
     var openRoleplay by remember { mutableStateOf<Roleplay?>(null) }
     val scroll = rememberScrollState()
 
-    val learningJa = store.direction != Direction.ENGLISH
-    val learningEn = store.direction != Direction.JAPANESE
+    val targetLang = store.target
+    val learningJa = targetLang == "ja"
+    val learningEn = targetLang == "en"
+    val learningOther = !learningJa && !learningEn
 
     when {
         showKana -> KanaScreen(store, speaker, modifier, onClose = { showKana = false })
@@ -115,7 +117,9 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         val enLessons = Data.allLessons.filter { it.lang == "en" && it.source.isEmpty() }
         val jaExtra = if (learningJa) Genki.lessons + Jfz.lessons + KanjiWords.categories else emptyList()
         val enExtra = if (learningEn) Oxford.lessons else emptyList()
-        val visible = (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList()) + jaExtra + enExtra
+        val targetLessons = if (learningOther) remember(targetLang) { TargetContent.lessons(targetLang) } else emptyList()
+        val visible = if (learningOther) targetLessons
+        else (if (learningJa) jaLessons else emptyList()) + (if (learningEn) enLessons else emptyList()) + jaExtra + enExtra
 
         fun levelGroups(lang: String): List<Pair<String, List<Lesson>>> {
             val byLevel = (if (lang == "ja") jaLessons else enLessons).groupBy { Levels.ofLesson(it) }
@@ -129,7 +133,25 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
-        if (learningJa) {
+        if (learningOther) {
+            val byLevel = targetLessons.groupBy { Levels.ofLesson(it) }
+            (Levels.ORDER + "").forEach { lv ->
+                val lessons = byLevel[lv]
+                if (!lessons.isNullOrEmpty()) {
+                    LevelHeader(lv.ifEmpty { "Other" }, "${lessons.size} lessons")
+                    lessons.forEach { lesson ->
+                        LessonRow(
+                            lesson = lesson,
+                            done = lesson.id in store.completedLessons,
+                            onClick = { openLesson = lesson }
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+        if (!learningOther && learningJa) {
             levelGroups("ja").forEach { (lv, lessons) ->
                 LevelHeader(lv, "${lessons.size} lessons")
                 lessons.forEach { lesson ->
@@ -143,7 +165,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(8.dp))
             }
         }
-        if (learningEn && enLessons.isNotEmpty()) {
+        if (!learningOther && learningEn && enLessons.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))
             levelGroups("en").forEach { (lv, lessons) ->
                 LevelHeader(lv, "${lessons.size} lessons")
@@ -159,7 +181,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
             }
         }
 
-        if (learningJa) {
+        if (!learningOther && learningJa) {
             Spacer(Modifier.height(12.dp))
             SectionHeader("📗 Genki Textbook 1", "Official Genki 1 vocabulary — 12 lessons with grammar notes")
             Genki.lessons.forEach { lesson ->
@@ -179,7 +201,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(8.dp))
             }
         }
-        if (learningEn && enExtra.isNotEmpty()) {
+        if (!learningOther && learningEn && enExtra.isNotEmpty()) {
             Spacer(Modifier.height(12.dp))
             SectionHeader("🇬🇧 Oxford 5000", "The official Oxford 5000 word list — A1 to C1, with Hindi meanings")
             Oxford.lessons.forEach { lesson ->
@@ -199,7 +221,9 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(12.dp))
         SectionHeader("🎭 Roleplay Conversations", "Practice real two-person dialogues with translations and native audio")
-        Roleplays.all.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }.forEach { rp ->
+        val rpList = if (learningOther) TargetContent.roleplays(targetLang)
+        else Roleplays.all.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }
+        rpList.forEach { rp ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -230,15 +254,17 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(24.dp))
 
-        Text("Chunks — say whole sentences", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(
-            "Learn in phrases, not single words — that's how fluent speakers actually talk.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(10.dp))
-        PhraseList(store, speaker)
-        Spacer(Modifier.height(24.dp))
+        if (!learningOther) {
+            Text("Chunks — say whole sentences", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(
+                "Learn in phrases, not single words — that's how fluent speakers actually talk.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(10.dp))
+            PhraseList(store, speaker)
+            Spacer(Modifier.height(24.dp))
+        }
 
         Text("💬 Conversations & Sentences", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(
@@ -247,9 +273,9 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
-        Sentences.categories
-            .filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }
-            .forEach { cat ->
+        val catList = if (learningOther) TargetContent.sentenceCategories(targetLang)
+        else Sentences.categories.filter { (it.lang == "ja" && learningJa) || (it.lang == "en" && learningEn) }
+        catList.forEach { cat ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -268,7 +294,7 @@ fun LearnScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
                                 maxLines = 1
                             )
                             Text(
-                                "${cat.sentences.size} sentences · ${if (cat.lang == "ja") "Japanese" else "English"}",
+                                "${cat.sentences.size} sentences · ${languageLabel(cat.lang)}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -523,7 +549,9 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
 
     fun buildQuiz(): List<QuizQuestion> {
         val rnd = java.util.Random()
-        val pool = if (words.size >= 4) words else Data.allWords
+        val pool = if (words.size >= 4) words
+        else if (lesson.lang == "ja" || lesson.lang == "en") Data.allWords
+        else TargetContent.words(lesson.lang)
         val count = min(10, words.size)
         val targets = words.shuffled(rnd).take(count)
         return targets.map { w ->

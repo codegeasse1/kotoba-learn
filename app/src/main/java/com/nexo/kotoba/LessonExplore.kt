@@ -596,8 +596,10 @@ private fun ExampleSheet(
     onDismiss: () -> Unit
 ) {
     val isJa = lang == "ja"
+    val isEn = lang == "en"
     val jaEx = if (isJa) remember(word.kana) { Examples.jaForWord(word) } else emptyList()
     val examples = if (isJa) emptyList() else remember(word.en) { Examples.forWord(word) }
+    val targetSentences = if (!isJa && !isEn) remember(word.en, lang) { Examples.targetForWord(word) } else emptyList()
     val hindi = if (isJa) emptyList() else remember(word.en) { Examples.hindiFor(word) }
     val nativeGlosses = remember(word.en, store.nativeLang) {
         if (isJa || store.nativeLang == "hi" || store.nativeLang == "en") emptyList()
@@ -611,7 +613,7 @@ private fun ExampleSheet(
                 .padding(bottom = 28.dp)
         ) {
             Text(
-                if (isJa) word.kana.ifEmpty { word.en } else word.en,
+                if (!isEn) word.kana.ifEmpty { word.en } else word.en,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -669,7 +671,8 @@ private fun ExampleSheet(
                     }
                 }
             } else {
-                examples.forEachIndexed { i, ex ->
+                val list = if (isEn) examples else targetSentences
+                list.forEachIndexed { i, ex ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -689,13 +692,17 @@ private fun ExampleSheet(
                                     modifier = Modifier.weight(1f),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-                                IconButton(onClick = { speak(store, speaker, ex, false) }) {
+                                IconButton(onClick = { speak(store, speaker, ex, !isEn) }) {
                                     Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
                                 }
                             }
-                            val exGloss = when {
-                                store.nativeLang == "hi" -> if (i < hindi.size) hindi[i] else ""
-                                else -> nativeGlosses.getOrElse(i) { "" }
+                            val exGloss = if (isEn) {
+                                when {
+                                    store.nativeLang == "hi" -> if (i < hindi.size) hindi[i] else ""
+                                    else -> nativeGlosses.getOrElse(i) { "" }
+                                }
+                            } else {
+                                nativeMeaning(examples.getOrElse(i) { ex }, "", store.nativeLang)
                             }
                             if (exGloss.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
