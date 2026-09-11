@@ -3413,4 +3413,94 @@ object Examples {
             }
         }
     }
+
+    /** One example sentence in the target language, with an optional romanization and native gloss. */
+    data class ExLine(val text: String, val sub: String, val gloss: String)
+
+    private fun bucketOf(pos: String): String = when (pos.trim().lowercase()) {
+        "adverb" -> "adverb"
+        "adjective" -> "adjective"
+        "number", "ordinal number" -> "number"
+        "verb", "linking verb", "modal verb", "infinitive marker" -> "verb"
+        "noun" -> "noun"
+        else -> "other"
+    }
+
+    /** Coarse part-of-speech bucket used to choose example frames for a word. */
+    fun posBucket(word: Word): String {
+        val p = word.ipa.trim().lowercase()
+        if (p.isNotEmpty()) {
+            val direct = bucketOf(p)
+            if (direct != "other") return direct
+        }
+        return bucketOf(POS[normalize(word.en)] ?: guessPos(normalize(word.en)))
+    }
+
+    /** The word rendered in the language being learned. */
+    private fun targetWordIn(word: Word, target: String): String = when (target) {
+        "en" -> word.en
+        "ja" -> word.kana.ifEmpty { word.en }
+        else -> word.kana.ifEmpty { cleanGloss(Gloss.lookupTarget(word.en)) ?: word.en }
+    }
+
+    /** The word rendered in the learner's native language. */
+    private fun nativeWordIn(word: Word, native: String): String = when (native) {
+        "en" -> word.en
+        "hi" -> word.hi.ifEmpty { cleanGloss(Gloss.lookup(word.en)) ?: word.en }
+        else -> cleanGloss(Gloss.lookup(word.en)) ?: word.en
+    }
+
+    private fun englishGloss(sentence: String, word: Word, native: String): String {
+        if (native == "en" || native.isBlank()) return ""
+        Gloss.lookup(sentence)?.let { return cleanGloss(it) ?: it }
+        val meaning = when (native) {
+            "hi" -> word.hi.ifEmpty { cleanGloss(Gloss.lookup(word.en)) ?: "" }
+            else -> cleanGloss(Gloss.lookup(word.en)) ?: ""
+        }
+        if (meaning.isEmpty()) return ""
+        val key = normalize(word.en)
+        if (key.isEmpty()) return ""
+        val template = sentence.replace(
+            Regex("(?<![\\p{L}\\p{N}])" + Regex.escape(key) + "(?![\\p{L}\\p{N}])", RegexOption.IGNORE_CASE),
+            "XKEYX"
+        )
+        if (template == sentence) return ""
+        return Gloss.lookup(template)?.replace("XKEYX", meaning) ?: ""
+    }
+
+    /**
+     * Ten example sentences for [word] in the language being learned, each with a
+     * native-language gloss. Curated/authored sentences come first; any shortfall
+     * is filled from [TargetExamples] so every track always shows ten.
+     */
+    fun exLines(word: Word, target: String, native: String): List<ExLine> {
+        val out = ArrayList<ExLine>(10)
+        val showGloss = native.isNotBlank() && native != target
+        when (target) {
+            "ja" -> jaForWord(word).forEach { ex ->
+                out.add(ExLine(ex.ja, ex.romaji, if (showGloss) nativeJa(word, native, ex) else ""))
+            }
+            "en" -> forWord(word).forEach { s ->
+                out.add(ExLine(s, "", if (showGloss) englishGloss(s, word, native) else ""))
+            }
+            else -> forWord(word).forEach { e ->
+                val t = Gloss.lookupTarget(e) ?: return@forEach
+                out.add(ExLine(t, "", if (showGloss) englishGloss(e, word, native) else ""))
+            }
+        }
+        if (out.size < 10) {
+            val bucket = posBucket(word)
+            val tw = targetWordIn(word, target)
+            val gframes = if (showGloss) TargetExamples.frames(native, bucket) else emptyList()
+            val nw = if (gframes.isNotEmpty()) nativeWordIn(word, native) else ""
+            TargetExamples.frames(target, bucket).forEachIndexed { i, f ->
+                if (out.size >= 10) return@forEachIndexed
+                val text = f.replace("XKEYX", tw)
+                if (out.any { it.text == text }) return@forEachIndexed
+                val gloss = if (gframes.isNotEmpty()) (gframes.getOrNull(i) ?: "").replace("XKEYX", nw) else ""
+                out.add(ExLine(text, "", gloss))
+            }
+        }
+        return out.take(10)
+    }
 }

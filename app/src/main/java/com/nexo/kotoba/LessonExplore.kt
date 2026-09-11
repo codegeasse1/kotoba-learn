@@ -595,16 +595,14 @@ private fun ExampleSheet(
     lang: String = "en",
     onDismiss: () -> Unit
 ) {
-    val isJa = lang == "ja"
-    val isEn = lang == "en"
-    val jaEx = if (isJa) remember(word.kana) { Examples.jaForWord(word) } else emptyList()
-    val examples = if (isJa) emptyList() else remember(word.en) { Examples.forWord(word) }
-    val targetSentences = if (!isJa && !isEn) remember(word.en, lang) { Examples.targetForWord(word) } else emptyList()
-    val hindi = if (isJa) emptyList() else remember(word.en) { Examples.hindiFor(word) }
-    val nativeGlosses = remember(word.en, store.nativeLang) {
-        if (isJa || store.nativeLang == "hi" || store.nativeLang == "en") emptyList()
-        else Examples.nativeForWord(word, store.nativeLang)
+    val native = store.nativeLang
+    val lines = remember(word.id, lang, native) { Examples.exLines(word, lang, native) }
+    val heading = when {
+        lang == "en" -> word.en
+        word.kana.isNotEmpty() -> word.kana
+        else -> word.en
     }
+    val targetName = nativeName(lang).substringAfter(' ')
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             Modifier
@@ -613,106 +611,58 @@ private fun ExampleSheet(
                 .padding(bottom = 28.dp)
         ) {
             Text(
-                if (!isEn) word.kana.ifEmpty { word.en } else word.en,
+                heading,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                if (isJa) "日本語の例文" else "Example sentences with translations",
+                "${targetName} example sentences (${lines.size})",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(12.dp))
-            if (isJa) {
-                jaEx.forEach { ex ->
-                    Card(
-                        modifier = Modifier
+            lines.forEach { ex ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(
+                        Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(14.dp)
+                            .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("💬", fontSize = 14.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Text(
-                                    ex.ja,
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                IconButton(onClick = { speak(store, speaker, ex.ja, true) }) {
-                                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
-                                }
-                            }
-                            if (ex.romaji.isNotBlank()) {
-                                Spacer(Modifier.height(2.dp))
-                                Text(
-                                    ex.romaji,
-                                    modifier = Modifier.padding(start = 24.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            val jaGloss = Examples.nativeJa(word, store.nativeLang, ex)
-                            if (jaGloss.isNotBlank()) {
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    jaGloss,
-                                    modifier = Modifier.padding(start = 24.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("\uD83D\uDCAC", fontSize = 14.sp)
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                ex.text,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            IconButton(onClick = { speak(store, speaker, ex.text, lang != "en") }) {
+                                Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
                             }
                         }
-                    }
-                }
-            } else {
-                val list = if (isEn) examples else targetSentences
-                list.forEachIndexed { i, ex ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("💬", fontSize = 14.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Text(
-                                    ex,
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                IconButton(onClick = { speak(store, speaker, ex, !isEn) }) {
-                                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
-                                }
-                            }
-                            val exGloss = if (isEn) {
-                                when {
-                                    store.nativeLang == "hi" -> if (i < hindi.size) hindi[i] else ""
-                                    else -> nativeGlosses.getOrElse(i) { "" }
-                                }
-                            } else {
-                                nativeMeaning(examples.getOrElse(i) { ex }, "", store.nativeLang)
-                            }
-                            if (exGloss.isNotBlank()) {
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    exGloss,
-                                    modifier = Modifier.padding(start = 24.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                        if (ex.sub.isNotBlank()) {
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                ex.sub,
+                                modifier = Modifier.padding(start = 24.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (ex.gloss.isNotBlank()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                ex.gloss,
+                                modifier = Modifier.padding(start = 24.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

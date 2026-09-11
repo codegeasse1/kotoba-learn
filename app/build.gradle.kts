@@ -24,8 +24,8 @@ android {
         applicationId = "com.nexo.kotoba"
         minSdk = 26
         targetSdk = 34
-        versionCode = 17
-        versionName = "1.10.0"
+        versionCode = 18
+        versionName = "1.11.0"
     }
 
     buildTypes {

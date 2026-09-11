@@ -34,6 +34,21 @@ object TargetContent {
         return Gloss.lookupTarget(text) ?: text
     }
 
+    /**
+     * Localize an English title/description for the language being learned. The
+     * gloss tables are keyed by the cleaned English title, so strip the
+     * "(English)"/"(Japanese)" qualifiers before looking it up.
+     */
+    private fun localize(t: String, text: String): String {
+        if (text.isBlank()) return text
+        Gloss.lookupTarget(text)?.let { return it }
+        var base = text.replace(Regex("\\s*\\((English|Japanese)\\)"), " ")
+        base = base.replace(Regex("^(English|Japanese)\\s+"), "")
+        base = base.replace(Regex("\\s+"), " ").trim()
+        if (base != text) Gloss.lookupTarget(base)?.let { return it }
+        return base
+    }
+
     fun lessons(t: String): List<Lesson> = lessonCache.getOrPut(t) {
         when (t) {
             "ja" -> Data.allLessons.filter { it.lang == "ja" }
@@ -41,7 +56,10 @@ object TargetContent {
             else -> Data.allLessons.filter { it.lang == "en" }.map { lesson ->
                 lesson.copy(
                     id = t + "-" + lesson.id,
+                    title = localize(t, lesson.title),
+                    desc = localize(t, lesson.desc),
                     level = Levels.ofLesson(lesson),
+                    lang = t,
                     words = lesson.words.map { word -> translateWord(word, t) }
                 )
             }
@@ -65,13 +83,13 @@ object TargetContent {
         val all = Data.allPatterns.filter { it.lang == "en" } + EnglishGrammar.patterns
         when (t) {
             "ja", "en" -> all
-            else -> all.map { p ->
+            else -> EnglishGrammar.patterns.map { p ->
                 p.copy(
                     id = t + "-" + p.id,
                     lang = t,
                     ruleJa = "",
                     ruleHi = "",
-                    examples = p.examples.map { ex ->
+                    examples = p.examples.take(10).map { ex ->
                         val english = ex.ja
                         PatternExample(ex.emoji, tx(english, t), "", english, "")
                     }
@@ -87,6 +105,8 @@ object TargetContent {
             else -> Sentences.categories.filter { it.lang == "en" }.map { cat ->
                 cat.copy(
                     id = t + "-" + cat.id,
+                    title = localize(t, cat.title),
+                    desc = localize(t, cat.desc),
                     lang = t,
                     sentences = cat.sentences.map { s ->
                         Sentence(s.id, s.emoji, tx(s.ja, t), "", s.ja, "")
@@ -103,7 +123,8 @@ object TargetContent {
             else -> Roleplays.all.filter { it.lang == "en" }.map { rp ->
                 rp.copy(
                     id = t + "-" + rp.id,
-                    desc = tx(rp.desc, t),
+                    title = localize(t, rp.title),
+                    desc = localize(t, rp.desc),
                     lang = t,
                     turns = rp.turns.map { turn ->
                         turn.copy(

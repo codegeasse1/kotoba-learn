@@ -30,8 +30,22 @@ fun localeFor(code: String): String = when (code) {
     else -> "en-US"
 }
 
+/**
+ * Trim a dictionary gloss down to its first, most common sense, dropping leading
+ * sense numbers and everything after the first `;`.
+ */
+fun cleanGloss(raw: String?): String? {
+    if (raw.isNullOrBlank()) return null
+    var s = raw.substringBefore(';').trim()
+    s = s.replace(Regex("^\\(?\\d+[.)]\\s*"), "").trim()
+    return s.ifEmpty { null }
+}
+
 fun Word.glossFor(native: String): String {
-    if (lang != "ja" && lang != "en") return nativeMeaning(en, en, native)
+    if (lang != "ja" && lang != "en") {
+        val m = nativeMeaning(en, en, native)
+        return cleanGloss(m) ?: m
+    }
     return when (native) {
         "ja" -> if (kana.isNotEmpty()) kana + (if (romaji.isNotEmpty()) " ($romaji)" else "") else nativeMeaning(en, en, native)
         "hi" -> if (hi.isNotEmpty()) hi else nativeMeaning(en, en, native)
