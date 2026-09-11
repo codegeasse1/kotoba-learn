@@ -222,7 +222,7 @@ class Store(private val ctx: Context) {
         save()
     }
 
-    fun setTarget(lang: String) {
+    fun setTargetLang(lang: String) {
         target = lang
         save()
     }

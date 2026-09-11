@@ -127,7 +127,7 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                         row.forEach { (code, name) ->
                             FilterChip(
                                 selected = store.target == code,
-                                onClick = { store.setTarget(code) },
+                                onClick = { store.setTargetLang(code) },
                                 label = { Text(name) }
                             )
                         }
