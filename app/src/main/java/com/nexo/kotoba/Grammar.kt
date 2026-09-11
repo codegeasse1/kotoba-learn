@@ -241,7 +241,7 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(2.dp))
-                            Text(ex.glossFor(store.nativeLang), style = MaterialTheme.typography.bodyMedium)
+                            Text(ex.glossFor(store.nativeLang, p.lang), style = MaterialTheme.typography.bodyMedium)
                         }
                         FilledIconButton(
                             onClick = { speak(store, speaker, ex.ja, p.lang == "ja") },

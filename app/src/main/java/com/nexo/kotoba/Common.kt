@@ -23,9 +23,15 @@ fun Pattern.ruleFor(native: String): String = when (native) {
     else -> nativeMeaning(ruleEn, ruleEn, native)
 }
 
-fun PatternExample.glossFor(native: String): String = when (native) {
-    "hi" -> if (hi.isNotEmpty()) hi else nativeMeaning(en, en, native)
-    else -> nativeMeaning(en, en, native)
+fun PatternExample.glossFor(native: String, lang: String): String {
+    val english = if (lang == "en") ja else en
+    val japanese = if (lang == "en") en else ja
+    return when (native) {
+        "en" -> if (lang == "en") "" else english
+        "ja" -> if (lang == "ja") "" else japanese.ifEmpty { english }
+        "hi" -> if (hi.isNotEmpty()) hi else (Gloss.lookup(english) ?: english)
+        else -> if (english.isEmpty()) "" else Gloss.lookup(english) ?: ""
+    }
 }
 
 fun Sentence.glossFor(native: String): String = when (native) {

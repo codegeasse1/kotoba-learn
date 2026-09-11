@@ -2141,6 +2141,24 @@ object Examples {
         return CURATED_HI[key] ?: emptyList()
     }
 
+    fun nativeForWord(word: Word, native: String): List<String> {
+        if (native == "en" || native == "hi") return emptyList()
+        val key = normalize(word.en)
+        if (key.isEmpty()) return emptyList()
+        val curated = CURATED[key]
+        if (curated != null) return curated.map { Gloss.lookup(it) ?: "" }
+        val meaning = word.glossFor(native)
+        return generated(key).map { sentence ->
+            Gloss.lookup(sentence) ?: run {
+                val template = plugKey(sentence, key)
+                if (template == sentence) "" else (Gloss.lookup(template) ?: "").replace("XKEYX", meaning)
+            }
+        }
+    }
+
+    private fun plugKey(sentence: String, key: String): String =
+        sentence.replace(Regex("(?<![\\p{L}\\p{N}])" + Regex.escape(key) + "(?![\\p{L}\\p{N}])"), "XKEYX")
+
     private fun generatedHi(key: String, gloss: String): List<String> {
         if (gloss.isEmpty()) return emptyList()
         val x = gloss
@@ -2219,1136 +2237,1136 @@ object Examples {
         }
     }
 
-    data class JaEx(val ja: String, val romaji: String, val hi: String)
+    data class JaEx(val ja: String, val romaji: String, val hi: String, val en: String = "")
 
     private val CURATED_JA: Map<String, List<JaEx>> by lazy { mapOf(
         "ねこ" to listOf(
 
-            JaEx("これは ねこ です。", "kore wa neko desu.", "यह एक बिल्ली है।"),
-            JaEx("わたしは ねこ が すき です。", "watashi wa neko ga suki desu.", "मुझे बिल्लियाँ पसंद हैं।"),
-            JaEx("ねこ は どこ に います か。", "neko wa doko ni imasu ka.", "बिल्ली कहाँ है?"),
+            JaEx("これは ねこ です。", "kore wa neko desu.", "यह एक बिल्ली है।", "This is a cat."),
+            JaEx("わたしは ねこ が すき です。", "watashi wa neko ga suki desu.", "मुझे बिल्लियाँ पसंद हैं।", "I like cats."),
+            JaEx("ねこ は どこ に います か。", "neko wa doko ni imasu ka.", "बिल्ली कहाँ है?", "Where is the cat?"),
         ),
         "いぬ" to listOf(
 
-            JaEx("わたし の いえ に いぬ が います。", "watashi no ie ni inu ga imasu.", "मेरे घर में एक कुत्ता है।"),
-            JaEx("あの いぬ は かわいい です。", "ano inu wa kawaii desu.", "वह कुत्ता प्यारा है।"),
-            JaEx("いぬ と さんぽ に いきます。", "inu to sanpo ni ikimasu.", "मैं कुत्ते के साथ टहलने जाता हूँ।"),
+            JaEx("わたし の いえ に いぬ が います。", "watashi no ie ni inu ga imasu.", "मेरे घर में एक कुत्ता है।", "There is a dog in my house."),
+            JaEx("あの いぬ は かわいい です。", "ano inu wa kawaii desu.", "वह कुत्ता प्यारा है।", "That dog is cute."),
+            JaEx("いぬ と さんぽ に いきます。", "inu to sanpo ni ikimasu.", "मैं कुत्ते के साथ टहलने जाता हूँ।", "I'm going to go for a walk with the dog."),
         ),
         "とり" to listOf(
 
-            JaEx("そら に とり が います。", "sora ni tori ga imasu.", "आकाश में एक पक्षी है।"),
-            JaEx("とり が うたって います。", "tori ga utatte imasu.", "पक्षी गा रहा है।"),
-            JaEx("あの とり は しろい です。", "ano tori wa shiroi desu.", "वह पक्षी सफ़ेद है।"),
+            JaEx("そら に とり が います。", "sora ni tori ga imasu.", "आकाश में एक पक्षी है।", "There is a bird in the sky."),
+            JaEx("とり が うたって います。", "tori ga utatte imasu.", "पक्षी गा रहा है।", "The bird is singing."),
+            JaEx("あの とり は しろい です。", "ano tori wa shiroi desu.", "वह पक्षी सफ़ेद है।", "That bird is white."),
         ),
         "さかな" to listOf(
 
-            JaEx("うみ に さかな が たくさん います。", "umi ni sakana ga takusan imasu.", "समुद्र में बहुत सारी मछलियाँ हैं।"),
-            JaEx("さかな を たべます。", "sakana wo tabemasu.", "मैं मछली खाता हूँ।"),
-            JaEx("この さかな は おいしい です。", "kono sakana wa oishii desu.", "यह मछली स्वादिष्ट है।"),
+            JaEx("うみ に さかな が たくさん います。", "umi ni sakana ga takusan imasu.", "समुद्र में बहुत सारी मछलियाँ हैं।", "There are many fish in the sea."),
+            JaEx("さかな を たべます。", "sakana wo tabemasu.", "मैं मछली खाता हूँ।", "I eat fish."),
+            JaEx("この さかな は おいしい です。", "kono sakana wa oishii desu.", "यह मछली स्वादिष्ट है।", "This fish is delicious."),
         ),
         "うま" to listOf(
 
-            JaEx("うま に のりました。", "uma ni norimashita.", "मैंने घोड़े की सवारी की।"),
-            JaEx("うま は はやく はしります。", "uma wa hayaku hashirimasu.", "घोड़ा तेज़ दौड़ता है।"),
-            JaEx("あそこ に うま が います。", "asoko ni uma ga imasu.", "वहाँ एक घोड़ा है।"),
+            JaEx("うま に のりました。", "uma ni norimashita.", "मैंने घोड़े की सवारी की।", "I rode it on horseback."),
+            JaEx("うま は はやく はしります。", "uma wa hayaku hashirimasu.", "घोड़ा तेज़ दौड़ता है।", "Horses run quickly."),
+            JaEx("あそこ に うま が います。", "asoko ni uma ga imasu.", "वहाँ एक घोड़ा है।", "There's a horse over there."),
         ),
         "うし" to listOf(
 
-            JaEx("うし から ぎゅうにゅう が とれます。", "ushi kara gyuunyuu ga toremasu.", "गाय से दूध मिलता है।"),
-            JaEx("のうか で うし を かって います。", "nouka de ushi wo katte imasu.", "किसान गाय पालते हैं।"),
-            JaEx("うし は おおきい です。", "ushi wa ookii desu.", "गाय बड़ी होती है।"),
+            JaEx("うし から ぎゅうにゅう が とれます。", "ushi kara gyuunyuu ga toremasu.", "गाय से दूध मिलता है।", "You can get the meat from the cow."),
+            JaEx("のうか で うし を かって います。", "nouka de ushi wo katte imasu.", "किसान गाय पालते हैं।", "I'm watching a cow on the water."),
+            JaEx("うし は おおきい です。", "ushi wa ookii desu.", "गाय बड़ी होती है।", "The cow is big."),
         ),
         "ひつじ" to listOf(
 
-            JaEx("ひつじ の け は ふわふわ です。", "hitsuji no ke wa fuwafuwa desu.", "भेड़ का ऊन नरम होता है।"),
-            JaEx("ひつじ が いっぴき います。", "hitsuji ga ippiki imasu.", "वहाँ एक भेड़ है।"),
-            JaEx("ひつじ は しろい です。", "hitsuji wa shiroi desu.", "भेड़ सफ़ेद होती है।"),
+            JaEx("ひつじ の け は ふわふわ です。", "hitsuji no ke wa fuwafuwa desu.", "भेड़ का ऊन नरम होता है।", "The sheep's cage is fluffy."),
+            JaEx("ひつじ が いっぴき います。", "hitsuji ga ippiki imasu.", "वहाँ एक भेड़ है।", "The sheep are here."),
+            JaEx("ひつじ は しろい です。", "hitsuji wa shiroi desu.", "भेड़ सफ़ेद होती है।", "The sheep is white."),
         ),
         "ぶた" to listOf(
 
-            JaEx("ぶた は はやく あるきます。", "buta wa hayaku arukimasu.", "सुअर तेज़ चलता है।"),
-            JaEx("この ぶた は ちいさい です。", "kono buta wa chiisai desu.", "यह सुअर छोटा है।"),
-            JaEx("ぶた の にく を たべます。", "buta no niku wo tabemasu.", "मैं सुअर का मांस खाता हूँ।"),
+            JaEx("ぶた は はやく あるきます。", "buta wa hayaku arukimasu.", "सुअर तेज़ चलता है।", "The pig walks quickly."),
+            JaEx("この ぶた は ちいさい です。", "kono buta wa chiisai desu.", "यह सुअर छोटा है।", "This pig is small."),
+            JaEx("ぶた の にく を たべます。", "buta no niku wo tabemasu.", "मैं सुअर का मांस खाता हूँ।", "I eat pig meat."),
         ),
         "ぞう" to listOf(
 
-            JaEx("ぞう は はな が ながい です。", "zou wa hana ga nagai desu.", "हाथी की सूँड़ लंबी होती है।"),
-            JaEx("どうぶつえん に ぞう が います。", "doubutsuen ni zou ga imasu.", "चिड़ियाघर में हाथी है।"),
-            JaEx("ぞう は とても おおきい です。", "zou wa totemo ookii desu.", "हाथी बहुत बड़ा होता है।"),
+            JaEx("ぞう は はな が ながい です。", "zou wa hana ga nagai desu.", "हाथी की सूँड़ लंबी होती है।", "Elephants have long flowers."),
+            JaEx("どうぶつえん に ぞう が います。", "doubutsuen ni zou ga imasu.", "चिड़ियाघर में हाथी है।", "There is an elephant in the zoo."),
+            JaEx("ぞう は とても おおきい です。", "zou wa totemo ookii desu.", "हाथी बहुत बड़ा होता है।", "Elephants are very big."),
         ),
         "さる" to listOf(
 
-            JaEx("さる は き に のぼります。", "saru wa ki ni noborimasu.", "बंदर पेड़ पर चढ़ता है।"),
-            JaEx("さる は ばなな が すき です。", "saru wa banana ga suki desu.", "बंदर को केला पसंद है।"),
-            JaEx("この さる は かしこい です。", "kono saru wa kashikoi desu.", "यह बंदर चालाक है।"),
+            JaEx("さる は き に のぼります。", "saru wa ki ni noborimasu.", "बंदर पेड़ पर चढ़ता है।", "The monkey climbs onto the tree."),
+            JaEx("さる は ばなな が すき です。", "saru wa banana ga suki desu.", "बंदर को केला पसंद है।", "Monkeys like bananas."),
+            JaEx("この さる は かしこい です。", "kono saru wa kashikoi desu.", "यह बंदर चालाक है।", "This monkey is smart."),
         ),
         "くま" to listOf(
 
-            JaEx("くま は どうぶつえん に います。", "kuma wa doubutsuen ni imasu.", "भालू चिड़ियाघर में है।"),
-            JaEx("くま は はちみつ が すき です。", "kuma wa hachimitsu ga suki desu.", "भालू को शहद पसंद है।"),
-            JaEx("あの くま は おおきい です。", "ano kuma wa ookii desu.", "वह भालू बड़ा है।"),
+            JaEx("くま は どうぶつえん に います。", "kuma wa doubutsuen ni imasu.", "भालू चिड़ियाघर में है।", "The bear is in the zoo."),
+            JaEx("くま は はちみつ が すき です。", "kuma wa hachimitsu ga suki desu.", "भालू को शहद पसंद है।", "Bear likes honey."),
+            JaEx("あの くま は おおきい です。", "ano kuma wa ookii desu.", "वह भालू बड़ा है।", "That bear is big."),
         ),
         "へび" to listOf(
 
-            JaEx("へび は ながい です。", "hebi wa nagai desu.", "साँप लंबा होता है।"),
-            JaEx("へび は こわい です。", "hebi wa kowai desu.", "साँप डरावना होता है।"),
-            JaEx("この へび は どく が あります。", "kono hebi wa doku ga arimasu.", "इस साँप में ज़हर होता है।"),
+            JaEx("へび は ながい です。", "hebi wa nagai desu.", "साँप लंबा होता है।", "The snake is long."),
+            JaEx("へび は こわい です。", "hebi wa kowai desu.", "साँप डरावना होता है।", "Snakes are scary."),
+            JaEx("この へび は どく が あります。", "kono hebi wa doku ga arimasu.", "इस साँप में ज़हर होता है।", "This snake has a poison."),
         ),
         "かえる" to listOf(
 
-            JaEx("かえる は みず の そば に います。", "kaeru wa mizu no soba ni imasu.", "मेंढक पानी के पास रहता है।"),
-            JaEx("かえる は ぴょんぴょん とびます。", "kaeru wa pyonpyon tobimasu.", "मेंढक उछल-कूद करता है।"),
-            JaEx("あめ の ひ は かえる が すき です。", "ame no hi wa kaeru ga suki desu.", "बारिश के दिन मेंढकों को अच्छा लगता है।"),
+            JaEx("かえる は みず の そば に います。", "kaeru wa mizu no soba ni imasu.", "मेंढक पानी के पास रहता है।", "The frog lives next to the water."),
+            JaEx("かえる は ぴょんぴょん とびます。", "kaeru wa pyonpyon tobimasu.", "मेंढक उछल-कूद करता है।", "The frog jumps."),
+            JaEx("あめ の ひ は かえる が すき です。", "ame no hi wa kaeru ga suki desu.", "बारिश के दिन मेंढकों को अच्छा लगता है।", "Ame no Hi likes frogs."),
         ),
         "むし" to listOf(
 
-            JaEx("むし が はな に います。", "mushi ga hana ni imasu.", "फूल पर एक कीड़ा है।"),
-            JaEx("この むし は ちいさい です。", "kono mushi wa chiisai desu.", "यह कीड़ा छोटा है।"),
-            JaEx("むし の こえ が きこえます。", "mushi no koe ga kikoemasu.", "कीड़ों की आवाज़ सुनाई देती है।"),
+            JaEx("むし が はな に います。", "mushi ga hana ni imasu.", "फूल पर एक कीड़ा है।", "The insect is in the flower."),
+            JaEx("この むし は ちいさい です。", "kono mushi wa chiisai desu.", "यह कीड़ा छोटा है।", "This insect is small."),
+            JaEx("むし の こえ が きこえます。", "mushi no koe ga kikoemasu.", "कीड़ों की आवाज़ सुनाई देती है।", "I can hear the insects."),
         ),
         "はな" to listOf(
 
-            JaEx("はな が さきました。", "hana ga sakimashita.", "फूल खिल गया।"),
-            JaEx("この はな は きれい です。", "kono hana wa kirei desu.", "यह फूल सुंदर है।"),
-            JaEx("はな に みず を あげます。", "hana ni mizu wo agemasu.", "मैं फूल को पानी देता हूँ।"),
+            JaEx("はな が さきました。", "hana ga sakimashita.", "फूल खिल गया।", "Hana has arrived."),
+            JaEx("この はな は きれい です。", "kono hana wa kirei desu.", "यह फूल सुंदर है।", "This flower is beautiful."),
+            JaEx("はな に みず を あげます。", "hana ni mizu wo agemasu.", "मैं फूल को पानी देता हूँ।", "I give water to the flowers."),
         ),
         "き" to listOf(
 
-            JaEx("この き は たかい です。", "kono ki wa takai desu.", "यह पेड़ ऊँचा है।"),
-            JaEx("き の した で やすみます。", "ki no shita de yasumimasu.", "मैं पेड़ के नीचे आराम करता हूँ।"),
-            JaEx("き が たくさん あります。", "ki ga takusan arimasu.", "वहाँ बहुत सारे पेड़ हैं।"),
+            JaEx("この き は たかい です。", "kono ki wa takai desu.", "यह पेड़ ऊँचा है।", "This is a big deal."),
+            JaEx("き の した で やすみます。", "ki no shita de yasumimasu.", "मैं पेड़ के नीचे आराम करता हूँ।", "I'll take a rest in the comfort of my home."),
+            JaEx("き が たくさん あります。", "ki ga takusan arimasu.", "वहाँ बहुत सारे पेड़ हैं।", "There are many possibilities."),
         ),
         "くさ" to listOf(
 
-            JaEx("くさ が のびました。", "kusa ga nobimashita.", "घास बढ़ गई।"),
-            JaEx("くさ の うえ に すわります。", "kusa no ue ni suwarimasu.", "मैं घास पर बैठता हूँ।"),
-            JaEx("にわ に くさ が あります。", "niwa ni kusa ga arimasu.", "बगीचे में घास है।"),
+            JaEx("くさ が のびました。", "kusa ga nobimashita.", "घास बढ़ गई।", "The grass has grown."),
+            JaEx("くさ の うえ に すわります。", "kusa no ue ni suwarimasu.", "मैं घास पर बैठता हूँ।", "I sit on the grass."),
+            JaEx("にわ に くさ が あります。", "niwa ni kusa ga arimasu.", "बगीचे में घास है।", "There is a lot of grass in the chicken."),
         ),
         "やま" to listOf(
 
-            JaEx("やま に のぼりました。", "yama ni noborimashita.", "मैं पहाड़ पर चढ़ा।"),
-            JaEx("この やま は たかい です。", "kono yama wa takai desu.", "यह पहाड़ ऊँचा है।"),
-            JaEx("やま の うえ から まち が みえます。", "yama no ue kara machi ga miemasu.", "पहाड़ की चोटी से शहर दिखता है।"),
+            JaEx("やま に のぼりました。", "yama ni noborimashita.", "मैं पहाड़ पर चढ़ा।", "I climbed the mountain."),
+            JaEx("この やま は たかい です。", "kono yama wa takai desu.", "यह पहाड़ ऊँचा है।", "This mountain is tall."),
+            JaEx("やま の うえ から まち が みえます。", "yama no ue kara machi ga miemasu.", "पहाड़ की चोटी से शहर दिखता है।", "You can see the city from the top of the mountain."),
         ),
         "かわ" to listOf(
 
-            JaEx("かわ で およぎます。", "kawa de oyogimasu.", "मैं नदी में तैरता हूँ।"),
-            JaEx("かわ は ながい です。", "kawa wa nagai desu.", "नदी लंबी है।"),
-            JaEx("かわ の みず は つめたい です。", "kawa no mizu wa tsumetai desu.", "नदी का पानी ठंडा होता है।"),
+            JaEx("かわ で およぎます。", "kawa de oyogimasu.", "मैं नदी में तैरता हूँ।", "It floats in water."),
+            JaEx("かわ は ながい です。", "kawa wa nagai desu.", "नदी लंबी है।", "Cute is long."),
+            JaEx("かわ の みず は つめたい です。", "kawa no mizu wa tsumetai desu.", "नदी का पानी ठंडा होता है।", "The water in the river is cold."),
         ),
         "うみ" to listOf(
 
-            JaEx("うみ は ひろい です。", "umi wa hiroi desu.", "समुद्र विशाल है।"),
-            JaEx("うみ で およぎました。", "umi de oyogimashita.", "मैंने समुद्र में तैरा।"),
-            JaEx("うみ の みず は からい です。", "umi no mizu wa karai desu.", "समुद्र का पानी नमकीन होता है।"),
+            JaEx("うみ は ひろい です。", "umi wa hiroi desu.", "समुद्र विशाल है।", "The sea is wide."),
+            JaEx("うみ で およぎました。", "umi de oyogimashita.", "मैंने समुद्र में तैरा।", "It floated in the sea."),
+            JaEx("うみ の みず は からい です。", "umi no mizu wa karai desu.", "समुद्र का पानी नमकीन होता है।", "The water in the ocean is dry."),
         ),
         "そら" to listOf(
 
-            JaEx("そら が あおい です。", "sora ga aoi desu.", "आकाश नीला है।"),
-            JaEx("そら に くも が あります。", "sora ni kumo ga arimasu.", "आकाश में बादल हैं।"),
-            JaEx("そら を みて ください。", "sora wo mite kudasai.", "कृपया आकाश को देखिए।"),
+            JaEx("そら が あおい です。", "sora ga aoi desu.", "आकाश नीला है।", "Sora is Aoi."),
+            JaEx("そら に くも が あります。", "sora ni kumo ga arimasu.", "आकाश में बादल हैं।", "There is a spider in the sky."),
+            JaEx("そら を みて ください。", "sora wo mite kudasai.", "कृपया आकाश को देखिए।", "Please look out there."),
         ),
         "あめ" to listOf(
 
-            JaEx("あめ が ふって います。", "ame ga futte imasu.", "बारिश हो रही है।"),
-            JaEx("きょう は あめ です。", "kyou wa ame desu.", "आज बारिश है।"),
-            JaEx("あめ が ふる まえ に かえります。", "ame ga furu mae ni kaerimasu.", "बारिश से पहले घर लौटता हूँ।"),
+            JaEx("あめ が ふって います。", "ame ga futte imasu.", "बारिश हो रही है।", "The candy is falling."),
+            JaEx("きょう は あめ です。", "kyou wa ame desu.", "आज बारिश है।", "Today is candy."),
+            JaEx("あめ が ふる まえ に かえります。", "ame ga furu mae ni kaerimasu.", "बारिश से पहले घर लौटता हूँ।", "The candy will return to its original state."),
         ),
         "ゆき" to listOf(
 
-            JaEx("ゆき が ふりました。", "yuki ga furimashita.", "बर्फ़ गिरी।"),
-            JaEx("ゆき は しろい です。", "yuki wa shiroi desu.", "बर्फ़ सफ़ेद होती है।"),
-            JaEx("ゆき の ひ は さむい です。", "yuki no hi wa samui desu.", "बर्फ़ के दिन ठंडे होते हैं।"),
+            JaEx("ゆき が ふりました。", "yuki ga furimashita.", "बर्फ़ गिरी।", "Yuki shook his head."),
+            JaEx("ゆき は しろい です。", "yuki wa shiroi desu.", "बर्फ़ सफ़ेद होती है।", "Yuki is white."),
+            JaEx("ゆき の ひ は さむい です。", "yuki no hi wa samui desu.", "बर्फ़ के दिन ठंडे होते हैं।", "It's cold in the snow."),
         ),
         "かぜ" to listOf(
 
-            JaEx("かぜ が つよい です。", "kaze ga tsuyoi desu.", "हवा तेज़ है।"),
-            JaEx("きょう は かぜ が ふいて います。", "kyou wa kaze ga fuite imasu.", "आज हवा चल रही है।"),
-            JaEx("かぜ を ひきました。", "kaze wo hikimashita.", "मुझे ज़ुकाम हो गया।"),
+            JaEx("かぜ が つよい です。", "kaze ga tsuyoi desu.", "हवा तेज़ है।", "The wind is strong."),
+            JaEx("きょう は かぜ が ふいて います。", "kyou wa kaze ga fuite imasu.", "आज हवा चल रही है।", "It's cold today."),
+            JaEx("かぜ を ひきました。", "kaze wo hikimashita.", "मुझे ज़ुकाम हो गया।", "I caught a cold."),
         ),
         "たいよう" to listOf(
 
-            JaEx("たいよう が ひかって います。", "taiyou ga hikatte imasu.", "सूरज चमक रहा है।"),
-            JaEx("たいよう は ひがし から のぼります。", "taiyou wa higashi kara noborimasu.", "सूरज पूरब से उगता है।"),
-            JaEx("たいよう の ひかり は あたたかい です。", "taiyou no hikari wa atatakai desu.", "सूरज की रोशनी गर्म होती है।"),
+            JaEx("たいよう が ひかって います。", "taiyou ga hikatte imasu.", "सूरज चमक रहा है।", "The sun is shining."),
+            JaEx("たいよう は ひがし から のぼります。", "taiyou wa higashi kara noborimasu.", "सूरज पूरब से उगता है।", "The sun rises from the east."),
+            JaEx("たいよう の ひかり は あたたかい です。", "taiyou no hikari wa atatakai desu.", "सूरज की रोशनी गर्म होती है।", "The light of the day is warm."),
         ),
         "つき" to listOf(
 
-            JaEx("つき が きれい です。", "tsuki ga kirei desu.", "चाँद सुंदर है।"),
-            JaEx("よる に つき が みえます。", "yoru ni tsuki ga miemasu.", "रात में चाँद दिखता है।"),
-            JaEx("つき は まるい です。", "tsuki wa marui desu.", "चाँद गोल है।"),
+            JaEx("つき が きれい です。", "tsuki ga kirei desu.", "चाँद सुंदर है।", "The finish is beautiful."),
+            JaEx("よる に つき が みえます。", "yoru ni tsuki ga miemasu.", "रात में चाँद दिखता है।", "You can see the difference depending on the situation."),
+            JaEx("つき は まるい です。", "tsuki wa marui desu.", "चाँद गोल है।", "The base is round."),
         ),
         "ほし" to listOf(
 
-            JaEx("ほし が かがやいて います。", "hoshi ga kagayaite imasu.", "तारे चमक रहे हैं।"),
-            JaEx("そら に ほし が たくさん あります。", "sora ni hoshi ga takusan arimasu.", "आकाश में बहुत सारे तारे हैं।"),
-            JaEx("ほし を みて ねがい を かけます。", "hoshi wo mite negai wo kakemasu.", "तारा देखकर इच्छा करता हूँ।"),
+            JaEx("ほし が かがやいて います。", "hoshi ga kagayaite imasu.", "तारे चमक रहे हैं।", "The stars are shining."),
+            JaEx("そら に ほし が たくさん あります。", "sora ni hoshi ga takusan arimasu.", "आकाश में बहुत सारे तारे हैं।", "There are many stars in the sky."),
+            JaEx("ほし を みて ねがい を かけます。", "hoshi wo mite negai wo kakemasu.", "तारा देखकर इच्छा करता हूँ।", "Look at the stars and make a wish."),
         ),
         "みず" to listOf(
 
-            JaEx("みず を のみます。", "mizu wo nomimasu.", "मैं पानी पीता हूँ।"),
-            JaEx("みず は のど が かわいた とき に のみます。", "mizu wa nodo ga kawaita toki ni nomimasu.", "पानी प्यास लगने पर पीता हूँ।"),
-            JaEx("コップ に みず が あります。", "koppu ni mizu ga arimasu.", "गिलास में पानी है।"),
+            JaEx("みず を のみます。", "mizu wo nomimasu.", "मैं पानी पीता हूँ।", "Drink water."),
+            JaEx("みず は のど が かわいた とき に のみます。", "mizu wa nodo ga kawaita toki ni nomimasu.", "पानी प्यास लगने पर पीता हूँ।", "Drink water when you are thirsty."),
+            JaEx("コップ に みず が あります。", "koppu ni mizu ga arimasu.", "गिलास में पानी है।", "There is water in the cup."),
         ),
         "たべもの" to listOf(
 
-            JaEx("この たべもの は おいしい です。", "kono tabemono wa oishii desu.", "यह खाना स्वादिष्ट है।"),
-            JaEx("にほん の たべもの が すき です。", "nihon no tabemono ga suki desu.", "मुझे जापानी खाना पसंद है।"),
-            JaEx("たべもの を つくります。", "tabemono wo tsukurimasu.", "मैं खाना बनाता हूँ।"),
+            JaEx("この たべもの は おいしい です。", "kono tabemono wa oishii desu.", "यह खाना स्वादिष्ट है।", "This food is delicious."),
+            JaEx("にほん の たべもの が すき です。", "nihon no tabemono ga suki desu.", "मुझे जापानी खाना पसंद है।", "I like Japanese food."),
+            JaEx("たべもの を つくります。", "tabemono wo tsukurimasu.", "मैं खाना बनाता हूँ।", "I will make food."),
         ),
         "ごはん" to listOf(
 
-            JaEx("ごはん を たべます。", "gohan wo tabemasu.", "मैं खाना खाता हूँ।"),
-            JaEx("ごはん は もう たべました。", "gohan wa mou tabemashita.", "मैंने खाना खा लिया।"),
-            JaEx("いっしょ に ごはん を たべましょう。", "issho ni gohan wo tabemashou.", "चलो साथ में खाना खाएँ।"),
+            JaEx("ごはん を たべます。", "gohan wo tabemasu.", "मैं खाना खाता हूँ।", "I'm going to eat dinner."),
+            JaEx("ごはん は もう たべました。", "gohan wa mou tabemashita.", "मैंने खाना खा लिया।", "I have already eaten dinner."),
+            JaEx("いっしょ に ごはん を たべましょう。", "issho ni gohan wo tabemashou.", "चलो साथ में खाना खाएँ।", "Let's eat dinner together."),
         ),
         "パン" to listOf(
 
-            JaEx("あさ に パン を たべます。", "asa ni pan wo tabemasu.", "सुबह मैं रोटी/ब्रेड खाता हूँ।"),
-            JaEx("この パン は やわらかい です。", "kono pan wa yawarakai desu.", "यह ब्रेड नरम है।"),
-            JaEx("パン と ぎゅうにゅう を かいました。", "pan to gyuunyuu wo kaimashita.", "मैंने ब्रेड और दूध ख़रीदा।"),
+            JaEx("あさ に パン を たべます。", "asa ni pan wo tabemasu.", "सुबह मैं रोटी/ब्रेड खाता हूँ।", "I eat bread in the morning."),
+            JaEx("この パン は やわらかい です。", "kono pan wa yawarakai desu.", "यह ब्रेड नरम है।", "This bread is soft."),
+            JaEx("パン と ぎゅうにゅう を かいました。", "pan to gyuunyuu wo kaimashita.", "मैंने ब्रेड और दूध ख़रीदा।", "I made bread and stuffed meat."),
         ),
         "たまご" to listOf(
 
-            JaEx("たまご を ふたつ かいました。", "tamago wo futatsu kaimashita.", "मैंने दो अंडे ख़रीदे।"),
-            JaEx("たまご を にます。", "tamago wo nimasu.", "मैं अंडा उबालता हूँ।"),
-            JaEx("この たまご は あたらしい です。", "kono tamago wa atarashii desu.", "यह अंडा ताज़ा है।"),
+            JaEx("たまご を ふたつ かいました。", "tamago wo futatsu kaimashita.", "मैंने दो अंडे ख़रीदे।", "I caught two eggs."),
+            JaEx("たまご を にます。", "tamago wo nimasu.", "मैं अंडा उबालता हूँ।", "I'll take the egg."),
+            JaEx("この たまご は あたらしい です。", "kono tamago wa atarashii desu.", "यह अंडा ताज़ा है।", "This egg is new."),
         ),
         "にく" to listOf(
 
-            JaEx("にく を たべます か。", "niku wo tabemasu ka.", "क्या आप मांस खाते हैं?"),
-            JaEx("この にく は やわらかい です。", "kono niku wa yawarakai desu.", "यह मांस नरम है।"),
-            JaEx("にく を やいて たべます。", "niku wo yaite tabemasu.", "मैं मांस भूनकर खाता हूँ।"),
+            JaEx("にく を たべます か。", "niku wo tabemasu ka.", "क्या आप मांस खाते हैं?", "Do you want to eat garlic?"),
+            JaEx("この にく は やわらかい です。", "kono niku wa yawarakai desu.", "यह मांस नरम है।", "This nail is soft."),
+            JaEx("にく を やいて たべます。", "niku wo yaite tabemasu.", "मैं मांस भूनकर खाता हूँ।", "Cook and eat garlic."),
         ),
         "やさい" to listOf(
 
-            JaEx("やさい を たくさん たべます。", "yasai wo takusan tabemasu.", "मैं बहुत सारी सब्ज़ियाँ खाता हूँ।"),
-            JaEx("やさい は からだ に いい です。", "yasai wa karada ni ii desu.", "सब्ज़ियाँ शरीर के लिए अच्छी हैं।"),
-            JaEx("この やさい は あたらしい です。", "kono yasai wa atarashii desu.", "यह सब्ज़ी ताज़ी है।"),
+            JaEx("やさい を たくさん たべます。", "yasai wo takusan tabemasu.", "मैं बहुत सारी सब्ज़ियाँ खाता हूँ।", "I eat a lot of vegetables."),
+            JaEx("やさい は からだ に いい です。", "yasai wa karada ni ii desu.", "सब्ज़ियाँ शरीर के लिए अच्छी हैं।", "Vegetables are good for your body."),
+            JaEx("この やさい は あたらしい です。", "kono yasai wa atarashii desu.", "यह सब्ज़ी ताज़ी है।", "This vegetable is new."),
         ),
         "くだもの" to listOf(
 
-            JaEx("くだもの が すき です。", "kudamono ga suki desu.", "मुझे फल पसंद हैं।"),
-            JaEx("まいにち くだもの を たべます。", "mainichi kudamono wo tabemasu.", "मैं रोज़ फल खाता हूँ।"),
-            JaEx("この くだもの は あまい です。", "kono kudamono wa amai desu.", "यह फल मीठा है।"),
+            JaEx("くだもの が すき です。", "kudamono ga suki desu.", "मुझे फल पसंद हैं।", "I like fruits."),
+            JaEx("まいにち くだもの を たべます。", "mainichi kudamono wo tabemasu.", "मैं रोज़ फल खाता हूँ।", "I eat fruit every day."),
+            JaEx("この くだもの は あまい です。", "kono kudamono wa amai desu.", "यह फल मीठा है।", "This fruit is sweet."),
         ),
         "りんご" to listOf(
 
-            JaEx("りんご を ひとつ ください。", "ringo wo hitotsu kudasai.", "एक सेब दीजिए।"),
-            JaEx("りんご は あか い です。", "ringo wa akai desu.", "सेब लाल होता है।"),
-            JaEx("りんご は まいにち たべます。", "ringo wa mainichi tabemasu.", "मैं रोज़ सेब खाता हूँ।"),
+            JaEx("りんご を ひとつ ください。", "ringo wo hitotsu kudasai.", "एक सेब दीजिए।", "Please give me an apple."),
+            JaEx("りんご は あか い です。", "ringo wa akai desu.", "सेब लाल होता है।", "The apple is red."),
+            JaEx("りんご は まいにち たべます。", "ringo wa mainichi tabemasu.", "मैं रोज़ सेब खाता हूँ।", "I eat apples every day."),
         ),
         "バナナ" to listOf(
 
-            JaEx("バナナ は きいろい です。", "banana wa kiiroi desu.", "केला पीला होता है।"),
-            JaEx("バナナ を かいました。", "banana wo kaimashita.", "मैंने केला ख़रीदा।"),
-            JaEx("バナナ は えいよう が あります。", "banana wa eiyou ga arimasu.", "केले में पोषण होता है।"),
+            JaEx("バナナ は きいろい です。", "banana wa kiiroi desu.", "केला पीला होता है।", "Bananas are yellow."),
+            JaEx("バナナ を かいました。", "banana wo kaimashita.", "मैंने केला ख़रीदा।", "I ate a banana."),
+            JaEx("バナナ は えいよう が あります。", "banana wa eiyou ga arimasu.", "केले में पोषण होता है।", "Bananas have a special meaning."),
         ),
         "みかん" to listOf(
 
-            JaEx("みかん は すっぱい です。", "mikan wa suppai desu.", "संतरा खट्टा होता है।"),
-            JaEx("ふゆ に みかん を たべます。", "fuyu ni mikan wo tabemasu.", "सर्दियों में संतरा खाता हूँ।"),
-            JaEx("みかん を むきます。", "mikan wo mukimasu.", "मैं संतरा छीलता हूँ।"),
+            JaEx("みかん は すっぱい です。", "mikan wa suppai desu.", "संतरा खट्टा होता है।", "Oranges are sour."),
+            JaEx("ふゆ に みかん を たべます。", "fuyu ni mikan wo tabemasu.", "सर्दियों में संतरा खाता हूँ।", "I eat mandarin oranges in Fuyu."),
+            JaEx("みかん を むきます。", "mikan wo mukimasu.", "मैं संतरा छीलता हूँ।", "Peel the oranges."),
         ),
         "もも" to listOf(
 
-            JaEx("もも は あまい です。", "momo wa amai desu.", "आड़ू मीठा होता है।"),
-            JaEx("もも の き が あります。", "momo no ki ga arimasu.", "आड़ू का पेड़ है।"),
-            JaEx("もも を たべたい です。", "momo wo tabetai desu.", "मैं आड़ू खाना चाहता हूँ।"),
+            JaEx("もも は あまい です。", "momo wa amai desu.", "आड़ू मीठा होता है।", "The thighs are sweet."),
+            JaEx("もも の き が あります。", "momo no ki ga arimasu.", "आड़ू का पेड़ है।", "I have a problem with my thighs."),
+            JaEx("もも を たべたい です。", "momo wo tabetai desu.", "मैं आड़ू खाना चाहता हूँ।", "I want to eat thighs."),
         ),
         "いちご" to listOf(
 
-            JaEx("いちご が すき です。", "ichigo ga suki desu.", "मुझे स्ट्रॉबेरी पसंद है।"),
-            JaEx("いちご は あかい です。", "ichigo wa akai desu.", "स्ट्रॉबेरी लाल होती है।"),
-            JaEx("いちご の ケーキ を たべました。", "ichigo no keeki wo tabemashita.", "मैंने स्ट्रॉबेरी केक खाया।"),
+            JaEx("いちご が すき です。", "ichigo ga suki desu.", "मुझे स्ट्रॉबेरी पसंद है।", "I like strawberries."),
+            JaEx("いちご は あかい です。", "ichigo wa akai desu.", "स्ट्रॉबेरी लाल होती है।", "Ichigo is red."),
+            JaEx("いちご の ケーキ を たべました。", "ichigo no keeki wo tabemashita.", "मैंने स्ट्रॉबेरी केक खाया।", "I ate strawberry cake."),
         ),
         "おちゃ" to listOf(
 
-            JaEx("おちゃ を のみます か。", "ocha wo nomimasu ka.", "क्या आप चाय पिएँगे?"),
-            JaEx("おちゃ は あつい です。", "ocha wa atsui desu.", "चाय गरम है।"),
-            JaEx("まいにち おちゃ を のみます。", "mainichi ocha wo nomimasu.", "मैं रोज़ चाय पीता हूँ।"),
+            JaEx("おちゃ を のみます か。", "ocha wo nomimasu ka.", "क्या आप चाय पिएँगे?", "Would you like to drink tea?"),
+            JaEx("おちゃ は あつい です。", "ocha wa atsui desu.", "चाय गरम है।", "It's hot."),
+            JaEx("まいにち おちゃ を のみます。", "mainichi ocha wo nomimasu.", "मैं रोज़ चाय पीता हूँ।", "I drink tea every day."),
         ),
         "こうちゃ" to listOf(
 
-            JaEx("こうちゃ に さとう を いれます。", "koucha ni satou wo iremasu.", "मैं चाय में चीनी डालता हूँ।"),
-            JaEx("こうちゃ は あじ が いい です。", "koucha wa aji ga ii desu.", "काली चाय का स्वाद अच्छा होता है।"),
-            JaEx("こうちゃ を いっぱい ください。", "koucha wo ippai kudasai.", "एक कप चाय दीजिए।"),
+            JaEx("こうちゃ に さとう を いれます。", "koucha ni satou wo iremasu.", "मैं चाय में चीनी डालता हूँ।", "I put sugar in the kocha."),
+            JaEx("こうちゃ は あじ が いい です。", "koucha wa aji ga ii desu.", "काली चाय का स्वाद अच्छा होता है।", "The horse mackerel is good."),
+            JaEx("こうちゃ を いっぱい ください。", "koucha wo ippai kudasai.", "एक कप चाय दीजिए।", "Please give me a lot of kocha."),
         ),
         "コーヒー" to listOf(
 
-            JaEx("コーヒー を のみます。", "koohii wo nomimasu.", "मैं कॉफ़ी पीता हूँ।"),
-            JaEx("コーヒー は にがい です。", "koohii wa nigai desu.", "कॉफ़ी कड़वी होती है。"),
-            JaEx("あさ に コーヒー を のみます。", "asa ni koohii wo nomimasu.", "सुबह मैं कॉफ़ी पीता हूँ।"),
+            JaEx("コーヒー を のみます。", "koohii wo nomimasu.", "मैं कॉफ़ी पीता हूँ।", "I drink coffee."),
+            JaEx("コーヒー は にがい です。", "koohii wa nigai desu.", "कॉफ़ी कड़वी होती है。", "Coffee is bitter."),
+            JaEx("あさ に コーヒー を のみます。", "asa ni koohii wo nomimasu.", "सुबह मैं कॉफ़ी पीता हूँ।", "I drink coffee in the morning."),
         ),
         "ジュース" to listOf(
 
-            JaEx("ジュース を のみたい です。", "jyuusu wo nomitai desu.", "मैं जूस पीना चाहता हूँ।"),
-            JaEx("この ジュース は あまい です。", "kono jyuusu wa amai desu.", "यह जूस मीठा है।"),
-            JaEx("みかん の ジュース を ください。", "mikan no jyuusu wo kudasai.", "संतरे का जूस दीजिए।"),
+            JaEx("ジュース を のみたい です。", "jyuusu wo nomitai desu.", "मैं जूस पीना चाहता हूँ।", "I'd like to try some juice."),
+            JaEx("この ジュース は あまい です。", "kono jyuusu wa amai desu.", "यह जूस मीठा है।", "This juice is sweet."),
+            JaEx("みかん の ジュース を ください。", "mikan no jyuusu wo kudasai.", "संतरे का जूस दीजिए।", "I'd like some tangerine juice, please."),
         ),
         "ミルク" to listOf(
 
-            JaEx("ミルク は しろい です。", "miruku wa shiroi desu.", "दूध सफ़ेद होता है।"),
-            JaEx("ミルク を コーヒー に いれます。", "miruku wo koohii ni iremasu.", "मैं कॉफ़ी में दूध डालता हूँ।"),
-            JaEx("こども は ミルク を のんで います。", "kodomo wa miruku wo nonde imasu.", "बच्चा दूध पी रहा है।"),
+            JaEx("ミルク は しろい です。", "miruku wa shiroi desu.", "दूध सफ़ेद होता है।", "Milk is white."),
+            JaEx("ミルク を コーヒー に いれます。", "miruku wo koohii ni iremasu.", "मैं कॉफ़ी में दूध डालता हूँ।", "Add milk to coffee."),
+            JaEx("こども は ミルク を のんで います。", "kodomo wa miruku wo nonde imasu.", "बच्चा दूध पी रहा है।", "The child is drinking milk."),
         ),
         "さとう" to listOf(
 
-            JaEx("さとう を いれます か。", "satou wo iremasu ka.", "क्या आप चीनी डालेंगे?"),
-            JaEx("さとう は あまい です。", "satou wa amai desu.", "चीनी मीठी होती है।"),
-            JaEx("コーヒー に さとう を いれました。", "koohii ni satou wo iremashita.", "मैंने कॉफ़ी में चीनी डाली।"),
+            JaEx("さとう を いれます か。", "satou wo iremasu ka.", "क्या आप चीनी डालेंगे?", "Would you like some sugar?"),
+            JaEx("さとう は あまい です。", "satou wa amai desu.", "चीनी मीठी होती है।", "Sato is sweet."),
+            JaEx("コーヒー に さとう を いれました。", "koohii ni satou wo iremashita.", "मैंने कॉफ़ी में चीनी डाली।", "I added sugar to my coffee."),
         ),
         "しお" to listOf(
 
-            JaEx("しお と こしょう を ください。", "shio to koshou wo kudasai.", "नमक और काली मिर्च दीजिए।"),
-            JaEx("この スープ は しお が きいて います。", "kono suupu wa shio ga kiite imasu.", "इस सूप में नमक अच्छा लगा है।"),
-            JaEx("しお は しょっぱい です。", "shio wa shoppai desu.", "नमक नमकीन होता है।"),
+            JaEx("しお と こしょう を ください。", "shio to koshou wo kudasai.", "नमक और काली मिर्च दीजिए।", "Salt and pepper, please."),
+            JaEx("この スープ は しお が きいて います。", "kono suupu wa shio ga kiite imasu.", "इस सूप में नमक अच्छा लगा है।", "This soup is salty."),
+            JaEx("しお は しょっぱい です。", "shio wa shoppai desu.", "नमक नमकीन होता है।", "Shio is salty."),
         ),
         "ケーキ" to listOf(
 
-            JaEx("ケーキ を たべました。", "keeki wo tabemashita.", "मैंने केक खाया।"),
-            JaEx("この ケーキ は おいしい です。", "kono keeki wa oishii desu.", "यह केक स्वादिष्ट है।"),
-            JaEx("たんじょうび に ケーキ を つくります。", "tanjoubi ni keeki wo tsukurimasu.", "जन्मदिन पर केक बनाता हूँ।"),
+            JaEx("ケーキ を たべました。", "keeki wo tabemashita.", "मैंने केक खाया।", "I ate cake."),
+            JaEx("この ケーキ は おいしい です。", "kono keeki wa oishii desu.", "यह केक स्वादिष्ट है।", "This cake is delicious."),
+            JaEx("たんじょうび に ケーキ を つくります。", "tanjoubi ni keeki wo tsukurimasu.", "जन्मदिन पर केक बनाता हूँ।", "I will make a cake for my birthday."),
         ),
         "アイスクリーム" to listOf(
 
-            JaEx("アイスクリーム が すき です。", "aisukuriimu ga suki desu.", "मुझे आइसक्रीम पसंद है।"),
-            JaEx("なつ は アイスクリーム が おいしい です。", "natsu wa aisukuriimu ga oishii desu.", "गर्मियों में आइसक्रीम स्वादिष्ट होती है।"),
-            JaEx("アイスクリーム を ふたつ ください。", "aisukuriimu wo futatsu kudasai.", "दो आइसक्रीम दीजिए।"),
+            JaEx("アイスクリーム が すき です。", "aisukuriimu ga suki desu.", "मुझे आइसक्रीम पसंद है।", "I like ice cream."),
+            JaEx("なつ は アイスクリーム が おいしい です。", "natsu wa aisukuriimu ga oishii desu.", "गर्मियों में आइसक्रीम स्वादिष्ट होती है।", "Natsu's ice cream is delicious."),
+            JaEx("アイスクリーム を ふたつ ください。", "aisukuriimu wo futatsu kudasai.", "दो आइसक्रीम दीजिए।", "Two ice creams, please."),
         ),
         "ひと" to listOf(
 
-            JaEx("あそこ に ひと が います。", "asoko ni hito ga imasu.", "वहाँ एक व्यक्ति है।"),
-            JaEx("この ひと は だれ です か。", "kono hito wa dare desu ka.", "यह व्यक्ति कौन है?"),
-            JaEx("たくさん の ひと が きました。", "takusan no hito ga kimashita.", "बहुत सारे लोग आए।"),
+            JaEx("あそこ に ひと が います。", "asoko ni hito ga imasu.", "वहाँ एक व्यक्ति है।", "There's someone over there."),
+            JaEx("この ひと は だれ です か。", "kono hito wa dare desu ka.", "यह व्यक्ति कौन है?", "Who is this person?"),
+            JaEx("たくさん の ひと が きました。", "takusan no hito ga kimashita.", "बहुत सारे लोग आए।", "Many people came."),
         ),
         "おとこ" to listOf(
 
-            JaEx("あの おとこ の ひと は せんせい です。", "ano otoko no hito wa sensei desu.", "वह आदमी शिक्षक है।"),
-            JaEx("おとこ の こ が ふたり います。", "otoko no ko ga futari imasu.", "दो लड़के हैं।"),
-            JaEx("この おとこ の ひと は わかい です。", "kono otoko no hito wa wakai desu.", "यह आदमी जवान है।"),
+            JaEx("あの おとこ の ひと は せんせい です。", "ano otoko no hito wa sensei desu.", "वह आदमी शिक्षक है।", "That man is a teacher."),
+            JaEx("おとこ の こ が ふたり います。", "otoko no ko ga futari imasu.", "दो लड़के हैं।", "There are two boys."),
+            JaEx("この おとこ の ひと は わかい です。", "kono otoko no hito wa wakai desu.", "यह आदमी जवान है।", "This man is young."),
         ),
         "おんな" to listOf(
 
-            JaEx("あの おんな の ひと は いしゃ です。", "ano onna no hito wa isha desu.", "वह औरत डॉक्टर है।"),
-            JaEx("おんな の こ が すき です。", "onna no ko ga suki desu.", "मुझे लड़कियाँ पसंद हैं।"),
-            JaEx("この おんな の ひと は きれい です。", "kono onna no hito wa kirei desu.", "यह औरत सुंदर है।"),
+            JaEx("あの おんな の ひと は いしゃ です。", "ano onna no hito wa isha desu.", "वह औरत डॉक्टर है।", "That woman is Isha."),
+            JaEx("おんな の こ が すき です。", "onna no ko ga suki desu.", "मुझे लड़कियाँ पसंद हैं।", "I like girls."),
+            JaEx("この おんな の ひと は きれい です。", "kono onna no hito wa kirei desu.", "यह औरत सुंदर है।", "This woman is beautiful."),
         ),
         "こども" to listOf(
 
-            JaEx("こども が こうえん で あそんで います。", "kodomo ga kouen de asonde imasu.", "बच्चे पार्क में खेल रहे हैं।"),
-            JaEx("わたし の こども は ふたり います。", "watashi no kodomo wa futari imasu.", "मेरे दो बच्चे हैं।"),
-            JaEx("こども は ねる じかん です。", "kodomo wa neru jikan desu.", "बच्चों के सोने का समय है।"),
+            JaEx("こども が こうえん で あそんで います。", "kodomo ga kouen de asonde imasu.", "बच्चे पार्क में खेल रहे हैं।", "The children are playing in the park."),
+            JaEx("わたし の こども は ふたり います。", "watashi no kodomo wa futari imasu.", "मेरे दो बच्चे हैं।", "I have two children."),
+            JaEx("こども は ねる じかん です。", "kodomo wa neru jikan desu.", "बच्चों के सोने का समय है।", "Children have a sleeping period."),
         ),
         "ともだち" to listOf(
 
-            JaEx("ともだち と えいが を みました。", "tomodachi to eiga wo mimashita.", "मैंने दोस्त के साथ फ़िल्म देखी।"),
-            JaEx("わたし の ともだち は やさしい です。", "watashi no tomodachi wa yasashii desu.", "मेरा दोस्त दयालु है।"),
-            JaEx("ともだち に でんわ を かけます。", "tomodachi ni denwa wo kakemasu.", "मैं दोस्त को फ़ोन करता हूँ।"),
+            JaEx("ともだち と えいが を みました。", "tomodachi to eiga wo mimashita.", "मैंने दोस्त के साथ फ़िल्म देखी।", "My friends and I watched the show."),
+            JaEx("わたし の ともだち は やさしい です。", "watashi no tomodachi wa yasashii desu.", "मेरा दोस्त दयालु है।", "My friends are kind."),
+            JaEx("ともだち に でんわ を かけます。", "tomodachi ni denwa wo kakemasu.", "मैं दोस्त को फ़ोन करता हूँ।", "Call your friend."),
         ),
         "かぞく" to listOf(
 
-            JaEx("わたし の かぞく は よにん です。", "watashi no kazoku wa yonin desu.", "मेरे परिवार में चार लोग हैं।"),
-            JaEx("かぞく と いっしょ に たべます。", "kazoku to issho ni tabemasu.", "मैं परिवार के साथ खाता हूँ।"),
-            JaEx("かぞく が だいじ です。", "kazoku ga daiji desu.", "परिवार महत्वपूर्ण है।"),
+            JaEx("わたし の かぞく は よにん です。", "watashi no kazoku wa yonin desu.", "मेरे परिवार में चार लोग हैं।", "My family is Yonin."),
+            JaEx("かぞく と いっしょ に たべます。", "kazoku to issho ni tabemasu.", "मैं परिवार के साथ खाता हूँ।", "I eat it with my family."),
+            JaEx("かぞく が だいじ です。", "kazoku ga daiji desu.", "परिवार महत्वपूर्ण है।", "My family is important."),
         ),
         "おかあさん" to listOf(
 
-            JaEx("おかあさん は りょうり が じょうず です。", "okaasan wa ryouri ga jouzu desu.", "मेरी माँ खाना बनाने में अच्छी हैं।"),
-            JaEx("おかあさん に でんわ を します。", "okaasan ni denwa wo shimasu.", "मैं माँ को फ़ोन करता हूँ।"),
-            JaEx("おかあさん は いま うち に います。", "okaasan wa ima uchi ni imasu.", "माँ अभी घर पर हैं।"),
+            JaEx("おかあさん は りょうり が じょうず です。", "okaasan wa ryouri ga jouzu desu.", "मेरी माँ खाना बनाने में अच्छी हैं।", "Mother is very good at cooking."),
+            JaEx("おかあさん に でんわ を します。", "okaasan ni denwa wo shimasu.", "मैं माँ को फ़ोन करता हूँ।", "I will call your mother."),
+            JaEx("おかあさん は いま うち に います。", "okaasan wa ima uchi ni imasu.", "माँ अभी घर पर हैं।", "Mom is at home now."),
         ),
         "おとうさん" to listOf(
 
-            JaEx("おとうさん は かいしゃ に いきます。", "otousan wa kaisha ni ikimasu.", "पिताजी कंपनी जाते हैं।"),
-            JaEx("おとうさん は せ が たかい です。", "otousan wa se ga takai desu.", "पिताजी लंबे हैं।"),
-            JaEx("おとうさん と テニス を します。", "otousan to tenisu wo shimasu.", "मैं पिताजी के साथ टेनिस खेलता हूँ।"),
+            JaEx("おとうさん は かいしゃ に いきます。", "otousan wa kaisha ni ikimasu.", "पिताजी कंपनी जाते हैं।", "Dad is going to the museum."),
+            JaEx("おとうさん は せ が たかい です。", "otousan wa se ga takai desu.", "पिताजी लंबे हैं।", "My father is very tall."),
+            JaEx("おとうさん と テニス を します。", "otousan to tenisu wo shimasu.", "मैं पिताजी के साथ टेनिस खेलता हूँ।", "I play tennis with my dad."),
         ),
         "あに" to listOf(
 
-            JaEx("あに は にほん に すんで います。", "ani wa nihon ni sunde imasu.", "मेरा बड़ा भाई जापान में रहता है।"),
-            JaEx("あに は わたし より とし うえ です。", "ani wa watashi yori toshi ue desu.", "मेरा भाई मुझसे बड़ा है।"),
-            JaEx("あに が たこやき を つくって くれました。", "ani ga takoyaki wo tsukutte kuremashita.", "मेरे भाई ने मेरे लिए ताकोयाकी बनाई।"),
+            JaEx("あに は にほん に すんで います。", "ani wa nihon ni sunde imasu.", "मेरा बड़ा भाई जापान में रहता है।", "Ani lives in Japan."),
+            JaEx("あに は わたし より とし うえ です。", "ani wa watashi yori toshi ue desu.", "मेरा भाई मुझसे बड़ा है।", "The crab is better than me."),
+            JaEx("あに が たこやき を つくって くれました。", "ani ga takoyaki wo tsukutte kuremashita.", "मेरे भाई ने मेरे लिए ताकोयाकी बनाई।", "Ani made takoyaki for me."),
         ),
         "あね" to listOf(
 
-            JaEx("あね は だいがくせい です。", "ane wa daigakusei desu.", "मेरी बड़ी बहन कॉलेज की छात्रा है।"),
-            JaEx("あね と かいもの に いきました。", "ane to kaimono ni ikimashita.", "मैं बहन के साथ ख़रीदारी गया।"),
-            JaEx("あね は ピアノ を ひきます。", "ane wa piano wo hikimasu.", "मेरी बहन पियानो बजाती है।"),
+            JaEx("あね は だいがくせい です。", "ane wa daigakusei desu.", "मेरी बड़ी बहन कॉलेज की छात्रा है।", "Ane is a big school."),
+            JaEx("あね と かいもの に いきました。", "ane to kaimono ni ikimashita.", "मैं बहन के साथ ख़रीदारी गया।", "I went to Ane and Kaimono."),
+            JaEx("あね は ピアノ を ひきます。", "ane wa piano wo hikimasu.", "मेरी बहन पियानो बजाती है।", "Ane plays the piano."),
         ),
         "おとうと" to listOf(
 
-            JaEx("おとうと は ちゅうがくせい です。", "otouto wa chuugakusei desu.", "मेरा छोटा भाई मिडिल स्कूल का छात्र है।"),
-            JaEx("おとうと と サッカー を します。", "otouto to sakkaa wo shimasu.", "मैं भाई के साथ फ़ुटबॉल खेलता हूँ।"),
-            JaEx("おとうと は げんき です。", "otouto wa genki desu.", "मेरा छोटा भाई स्वस्थ है।"),
+            JaEx("おとうと は ちゅうがくせい です。", "otouto wa chuugakusei desu.", "मेरा छोटा भाई मिडिल स्कूल का छात्र है।", "My father is a middle school student."),
+            JaEx("おとうと と サッカー を します。", "otouto to sakkaa wo shimasu.", "मैं भाई के साथ फ़ुटबॉल खेलता हूँ।", "I play soccer with my father."),
+            JaEx("おとうと は げんき です。", "otouto wa genki desu.", "मेरा छोटा भाई स्वस्थ है।", "My father is doing well."),
         ),
         "いもうと" to listOf(
 
-            JaEx("いもうと は かわいい です。", "imouto wa kawaii desu.", "मेरी छोटी बहन प्यारी है।"),
-            JaEx("いもうと は おどり が すき です。", "imouto wa odori ga suki desu.", "मेरी बहन को नाचना पसंद है।"),
-            JaEx("いもうと と あそびます。", "imouto to asobimasu.", "मैं छोटी बहन के साथ खेलता हूँ।"),
+            JaEx("いもうと は かわいい です。", "imouto wa kawaii desu.", "मेरी छोटी बहन प्यारी है।", "My sister is cute."),
+            JaEx("いもうと は おどり が すき です。", "imouto wa odori ga suki desu.", "मेरी बहन को नाचना पसंद है।", "My sister likes dancing."),
+            JaEx("いもうと と あそびます。", "imouto to asobimasu.", "मैं छोटी बहन के साथ खेलता हूँ।", "I play with my sister."),
         ),
         "おじいさん" to listOf(
 
-            JaEx("おじいさん は おちゃ が すき です。", "ojiisan wa ocha ga suki desu.", "दादाजी को चाय पसंद है。"),
-            JaEx("おじいさん は しんぶん を よんで います。", "ojiisan wa shinbun wo yonde imasu.", "दादाजी अख़बार पढ़ रहे हैं।"),
-            JaEx("おじいさん に あいに いきます。", "ojiisan ni ai ni ikimasu.", "मैं दादाजी से मिलने जाता हूँ।"),
+            JaEx("おじいさん は おちゃ が すき です。", "ojiisan wa ocha ga suki desu.", "दादाजी को चाय पसंद है。", "Grandpa likes tea."),
+            JaEx("おじいさん は しんぶん を よんで います。", "ojiisan wa shinbun wo yonde imasu.", "दादाजी अख़बार पढ़ रहे हैं।", "The old man is reading Shinbun."),
+            JaEx("おじいさん に あいに いきます。", "ojiisan ni ai ni ikimasu.", "मैं दादाजी से मिलने जाता हूँ।", "I'm going to visit my grandfather."),
         ),
         "おばあさん" to listOf(
 
-            JaEx("おばあさん は はな が すき です。", "obaasan wa hana ga suki desu.", "दादी को फूल पसंद हैं।"),
-            JaEx("おばあさん は にわ で はな を そだてて います。", "obaasan wa niwa de hana wo sodatete imasu.", "दादी बगीचे में फूल उगा रही हैं।"),
-            JaEx("おばあさん は やさしい です。", "obaasan wa yasashii desu.", "दादी दयालु हैं।"),
+            JaEx("おばあさん は はな が すき です。", "obaasan wa hana ga suki desu.", "दादी को फूल पसंद हैं।", "Grandma loves flowers."),
+            JaEx("おばあさん は にわ で はな を そだてて います。", "obaasan wa niwa de hana wo sodatete imasu.", "दादी बगीचे में फूल उगा रही हैं।", "The old woman is raising flowers with her chickens."),
+            JaEx("おばあさん は やさしい です。", "obaasan wa yasashii desu.", "दादी दयालु हैं।", "Grandma is kind."),
         ),
         "せんせい" to listOf(
 
-            JaEx("せんせい に しつもん を します。", "sensei ni shitsumon wo shimasu.", "मैं शिक्षक से सवाल पूछता हूँ।"),
-            JaEx("せんせい は やさしい です。", "sensei wa yasashii desu.", "शिक्षक दयालु हैं।"),
-            JaEx("せんせい、ありがとう ございます。", "sensei, arigatou gozaimasu.", "शिक्षक जी, धन्यवाद।"),
+            JaEx("せんせい に しつもん を します。", "sensei ni shitsumon wo shimasu.", "मैं शिक्षक से सवाल पूछता हूँ।", "I will give my teacher a lesson."),
+            JaEx("せんせい は やさしい です。", "sensei wa yasashii desu.", "शिक्षक दयालु हैं।", "My teacher is kind."),
+            JaEx("せんせい、ありがとう ございます。", "sensei, arigatou gozaimasu.", "शिक्षक जी, धन्यवाद।", "Thank you, teacher."),
         ),
         "がくせい" to listOf(
 
-            JaEx("わたし は がくせい です。", "watashi wa gakusei desu.", "मैं एक छात्र हूँ।"),
-            JaEx("あの がくせい は まじめ です。", "ano gakusei wa majime desu.", "वह छात्र मेहनती है।"),
-            JaEx("がくせい は がっこう で べんきょう します。", "gakusei wa gakkou de benkyou shimasu.", "छात्र स्कूल में पढ़ते हैं।"),
+            JaEx("わたし は がくせい です。", "watashi wa gakusei desu.", "मैं एक छात्र हूँ।", "My name is Gakusei."),
+            JaEx("あの がくせい は まじめ です。", "ano gakusei wa majime desu.", "वह छात्र मेहनती है।", "That school is serious."),
+            JaEx("がくせい は がっこう で べんきょう します。", "gakusei wa gakkou de benkyou shimasu.", "छात्र स्कूल में पढ़ते हैं।", "Students study at school."),
         ),
         "いしゃ" to listOf(
 
-            JaEx("いしゃ に みて もらいました。", "isha ni mite moraimashita.", "मैंने डॉक्टर से दिखाया।"),
-            JaEx("この いしゃ は しんせつ です。", "kono isha wa shinsetsu desu.", "यह डॉक्टर दयालु है।"),
-            JaEx("いたい とき は いしゃ に いきます。", "itai toki wa isha ni ikimasu.", "दर्द होने पर डॉक्टर के पास जाता हूँ।"),
+            JaEx("いしゃ に みて もらいました。", "isha ni mite moraimashita.", "मैंने डॉक्टर से दिखाया।", "I had Isha look at it."),
+            JaEx("この いしゃ は しんせつ です。", "kono isha wa shinsetsu desu.", "यह डॉक्टर दयालु है।", "This is the beginning."),
+            JaEx("いたい とき は いしゃ に いきます。", "itai toki wa isha ni ikimasu.", "दर्द होने पर डॉक्टर के पास जाता हूँ।", "I'll come to you whenever I want."),
         ),
         "あたま" to listOf(
 
-            JaEx("あたま が いたい です。", "atama ga itai desu.", "मेरे सिर में दर्द है।"),
-            JaEx("あたま を あらいます。", "atama wo araimasu.", "मैं सिर धोता हूँ।"),
-            JaEx("この こ は あたま が いい です。", "kono ko wa atama ga ii desu.", "यह बच्चा होशियार है।"),
+            JaEx("あたま が いたい です。", "atama ga itai desu.", "मेरे सिर में दर्द है।", "I want to have a head."),
+            JaEx("あたま を あらいます。", "atama wo araimasu.", "मैं सिर धोता हूँ।", "I'll clean your head."),
+            JaEx("この こ は あたま が いい です。", "kono ko wa atama ga ii desu.", "यह बच्चा होशियार है।", "This kid has a good head."),
         ),
         "かお" to listOf(
 
-            JaEx("かお を あらいます。", "kao wo araimasu.", "मैं चेहरा धोता हूँ।"),
-            JaEx("かお が あかい です。", "kao ga akai desu.", "चेहरा लाल है।"),
-            JaEx("えがお の かお が すき です。", "egao no kao ga suki desu.", "मुझे मुस्कुराता चेहरा पसंद है।"),
+            JaEx("かお を あらいます。", "kao wo araimasu.", "मैं चेहरा धोता हूँ।", "I'll take care of you."),
+            JaEx("かお が あかい です。", "kao ga akai desu.", "चेहरा लाल है।", "The color is red."),
+            JaEx("えがお の かお が すき です。", "egao no kao ga suki desu.", "मुझे मुस्कुराता चेहरा पसंद है।", "I like Egao's voice."),
         ),
         "め" to listOf(
 
-            JaEx("め が つかれました。", "me ga tsukaremashita.", "आँखें थक गईं।"),
-            JaEx("め を とじて ください。", "me wo tojite kudasai.", "कृपया आँखें बंद कीजिए।"),
-            JaEx("この こ は め が おおきい です。", "kono ko wa me ga ookii desu.", "इस बच्चे की आँखें बड़ी हैं।"),
+            JaEx("め が つかれました。", "me ga tsukaremashita.", "आँखें थक गईं।", "I'm tired."),
+            JaEx("め を とじて ください。", "me wo tojite kudasai.", "कृपया आँखें बंद कीजिए।", "Please close the message."),
+            JaEx("この こ は め が おおきい です。", "kono ko wa me ga ookii desu.", "इस बच्चे की आँखें बड़ी हैं।", "This place is big."),
         ),
         "みみ" to listOf(
 
-            JaEx("みみ で おと を ききます。", "mimi de oto wo kikimasu.", "मैं कान से आवाज़ सुनता हूँ।"),
-            JaEx("みみ が いたい です。", "mimi ga itai desu.", "मेरे कान में दर्द है।"),
-            JaEx("みみ を あらいます。", "mimi wo araimasu.", "मैं कान धोता हूँ।"),
+            JaEx("みみ で おと を ききます。", "mimi de oto wo kikimasu.", "मैं कान से आवाज़ सुनता हूँ।", "I can listen to my mother with my ear."),
+            JaEx("みみ が いたい です。", "mimi ga itai desu.", "मेरे कान में दर्द है।", "I want to see Mimi."),
+            JaEx("みみ を あらいます。", "mimi wo araimasu.", "मैं कान धोता हूँ।", "I will wash the ears."),
         ),
         "くち" to listOf(
 
-            JaEx("くち を あけて ください。", "kuchi wo akete kudasai.", "कृपया मुँह खोलिए।"),
-            JaEx("くち の なか に あめ が あります。", "kuchi no naka ni ame ga arimasu.", "मुँह में मिठाई है।"),
-            JaEx("くち を すすぎます。", "kuchi wo susugimasu.", "मैं मुँह कुल्ला करता हूँ।"),
+            JaEx("くち を あけて ください。", "kuchi wo akete kudasai.", "कृपया मुँह खोलिए।", "Please open your mouth."),
+            JaEx("くち の なか に あめ が あります。", "kuchi no naka ni ame ga arimasu.", "मुँह में मिठाई है।", "There is candy in your mouth."),
+            JaEx("くち を すすぎます。", "kuchi wo susugimasu.", "मैं मुँह कुल्ला करता हूँ।", "Rinse your mouth."),
         ),
         "て" to listOf(
 
-            JaEx("て を あらいます。", "te wo araimasu.", "मैं हाथ धोता हूँ।"),
-            JaEx("て で かきます。", "te de kakimasu.", "मैं हाथ से लिखता हूँ।"),
-            JaEx("て を つないで さんぽ します。", "te wo tsunaide sanpo shimasu.", "हाथ पकड़कर टहलता हूँ।"),
+            JaEx("て を あらいます。", "te wo araimasu.", "मैं हाथ धोता हूँ।", "I'll take care of it."),
+            JaEx("て で かきます。", "te de kakimasu.", "मैं हाथ से लिखता हूँ।", "I'll write it by hand."),
+            JaEx("て を つないで さんぽ します。", "te wo tsunaide sanpo shimasu.", "हाथ पकड़कर टहलता हूँ।", "Let's go for a walk together."),
         ),
         "あし" to listOf(
 
-            JaEx("あし が いたい です。", "ashi ga itai desu.", "मेरे पैर में दर्द है।"),
-            JaEx("あし で あるきます。", "ashi de arukimasu.", "मैं पैरों से चलता हूँ।"),
-            JaEx("あし を のばします。", "ashi wo nobashimasu.", "मैं पैर फैलाता हूँ।"),
+            JaEx("あし が いたい です。", "ashi ga itai desu.", "मेरे पैर में दर्द है।", "I want to have legs."),
+            JaEx("あし で あるきます。", "ashi de arukimasu.", "मैं पैरों से चलता हूँ।", "I walk on my legs."),
+            JaEx("あし を のばします。", "ashi wo nobashimasu.", "मैं पैर फैलाता हूँ।", "Stretch out your legs."),
         ),
         "おなか" to listOf(
 
-            JaEx("おなか が すきました。", "onaka ga sukimashita.", "मुझे भूख लगी है।"),
-            JaEx("おなか が いたい です。", "onaka ga itai desu.", "मेरे पेट में दर्द है।"),
-            JaEx("おなか が いっぱい です。", "onaka ga ippai desu.", "मेरा पेट भर गया।"),
+            JaEx("おなか が すきました。", "onaka ga sukimashita.", "मुझे भूख लगी है।", "I'm hungry."),
+            JaEx("おなか が いたい です。", "onaka ga itai desu.", "मेरे पेट में दर्द है।", "I'm hungry."),
+            JaEx("おなか が いっぱい です。", "onaka ga ippai desu.", "मेरा पेट भर गया।", "My stomach is full."),
         ),
         "せなか" to listOf(
 
-            JaEx("せなか が かゆい です。", "senaka ga kayui desu.", "मेरी पीठ में खुजली है।"),
-            JaEx("せなか を のばします。", "senaka wo nobashimasu.", "मैं पीठ फैलाता हूँ।"),
-            JaEx("こども を せなか に おいます。", "kodomo wo senaka ni oimasu.", "मैं बच्चे को पीठ पर उठाता हूँ।"),
+            JaEx("せなか が かゆい です。", "senaka ga kayui desu.", "मेरी पीठ में खुजली है।", "My skin is itchy."),
+            JaEx("せなか を のばします。", "senaka wo nobashimasu.", "मैं पीठ फैलाता हूँ।", "Stretch out the middle of the day."),
+            JaEx("こども を せなか に おいます。", "kodomo wo senaka ni oimasu.", "मैं बच्चे को पीठ पर उठाता हूँ।", "Place the child in the nursery."),
         ),
         "がっこう" to listOf(
 
-            JaEx("がっこう に いきます。", "gakkou ni ikimasu.", "मैं स्कूल जाता हूँ।"),
-            JaEx("がっこう は なんじ に はじまります か。", "gakkou wa nanji ni hajimarimasu ka.", "स्कूल कितने बजे शुरू होता है?"),
-            JaEx("がっこう の せんせい は やさしい です。", "gakkou no sensei wa yasashii desu.", "स्कूल के शिक्षक दयालु हैं।"),
+            JaEx("がっこう に いきます。", "gakkou ni ikimasu.", "मैं स्कूल जाता हूँ।", "I'm going to school."),
+            JaEx("がっこう は なんじ に はじまります か。", "gakkou wa nanji ni hajimarimasu ka.", "स्कूल कितने बजे शुरू होता है?", "Where does school start?"),
+            JaEx("がっこう の せんせい は やさしい です。", "gakkou no sensei wa yasashii desu.", "स्कूल के शिक्षक दयालु हैं।", "My school teacher is very kind."),
         ),
         "かいしゃ" to listOf(
 
-            JaEx("かいしゃ で はたらきます。", "kaisha de hatarakimasu.", "मैं कंपनी में काम करता हूँ।"),
-            JaEx("かいしゃ は うち から ちかい です。", "kaisha wa uchi kara chikai desu.", "कंपनी घर से पास है।"),
-            JaEx("あした かいしゃ に いきます。", "ashita kaisha ni ikimasu.", "कल मैं कंपनी जाऊँगा।"),
+            JaEx("かいしゃ で はたらきます。", "kaisha de hatarakimasu.", "मैं कंपनी में काम करता हूँ।", "I work at Kaisha."),
+            JaEx("かいしゃ は うち から ちかい です。", "kaisha wa uchi kara chikai desu.", "कंपनी घर से पास है।", "It's near from my house."),
+            JaEx("あした かいしゃ に いきます。", "ashita kaisha ni ikimasu.", "कल मैं कंपनी जाऊँगा।", "I'll go to Kaisha tomorrow."),
         ),
         "いえ" to listOf(
 
-            JaEx("いえ に かえります。", "ie ni kaerimasu.", "मैं घर लौटता हूँ।"),
-            JaEx("この いえ は あたらしい です。", "kono ie wa atarashii desu.", "यह घर नया है।"),
-            JaEx("いえ で ごはん を たべます。", "ie de gohan wo tabemasu.", "मैं घर पर खाना खाता हूँ।"),
+            JaEx("いえ に かえります。", "ie ni kaerimasu.", "मैं घर लौटता हूँ।", "Yes, I will return."),
+            JaEx("この いえ は あたらしい です。", "kono ie wa atarashii desu.", "यह घर नया है।", "This house is new."),
+            JaEx("いえ で ごはん を たべます。", "ie de gohan wo tabemasu.", "मैं घर पर खाना खाता हूँ।", "I'm going to eat dinner."),
         ),
         "へや" to listOf(
 
-            JaEx("へや に はいります。", "heya ni hairimasu.", "मैं कमरे में जाता हूँ।"),
-            JaEx("この へや は ひろい です。", "kono heya wa hiroi desu.", "यह कमरा बड़ा है।"),
-            JaEx("へや を そうじ します。", "heya wo souji shimasu.", "मैं कमरा साफ़ करता हूँ।"),
+            JaEx("へや に はいります。", "heya ni hairimasu.", "मैं कमरे में जाता हूँ।", "I go into the room."),
+            JaEx("この へや は ひろい です。", "kono heya wa hiroi desu.", "यह कमरा बड़ा है।", "This room is spacious."),
+            JaEx("へや を そうじ します。", "heya wo souji shimasu.", "मैं कमरा साफ़ करता हूँ।", "I will clean the room."),
         ),
         "トイレ" to listOf(
 
-            JaEx("トイレ は どこ です か。", "toire wa doko desu ka.", "शौचालय कहाँ है?"),
-            JaEx("トイレ に いきます。", "toire ni ikimasu.", "मैं शौचालय जाता हूँ।"),
-            JaEx("トイレ を かします か。", "toire wo kashimasu ka.", "क्या मैं शौचालय इस्तेमाल कर सकता हूँ?"),
+            JaEx("トイレ は どこ です か。", "toire wa doko desu ka.", "शौचालय कहाँ है?", "Where is the restroom."),
+            JaEx("トイレ に いきます。", "toire ni ikimasu.", "मैं शौचालय जाता हूँ।", "I'm going to the toilet."),
+            JaEx("トイレ を かします か。", "toire wo kashimasu ka.", "क्या मैं शौचालय इस्तेमाल कर सकता हूँ?", "Would you like to use the toilet?"),
         ),
         "だいどころ" to listOf(
 
-            JaEx("だいどころ で りょうり を します。", "daidokoro de ryouri wo shimasu.", "मैं रसोई में खाना बनाता हूँ।"),
-            JaEx("だいどころ は せまい です。", "daidokoro wa semai desu.", "रसोई छोटी है।"),
-            JaEx("だいどころ に れいぞうこ が あります。", "daidokoro ni reizouko ga arimasu.", "रसोई में फ्रिज है।"),
+            JaEx("だいどころ で りょうり を します。", "daidokoro de ryouri wo shimasu.", "मैं रसोई में खाना बनाता हूँ।", "I'm going to take a drink at the main point."),
+            JaEx("だいどころ は せまい です。", "daidokoro wa semai desu.", "रसोई छोटी है।", "The main point is that it is small."),
+            JaEx("だいどころ に れいぞうこ が あります。", "daidokoro ni reizouko ga arimasu.", "रसोई में फ्रिज है।", "There is a Reizouko in the middle of the day."),
         ),
         "ほん" to listOf(
 
-            JaEx("ほん を よみます。", "hon wo yomimasu.", "मैं किताब पढ़ता हूँ।"),
-            JaEx("この ほん は おもしろい です。", "kono hon wa omoshiroi desu.", "यह किताब दिलचस्प है।"),
-            JaEx("ほん を かしました。", "hon wo kashimashita.", "मैंने किताब उधार दी।"),
+            JaEx("ほん を よみます。", "hon wo yomimasu.", "मैं किताब पढ़ता हूँ।", "I will read the book."),
+            JaEx("この ほん は おもしろい です。", "kono hon wa omoshiroi desu.", "यह किताब दिलचस्प है।", "This book is interesting."),
+            JaEx("ほん を かしました。", "hon wo kashimashita.", "मैंने किताब उधार दी।", "I told the truth."),
         ),
         "ペン" to listOf(
 
-            JaEx("ペン で かきます。", "pen de kakimasu.", "मैं पेन से लिखता हूँ।"),
-            JaEx("この ペン は あかい です。", "kono pen wa akai desu.", "यह पेन लाल है।"),
-            JaEx("ペン を かして ください。", "pen wo kashite kudasai.", "कृपया पेन उधार दीजिए।"),
+            JaEx("ペン で かきます。", "pen de kakimasu.", "मैं पेन से लिखता हूँ।", "I draw it with a pen."),
+            JaEx("この ペン は あかい です。", "kono pen wa akai desu.", "यह पेन लाल है।", "This pen is red."),
+            JaEx("ペン を かして ください。", "pen wo kashite kudasai.", "कृपया पेन उधार दीजिए।", "Please use your pen."),
         ),
         "かばん" to listOf(
 
-            JaEx("かばん の なか に ほん が あります。", "kaban no naka ni hon ga arimasu.", "बैग में किताब है।"),
-            JaEx("この かばん は おもい です。", "kono kaban wa omoi desu.", "यह बैग भारी है।"),
-            JaEx("かばん を かいました。", "kaban wo kaimashita.", "मैंने बैग ख़रीदा।"),
+            JaEx("かばん の なか に ほん が あります。", "kaban no naka ni hon ga arimasu.", "बैग में किताब है।", "There is a book in my bag."),
+            JaEx("この かばん は おもい です。", "kono kaban wa omoi desu.", "यह बैग भारी है।", "This bag is special to me."),
+            JaEx("かばん を かいました。", "kaban wo kaimashita.", "मैंने बैग ख़रीदा।", "I grabbed my bag."),
         ),
         "くつ" to listOf(
 
-            JaEx("くつ を はきます。", "kutsu wo hakimasu.", "मैं जूते पहनता हूँ。"),
-            JaEx("この くつ は あたらしい です。", "kono kutsu wa atarashii desu.", "ये जूते नए हैं।"),
-            JaEx("くつ を ぬぎます。", "kutsu wo nugimasu.", "मैं जूते उतारता हूँ।"),
+            JaEx("くつ を はきます。", "kutsu wo hakimasu.", "मैं जूते पहनता हूँ。", "I'll put on my shoes."),
+            JaEx("この くつ は あたらしい です。", "kono kutsu wa atarashii desu.", "ये जूते नए हैं।", "These shoes are new."),
+            JaEx("くつ を ぬぎます。", "kutsu wo nugimasu.", "मैं जूते उतारता हूँ।", "Take off your shoes."),
         ),
         "ふく" to listOf(
 
-            JaEx("ふく を きます。", "fuku wo kimasu.", "मैं कपड़े पहनता हूँ।"),
-            JaEx("ふく を あらいます。", "fuku wo araimasu.", "मैं कपड़े धोता हूँ।"),
-            JaEx("きれい な ふく が すき です。", "kirei na fuku ga suki desu.", "मुझे सुंदर कपड़े पसंद हैं।"),
+            JaEx("ふく を きます。", "fuku wo kimasu.", "मैं कपड़े पहनता हूँ।", "I'm going to take a nap."),
+            JaEx("ふく を あらいます。", "fuku wo araimasu.", "मैं कपड़े धोता हूँ।", "I'll clean the cloth."),
+            JaEx("きれい な ふく が すき です。", "kirei na fuku ga suki desu.", "मुझे सुंदर कपड़े पसंद हैं।", "I like clean clothes."),
         ),
         "とけい" to listOf(
 
-            JaEx("とけい を みます。", "tokei wo mimasu.", "मैं घड़ी देखता हूँ।"),
-            JaEx("いま なんじ です か、とけい を みて ください。", "ima nanji desu ka, tokei wo mite kudasai.", "अभी कितने बजे हैं, कृपया घड़ी देखिए।"),
-            JaEx("この とけい は たかい です。", "kono tokei wa takai desu.", "यह घड़ी महँगी है।"),
+            JaEx("とけい を みます。", "tokei wo mimasu.", "मैं घड़ी देखता हूँ।", "I will look into the problem."),
+            JaEx("いま なんじ です か、とけい を みて ください。", "ima nanji desu ka, tokei wo mite kudasai.", "अभी कितने बजे हैं, कृपया घड़ी देखिए।", "What are you doing now? Please take a look."),
+            JaEx("この とけい は たかい です。", "kono tokei wa takai desu.", "यह घड़ी महँगी है।", "This scale is very high."),
         ),
         "でんわ" to listOf(
 
-            JaEx("でんわ を かけます。", "denwa wo kakemasu.", "मैं फ़ोन करता हूँ।"),
-            JaEx("でんわ が なって います。", "denwa ga natte imasu.", "फ़ोन बज रहा है।"),
-            JaEx("でんわ ばんごう を おしえて ください。", "denwa bangou wo oshiete kudasai.", "कृपया फ़ोन नंबर बताइए।"),
+            JaEx("でんわ を かけます。", "denwa wo kakemasu.", "मैं फ़ोन करता हूँ।", "I'll call you."),
+            JaEx("でんわ が なって います。", "denwa ga natte imasu.", "फ़ोन बज रहा है।", "The phone is out."),
+            JaEx("でんわ ばんごう を おしえて ください。", "denwa bangou wo oshiete kudasai.", "कृपया फ़ोन नंबर बताइए।", "Please tell me the phone number."),
         ),
         "けいたい" to listOf(
 
-            JaEx("けいたい で えいが を みます。", "keitai de eiga wo mimasu.", "मैं फ़ोन पर फ़िल्म देखता हूँ।"),
-            JaEx("けいたい を わすれました。", "keitai wo wasuremashita.", "मैं फ़ोन भूल गया।"),
-            JaEx("けいたい の でんち が きれました。", "keitai no denchi ga kiremashita.", "फ़ोन की बैटरी ख़त्म हो गई।"),
+            JaEx("けいたい で えいが を みます。", "keitai de eiga wo mimasu.", "मैं फ़ोन पर फ़िल्म देखता हूँ।", "I'm going to look into the English language at the university."),
+            JaEx("けいたい を わすれました。", "keitai wo wasuremashita.", "मैं फ़ोन भूल गया।", "I forgot the key."),
+            JaEx("けいたい の でんち が きれました。", "keitai no denchi ga kiremashita.", "फ़ोन की बैटरी ख़त्म हो गई।", "My cell phone has finished."),
         ),
         "パソコン" to listOf(
 
-            JaEx("パソコン で しごと を します。", "pasokon de shigoto wo shimasu.", "मैं कंप्यूटर पर काम करता हूँ।"),
-            JaEx("この パソコン は はやい です。", "kono pasokon wa hayai desu.", "यह कंप्यूटर तेज़ है।"),
-            JaEx("パソコン を つけます。", "pasokon wo tsukemasu.", "मैं कंप्यूटर चालू करता हूँ।"),
+            JaEx("パソコン で しごと を します。", "pasokon de shigoto wo shimasu.", "मैं कंप्यूटर पर काम करता हूँ।", "I do my work on my computer."),
+            JaEx("この パソコン は はやい です。", "kono pasokon wa hayai desu.", "यह कंप्यूटर तेज़ है।", "This computer is fast."),
+            JaEx("パソコン を つけます。", "pasokon wo tsukemasu.", "मैं कंप्यूटर चालू करता हूँ।", "Turn on your computer."),
         ),
         "かぎ" to listOf(
 
-            JaEx("かぎ を かぎ に さします。", "kagi wo kagi ni sashimasu.", "मैं ताले में चाबी लगाता हूँ।"),
-            JaEx("かぎ を わすれました。", "kagi wo wasuremashita.", "मैं चाबी भूल गया।"),
-            JaEx("この かぎ は どこ です か。", "kono kagi wa doko desu ka.", "यह चाबी कहाँ है?"),
+            JaEx("かぎ を かぎ に さします。", "kagi wo kagi ni sashimasu.", "मैं ताले में चाबी लगाता हूँ।", "Put the key in the lock."),
+            JaEx("かぎ を わすれました。", "kagi wo wasuremashita.", "मैं चाबी भूल गया।", "I forgot my key."),
+            JaEx("この かぎ は どこ です か。", "kono kagi wa doko desu ka.", "यह चाबी कहाँ है?", "Where is this key?"),
         ),
         "かさ" to listOf(
 
-            JaEx("かさ を もって いきます。", "kasa wo motte ikimasu.", "मैं छाता लेकर जाता हूँ।"),
-            JaEx("かさ が いりません。", "kasa ga irimasen.", "छाते की ज़रूरत नहीं है।"),
-            JaEx("かさ を わすれました。", "kasa wo wasuremashita.", "मैं छाता भूल गया।"),
+            JaEx("かさ を もって いきます。", "kasa wo motte ikimasu.", "मैं छाता लेकर जाता हूँ।", "I'll go with an umbrella."),
+            JaEx("かさ が いりません。", "kasa ga irimasen.", "छाते की ज़रूरत नहीं है।", "No umbrella required."),
+            JaEx("かさ を わすれました。", "kasa wo wasuremashita.", "मैं छाता भूल गया।", "I forgot the umbrella."),
         ),
         "シャツ" to listOf(
 
-            JaEx("シャツ は しろい です。", "shatsu wa shiroi desu.", "शर्ट सफ़ेद है।"),
-            JaEx("シャツ を かいました。", "shatsu wo kaimashita.", "मैंने शर्ट ख़रीदी।"),
-            JaEx("この シャツ は ちいさい です。", "kono shatsu wa chiisai desu.", "यह शर्ट छोटी है।"),
+            JaEx("シャツ は しろい です。", "shatsu wa shiroi desu.", "शर्ट सफ़ेद है।", "The shirt is white."),
+            JaEx("シャツ を かいました。", "shatsu wo kaimashita.", "मैंने शर्ट ख़रीदी।", "I wore a shirt."),
+            JaEx("この シャツ は ちいさい です。", "kono shatsu wa chiisai desu.", "यह शर्ट छोटी है।", "This shirt is small."),
         ),
         "みせ" to listOf(
 
-            JaEx("この みせ の ケーキ は おいしい です。", "kono mise no keeki wa oishii desu.", "इस दुकान का केक स्वादिष्ट है।"),
-            JaEx("みせ は なんじ に あきます か。", "mise wa nanji ni akimasu ka.", "दुकान कितने बजे खुलती है?"),
-            JaEx("となりの みせ で かいます。", "tonari no mise de kaimasu.", "मैं पास की दुकान से ख़रीदता हूँ।"),
+            JaEx("この みせ の ケーキ は おいしい です。", "kono mise no keeki wa oishii desu.", "इस दुकान का केक स्वादिष्ट है।", "This fancy cake is delicious."),
+            JaEx("みせ は なんじ に あきます か。", "mise wa nanji ni akimasu ka.", "दुकान कितने बजे खुलती है?", "What do you like about Mise?"),
+            JaEx("となりの みせ で かいます。", "tonari no mise de kaimasu.", "मैं पास की दुकान से ख़रीदता हूँ।", "I'm going to meet you next door."),
         ),
         "レストラン" to listOf(
 
-            JaEx("レストラン で ばんごはん を たべます。", "resutoran de bangohan wo tabemasu.", "मैं रेस्तराँ में रात का खाना खाता हूँ।"),
-            JaEx("この レストラン は ゆうめい です。", "kono resutoran wa yuumei desu.", "यह रेस्तराँ प्रसिद्ध है।"),
-            JaEx("レストラン は こんで います。", "resutoran wa konde imasu.", "रेस्तराँ में भीड़ है।"),
+            JaEx("レストラン で ばんごはん を たべます。", "resutoran de bangohan wo tabemasu.", "मैं रेस्तराँ में रात का खाना खाता हूँ।", "I'm going to eat dinner at a restaurant."),
+            JaEx("この レストラン は ゆうめい です。", "kono resutoran wa yuumei desu.", "यह रेस्तराँ प्रसिद्ध है।", "This restaurant is Yuumei."),
+            JaEx("レストラン は こんで います。", "resutoran wa konde imasu.", "रेस्तराँ में भीड़ है।", "The restaurant is here."),
         ),
         "ぎんこう" to listOf(
 
-            JaEx("ぎんこう で おかね を おろします。", "ginkou de okane wo oroshimasu.", "मैं बैंक से पैसे निकालता हूँ।"),
-            JaEx("ぎんこう は どこ です か。", "ginkou wa doko desu ka.", "बैंक कहाँ है?"),
-            JaEx("ぎんこう に いきます。", "ginkou ni ikimasu.", "मैं बैंक जाता हूँ।"),
+            JaEx("ぎんこう で おかね を おろします。", "ginkou de okane wo oroshimasu.", "मैं बैंक से पैसे निकालता हूँ।", "Drop money with Ginkou."),
+            JaEx("ぎんこう は どこ です か。", "ginkou wa doko desu ka.", "बैंक कहाँ है?", "Where is Ginkou?"),
+            JaEx("ぎんこう に いきます。", "ginkou ni ikimasu.", "मैं बैंक जाता हूँ।", "I'm going to Ginkou."),
         ),
         "えき" to listOf(
 
-            JaEx("えき で でんしゃ を まちます。", "eki de densha wo machimasu.", "मैं स्टेशन पर ट्रेन का इंतज़ार करता हूँ।"),
-            JaEx("えき は ここ から ちかい です。", "eki wa koko kara chikai desu.", "स्टेशन यहाँ से पास है।"),
-            JaEx("えき に つきました。", "eki ni tsukimashita.", "मैं स्टेशन पहुँच गया।"),
+            JaEx("えき で でんしゃ を まちます。", "eki de densha wo machimasu.", "मैं स्टेशन पर ट्रेन का इंतज़ार करता हूँ।", "Stop the train at the train station."),
+            JaEx("えき は ここ から ちかい です。", "eki wa koko kara chikai desu.", "स्टेशन यहाँ से पास है।", "The station is not far from here."),
+            JaEx("えき に つきました。", "eki ni tsukimashita.", "मैं स्टेशन पहुँच गया।", "I arrived at the station."),
         ),
         "くうこう" to listOf(
 
-            JaEx("くうこう に ひこうき が つきました。", "kuukou ni hikouki ga tsukimashita.", "हवाई जहाज़ हवाई अड्डे पर उतरा।"),
-            JaEx("くうこう まで タクシー で いきます。", "kuukou made takushii de ikimasu.", "मैं हवाई अड्डे तक टैक्सी से जाता हूँ।"),
-            JaEx("くうこう は とおい です。", "kuukou wa tooi desu.", "हवाई अड्डा दूर है।"),
+            JaEx("くうこう に ひこうき が つきました。", "kuukou ni hikouki ga tsukimashita.", "हवाई जहाज़ हवाई अड्डे पर उतरा।", "A plane arrived on the plane."),
+            JaEx("くうこう まで タクシー で いきます。", "kuukou made takushii de ikimasu.", "मैं हवाई अड्डे तक टैक्सी से जाता हूँ।", "I'll take a taxi to Kuko."),
+            JaEx("くうこう は とおい です。", "kuukou wa tooi desu.", "हवाई अड्डा दूर है।", "Kuukou is Tooi."),
         ),
         "バス" to listOf(
 
-            JaEx("バス で がっこう に いきます。", "basu de gakkou ni ikimasu.", "मैं बस से स्कूल जाता हूँ।"),
-            JaEx("バス を まって います。", "basu wo matte imasu.", "मैं बस का इंतज़ार कर रहा हूँ।"),
-            JaEx("この バス は えき に いきます か。", "kono basu wa eki ni ikimasu ka.", "क्या यह बस स्टेशन जाती है?"),
+            JaEx("バス で がっこう に いきます。", "basu de gakkou ni ikimasu.", "मैं बस से स्कूल जाता हूँ।", "I will go to school by bus."),
+            JaEx("バス を まって います。", "basu wo matte imasu.", "मैं बस का इंतज़ार कर रहा हूँ।", "I'm waiting for the bus."),
+            JaEx("この バス は えき に いきます か。", "kono basu wa eki ni ikimasu ka.", "क्या यह बस स्टेशन जाती है?", "Does this bus go to the station?"),
         ),
         "でんしゃ" to listOf(
 
-            JaEx("でんしゃ で かいしゃ に いきます。", "densha de kaisha ni ikimasu.", "मैं ट्रेन से कंपनी जाता हूँ।"),
-            JaEx("でんしゃ が おくれて います。", "densha ga okurete imasu.", "ट्रेन देर से चल रही है।"),
-            JaEx("でんしゃ の なか で ほん を よみます。", "densha no naka de hon wo yomimasu.", "मैं ट्रेन में किताब पढ़ता हूँ।"),
+            JaEx("でんしゃ で かいしゃ に いきます。", "densha de kaisha ni ikimasu.", "मैं ट्रेन से कंपनी जाता हूँ।", "I'm going to the train station."),
+            JaEx("でんしゃ が おくれて います。", "densha ga okurete imasu.", "ट्रेन देर से चल रही है।", "The train is late."),
+            JaEx("でんしゃ の なか で ほん を よみます。", "densha no naka de hon wo yomimasu.", "मैं ट्रेन में किताब पढ़ता हूँ।", "I read a book on the train."),
         ),
         "くるま" to listOf(
 
-            JaEx("くるま で いきます。", "kuruma de ikimasu.", "मैं कार से जाता हूँ।"),
-            JaEx("この くるま は あたらしい です。", "kono kuruma wa atarashii desu.", "यह कार नई है।"),
-            JaEx("くるま を うんてん します。", "kuruma wo unten shimasu.", "मैं कार चलाता हूँ।"),
+            JaEx("くるま で いきます。", "kuruma de ikimasu.", "मैं कार से जाता हूँ।", "I'll go by car."),
+            JaEx("この くるま は あたらしい です。", "kono kuruma wa atarashii desu.", "यह कार नई है।", "This car is new."),
+            JaEx("くるま を うんてん します。", "kuruma wo unten shimasu.", "मैं कार चलाता हूँ।", "I will take care of your car."),
         ),
         "じてんしゃ" to listOf(
 
-            JaEx("じてんしゃ で としょかん に いきます。", "jitensha de toshokan ni ikimasu.", "मैं साइकिल से पुस्तकालय जाता हूँ।"),
-            JaEx("じてんしゃ に のります。", "jitensha ni norimasu.", "मैं साइकिल चलाता हूँ।"),
-            JaEx("この じてんしゃ は あかい です。", "kono jitensha wa akai desu.", "यह साइकिल लाल है।"),
+            JaEx("じてんしゃ で としょかん に いきます。", "jitensha de toshokan ni ikimasu.", "मैं साइकिल से पुस्तकालय जाता हूँ।", "I will go to the library by train."),
+            JaEx("じてんしゃ に のります。", "jitensha ni norimasu.", "मैं साइकिल चलाता हूँ।", "I'm going to ride on a train."),
+            JaEx("この じてんしゃ は あかい です。", "kono jitensha wa akai desu.", "यह साइकिल लाल है।", "This train is red."),
         ),
         "タクシー" to listOf(
 
-            JaEx("タクシー を よびます。", "takushii wo yobimasu.", "मैं टैक्सी बुलाता हूँ।"),
-            JaEx("タクシー で ホテル に いきます。", "takushii de hoteru ni ikimasu.", "मैं टैक्सी से होटल जाता हूँ।"),
-            JaEx("タクシー の うんてんしゅ は しんせつ です。", "takushii no untenshu wa shinsetsu desu.", "टैक्सी ड्राइवर दयालु है।"),
+            JaEx("タクシー を よびます。", "takushii wo yobimasu.", "मैं टैक्सी बुलाता हूँ।", "I'll call a taxi."),
+            JaEx("タクシー で ホテル に いきます。", "takushii de hoteru ni ikimasu.", "मैं टैक्सी से होटल जाता हूँ।", "I'll take a taxi to the hotel."),
+            JaEx("タクシー の うんてんしゅ は しんせつ です。", "takushii no untenshu wa shinsetsu desu.", "टैक्सी ड्राइवर दयालु है।", "The taxi service is simple."),
         ),
         "ひこうき" to listOf(
 
-            JaEx("ひこうき で にほん に いきます。", "hikouki de nihon ni ikimasu.", "मैं हवाई जहाज़ से जापान जाता हूँ।"),
-            JaEx("ひこうき は そら を とんで います。", "hikouki wa sora wo tonde imasu.", "हवाई जहाज़ आकाश में उड़ रहा है।"),
-            JaEx("ひこうき の チケット を かいました。", "hikouki no chiketto wo kaimashita.", "मैंने हवाई जहाज़ का टिकट ख़रीदा।"),
+            JaEx("ひこうき で にほん に いきます。", "hikouki de nihon ni ikimasu.", "मैं हवाई जहाज़ से जापान जाता हूँ।", "I'm going to Japan by plane."),
+            JaEx("ひこうき は そら を とんで います。", "hikouki wa sora wo tonde imasu.", "हवाई जहाज़ आकाश में उड़ रहा है।", "A plane is flying in the sky."),
+            JaEx("ひこうき の チケット を かいました。", "hikouki no chiketto wo kaimashita.", "मैंने हवाई जहाज़ का टिकट ख़रीदा।", "I bought a plane ticket."),
         ),
         "としょかん" to listOf(
 
-            JaEx("としょかん で ほん を かります。", "toshokan de hon wo karimasu.", "मैं पुस्तकालय से किताब उधार लेता हूँ।"),
-            JaEx("としょかん は しずか です。", "toshokan wa shizuka desu.", "पुस्तकालय शांत है।"),
-            JaEx("としょかん で べんきょう します。", "toshokan de benkyou shimasu.", "मैं पुस्तकालय में पढ़ता हूँ।"),
+            JaEx("としょかん で ほん を かります。", "toshokan de hon wo karimasu.", "मैं पुस्तकालय से किताब उधार लेता हूँ।", "I read the book in the library."),
+            JaEx("としょかん は しずか です。", "toshokan wa shizuka desu.", "पुस्तकालय शांत है।", "The library is quiet."),
+            JaEx("としょかん で べんきょう します。", "toshokan de benkyou shimasu.", "मैं पुस्तकालय में पढ़ता हूँ।", "I study at the library."),
         ),
         "びょういん" to listOf(
 
-            JaEx("びょういん に いきます。", "byouin ni ikimasu.", "मैं अस्पताल जाता हूँ।"),
-            JaEx("びょういん は どこ です か。", "byouin wa doko desu ka.", "अस्पताल कहाँ है?"),
-            JaEx("この びょういん は おおきい です。", "kono byouin wa ookii desu.", "यह अस्पताल बड़ा है।"),
+            JaEx("びょういん に いきます。", "byouin ni ikimasu.", "मैं अस्पताल जाता हूँ।", "I'm going to the hospital."),
+            JaEx("びょういん は どこ です か。", "byouin wa doko desu ka.", "अस्पताल कहाँ है?", "Where is the inn?"),
+            JaEx("この びょういん は おおきい です。", "kono byouin wa ookii desu.", "यह अस्पताल बड़ा है।", "This inn is big."),
         ),
         "こうえん" to listOf(
 
-            JaEx("こうえん で あそびます。", "kouen de asobimasu.", "मैं पार्क में खेलता हूँ।"),
-            JaEx("こうえん に き が たくさん あります。", "kouen ni ki ga takusan arimasu.", "पार्क में बहुत सारे पेड़ हैं।"),
-            JaEx("こうえん を さんぽ します。", "kouen wo sanpo shimasu.", "मैं पार्क में टहलता हूँ।"),
+            JaEx("こうえん で あそびます。", "kouen de asobimasu.", "मैं पार्क में खेलता हूँ।", "Let's play in Koen."),
+            JaEx("こうえん に き が たくさん あります。", "kouen ni ki ga takusan arimasu.", "पार्क में बहुत सारे पेड़ हैं।", "There are a lot of things to do in Koen."),
+            JaEx("こうえん を さんぽ します。", "kouen wo sanpo shimasu.", "मैं पार्क में टहलता हूँ।", "Let's take a walk around Koen."),
         ),
         "えいが" to listOf(
 
-            JaEx("えいが を みます。", "eiga wo mimasu.", "मैं फ़िल्म देखता हूँ।"),
-            JaEx("この えいが は おもしろい です。", "kono eiga wa omoshiroi desu.", "यह फ़िल्म दिलचस्प है।"),
-            JaEx("えいがかん で えいが を みました。", "eigakan de eiga wo mimashita.", "मैंने सिनेमा में फ़िल्म देखी।"),
+            JaEx("えいが を みます。", "eiga wo mimasu.", "मैं फ़िल्म देखता हूँ।", "I will look into the matter."),
+            JaEx("この えいが は おもしろい です。", "kono eiga wa omoshiroi desu.", "यह फ़िल्म दिलचस्प है।", "This picture is interesting."),
+            JaEx("えいがかん で えいが を みました。", "eigakan de eiga wo mimashita.", "मैंने सिनेमा में फ़िल्म देखी।", "I read the book in English."),
         ),
         "テレビ" to listOf(
 
-            JaEx("テレビ で ニュース を みます。", "terebi de nyuusu wo mimasu.", "मैं टीवी पर समाचार देखता हूँ।"),
-            JaEx("テレビ を つけます。", "terebi wo tsukemasu.", "मैं टीवी चालू करता हूँ।"),
-            JaEx("テレビ の おと が おおきい です。", "terebi no oto ga ookii desu.", "टीवी की आवाज़ तेज़ है।"),
+            JaEx("テレビ で ニュース を みます。", "terebi de nyuusu wo mimasu.", "मैं टीवी पर समाचार देखता हूँ।", "I watch the news on TV."),
+            JaEx("テレビ を つけます。", "terebi wo tsukemasu.", "मैं टीवी चालू करता हूँ।", "Turn on the TV."),
+            JaEx("テレビ の おと が おおきい です。", "terebi no oto ga ookii desu.", "टीवी की आवाज़ तेज़ है।", "The front of the TV is big."),
         ),
         "しごと" to listOf(
 
-            JaEx("しごと は なんですか。", "shigoto wa nan desu ka.", "आपका काम क्या है?"),
-            JaEx("しごと が いそがしい です。", "shigoto ga isogashii desu.", "काम व्यस्त है।"),
-            JaEx("しごと を がんばります。", "shigoto wo ganbarimasu.", "मैं काम में मेहनत करता हूँ।"),
+            JaEx("しごと は なんですか。", "shigoto wa nan desu ka.", "आपका काम क्या है?", "What is your job?"),
+            JaEx("しごと が いそがしい です。", "shigoto ga isogashii desu.", "काम व्यस्त है।", "I'm busy with work."),
+            JaEx("しごと を がんばります。", "shigoto wo ganbarimasu.", "मैं काम में मेहनत करता हूँ।", "I will do my best at my job."),
         ),
         "かいがい" to listOf(
 
-            JaEx("かいがい に いった こと が あります。", "kaigai ni itta koto ga arimasu.", "मैं विदेश गया हूँ।"),
-            JaEx("かいがい りょこう が すき です。", "kaigai ryokou ga suki desu.", "मुझे विदेश यात्रा पसंद है।"),
-            JaEx("かいがい から ともだち が きます。", "kaigai kara tomodachi ga kimasu.", "विदेश से दोस्त आ रहा है।"),
+            JaEx("かいがい に いった こと が あります。", "kaigai ni itta koto ga arimasu.", "मैं विदेश गया हूँ।", "I once went to a meeting."),
+            JaEx("かいがい りょこう が すき です。", "kaigai ryokou ga suki desu.", "मुझे विदेश यात्रा पसंद है।", "I like Kaigai Ryoko."),
+            JaEx("かいがい から ともだち が きます。", "kaigai kara tomodachi ga kimasu.", "विदेश से दोस्त आ रहा है।", "Friends will come from the meeting."),
         ),
         "きょう" to listOf(
 
-            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।"),
-            JaEx("きょう は なんようび です か。", "kyou wa nan'youbi desu ka.", "आज कौन सा दिन है?"),
-            JaEx("きょう は いそがしい です。", "kyou wa isogashii desu.", "आज मैं व्यस्त हूँ।"),
+            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।", "Today is a good day."),
+            JaEx("きょう は なんようび です か。", "kyou wa nan'youbi desu ka.", "आज कौन सा दिन है?", "What is your day today?"),
+            JaEx("きょう は いそがしい です。", "kyou wa isogashii desu.", "आज मैं व्यस्त हूँ।", "I'm busy today."),
         ),
         "あした" to listOf(
 
-            JaEx("あした は やすみ です。", "ashita wa yasumi desu.", "कल छुट्टी है।"),
-            JaEx("あした は なに を します か。", "ashita wa nani wo shimasu ka.", "कल आप क्या करेंगे?"),
-            JaEx("あした また あいましょう。", "ashita mata aimashou.", "कल फिर मिलते हैं।"),
+            JaEx("あした は やすみ です。", "ashita wa yasumi desu.", "कल छुट्टी है।", "Tomorrow is a day of rest."),
+            JaEx("あした は なに を します か。", "ashita wa nani wo shimasu ka.", "कल आप क्या करेंगे?", "What will you do tomorrow?"),
+            JaEx("あした また あいましょう。", "ashita mata aimashou.", "कल फिर मिलते हैं।", "Let's meet again tomorrow."),
         ),
         "きのう" to listOf(
 
-            JaEx("きのう は あめ でした。", "kinou wa ame deshita.", "कल बारिश हुई थी।"),
-            JaEx("きのう なに を しました か。", "kinou nani wo shimashita ka.", "कल आपने क्या किया?"),
-            JaEx("きのう は やすみ でした。", "kinou wa yasumi deshita.", "कल छुट्टी थी।"),
+            JaEx("きのう は あめ でした。", "kinou wa ame deshita.", "कल बारिश हुई थी।", "Yesterday was candy."),
+            JaEx("きのう なに を しました か。", "kinou nani wo shimashita ka.", "कल आपने क्या किया?", "What did you do yesterday?"),
+            JaEx("きのう は やすみ でした。", "kinou wa yasumi deshita.", "कल छुट्टी थी।", "Yesterday was a good night."),
         ),
         "いま" to listOf(
 
-            JaEx("いま なんじ です か。", "ima nanji desu ka.", "अभी कितने बजे हैं?"),
-            JaEx("いま ごぜん くじ です。", "ima gozen kuji desu.", "अभी सुबह नौ बजे हैं।"),
-            JaEx("いま いそがしい です。", "ima isogashii desu.", "अभी मैं व्यस्त हूँ।"),
+            JaEx("いま なんじ です か。", "ima nanji desu ka.", "अभी कितने बजे हैं?", "What are you doing now?"),
+            JaEx("いま ごぜん くじ です。", "ima gozen kuji desu.", "अभी सुबह नौ बजे हैं।", "Now it's Gozen Kuji."),
+            JaEx("いま いそがしい です。", "ima isogashii desu.", "अभी मैं व्यस्त हूँ।", "I'm busy right now."),
         ),
         "あさ" to listOf(
 
-            JaEx("あさ に おきます。", "asa ni okimasu.", "मैं सुबह उठता हूँ।"),
-            JaEx("あさ ごはん を たべます。", "asa gohan wo tabemasu.", "मैं सुबह नाश्ता करता हूँ।"),
-            JaEx("あさ は すずしい です。", "asa wa suzushii desu.", "सुबह ठंडी होती है।"),
+            JaEx("あさ に おきます。", "asa ni okimasu.", "मैं सुबह उठता हूँ।", "I'll leave it in the morning."),
+            JaEx("あさ ごはん を たべます。", "asa gohan wo tabemasu.", "मैं सुबह नाश्ता करता हूँ।", "Let's eat breakfast tomorrow."),
+            JaEx("あさ は すずしい です。", "asa wa suzushii desu.", "सुबह ठंडी होती है।", "The morning is cool."),
         ),
         "ひる" to listOf(
 
-            JaEx("ひる ごはん を たべます。", "hiru gohan wo tabemasu.", "मैं दोपहर का खाना खाता हूँ।"),
-            JaEx("ひる は あつい です。", "hiru wa atsui desu.", "दोपहर गर्म होती है।"),
-            JaEx("ひる に こうえん に いきます。", "hiru ni kouen ni ikimasu.", "दोपहर में मैं पार्क जाता हूँ।"),
+            JaEx("ひる ごはん を たべます。", "hiru gohan wo tabemasu.", "मैं दोपहर का खाना खाता हूँ।", "I'm going to eat some rice."),
+            JaEx("ひる は あつい です。", "hiru wa atsui desu.", "दोपहर गर्म होती है।", "Hiru is hot."),
+            JaEx("ひる に こうえん に いきます。", "hiru ni kouen ni ikimasu.", "दोपहर में मैं पार्क जाता हूँ।", "I'm going to Hiru ni Koen."),
         ),
         "よる" to listOf(
 
-            JaEx("よる は つき が きれい です。", "yoru wa tsuki ga kirei desu.", "रात में चाँद सुंदर होता है।"),
-            JaEx("よる に ほん を よみます。", "yoru ni hon wo yomimasu.", "रात में मैं किताब पढ़ता हूँ।"),
-            JaEx("よる は さむい です。", "yoru wa samui desu.", "रात ठंडी होती है।"),
+            JaEx("よる は つき が きれい です。", "yoru wa tsuki ga kirei desu.", "रात में चाँद सुंदर होता है।", "It has a beautiful shape."),
+            JaEx("よる に ほん を よみます。", "yoru ni hon wo yomimasu.", "रात में मैं किताब पढ़ता हूँ।", "I will read the book depending on the situation."),
+            JaEx("よる は さむい です。", "yoru wa samui desu.", "रात ठंडी होती है।", "It's cold at night."),
         ),
         "げつようび" to listOf(
 
-            JaEx("げつようび に しごと が はじまります。", "getsuyoubi ni shigoto ga hajimarimasu.", "सोमवार को काम शुरू होता है।"),
-            JaEx("げつようび は いそがしい です。", "getsuyoubi wa isogashii desu.", "सोमवार व्यस्त होता है।"),
-            JaEx("げつようび に かいぎ が あります。", "getsuyoubi ni kaigi ga arimasu.", "सोमवार को बैठक है।"),
+            JaEx("げつようび に しごと が はじまります。", "getsuyoubi ni shigoto ga hajimarimasu.", "सोमवार को काम शुरू होता है।", "The work begins at the end of the year."),
+            JaEx("げつようび は いそがしい です。", "getsuyoubi wa isogashii desu.", "सोमवार व्यस्त होता है।", "The beetle is busy."),
+            JaEx("げつようび に かいぎ が あります。", "getsuyoubi ni kaigi ga arimasu.", "सोमवार को बैठक है।", "There is a bulge in the beetle."),
         ),
         "かようび" to listOf(
 
-            JaEx("かようび に にほんご の クラス が あります。", "kayoubi ni nihongo no kurasu ga arimasu.", "मंगलवार को जापानी की कक्षा है।"),
-            JaEx("かようび は ひる まで べんきょう します。", "kayoubi wa hiru made benkyou shimasu.", "मंगलवार को मैं दोपहर तक पढ़ता हूँ।"),
-            JaEx("かようび に ともだち と あいます。", "kayoubi ni tomodachi to aimasu.", "मंगलवार को मैं दोस्त से मिलता हूँ।"),
+            JaEx("かようび に にほんご の クラス が あります。", "kayoubi ni nihongo no kurasu ga arimasu.", "मंगलवार को जापानी की कक्षा है।", "There is a Japanese class in Kayobi."),
+            JaEx("かようび は ひる まで べんきょう します。", "kayoubi wa hiru made benkyou shimasu.", "मंगलवार को मैं दोपहर तक पढ़ता हूँ।", "Kayobi will study till the end."),
+            JaEx("かようび に ともだち と あいます。", "kayoubi ni tomodachi to aimasu.", "मंगलवार को मैं दोस्त से मिलता हूँ।", "I will hang out with my friends on a good night."),
         ),
         "すいようび" to listOf(
 
-            JaEx("すいようび に かいもの に いきます。", "suiyoubi ni kaimono ni ikimasu.", "बुधवार को मैं ख़रीदारी जाता हूँ।"),
-            JaEx("すいようび は たのしい です。", "suiyoubi wa tanoshii desu.", "बुधवार मज़ेदार होता है।"),
-            JaEx("すいようび に じゅぎょう が あります。", "suiyoubi ni jugyou ga arimasu.", "बुधवार को पाठ है।"),
+            JaEx("すいようび に かいもの に いきます。", "suiyoubi ni kaimono ni ikimasu.", "बुधवार को मैं ख़रीदारी जाता हूँ।", "I'm going to eat some seafood."),
+            JaEx("すいようび は たのしい です。", "suiyoubi wa tanoshii desu.", "बुधवार मज़ेदार होता है।", "Holidays are fun."),
+            JaEx("すいようび に じゅぎょう が あります。", "suiyoubi ni jugyou ga arimasu.", "बुधवार को पाठ है।", "There is a lesson in my daily life."),
         ),
         "もくようび" to listOf(
 
-            JaEx("もくようび に てがみ を かきます。", "mokuyoubi ni tegami wo kakimasu.", "गुरुवार को मैं पत्र लिखता हूँ।"),
-            JaEx("もくようび の よる は ひま です。", "mokuyoubi no yoru wa hima desu.", "गुरुवार की रात मैं खाली हूँ।"),
-            JaEx("もくようび に そと で たべます。", "mokuyoubi ni soto de tabemasu.", "गुरुवार को मैं बाहर खाना खाता हूँ।"),
+            JaEx("もくようび に てがみ を かきます。", "mokuyoubi ni tegami wo kakimasu.", "गुरुवार को मैं पत्र लिखता हूँ।", "I'm going to write a letter for my study."),
+            JaEx("もくようび の よる は ひま です。", "mokuyoubi no yoru wa hima desu.", "गुरुवार की रात मैं खाली हूँ।", "My work depends on my free time."),
+            JaEx("もくようび に そと で たべます。", "mokuyoubi ni soto de tabemasu.", "गुरुवार को मैं बाहर खाना खाता हूँ।", "I'll eat it outside when I'm ready."),
         ),
         "きんようび" to listOf(
 
-            JaEx("きんようび に えいが を みます。", "kinyoubi ni eiga wo mimasu.", "शुक्रवार को मैं फ़िल्म देखता हूँ।"),
-            JaEx("きんようび は しごと の さいご の ひ です。", "kinyoubi wa shigoto no saigo no hi desu.", "शुक्रवार काम का आख़िरी दिन है।"),
-            JaEx("きんようび の よる は たのしい です。", "kinyoubi no yoru wa tanoshii desu.", "शुक्रवार की रात मज़ेदार होती है।"),
+            JaEx("きんようび に えいが を みます。", "kinyoubi ni eiga wo mimasu.", "शुक्रवार को मैं फ़िल्म देखता हूँ।", "I'm going to tell you about the English language."),
+            JaEx("きんようび は しごと の さいご の ひ です。", "kinyoubi wa shigoto no saigo no hi desu.", "शुक्रवार काम का आख़िरी दिन है।", "Health care is the most important part of a job."),
+            JaEx("きんようび の よる は たのしい です。", "kinyoubi no yoru wa tanoshii desu.", "शुक्रवार की रात मज़ेदार होती है।", "It's fun to read the book."),
         ),
         "しゅうまつ" to listOf(
 
-            JaEx("しゅうまつ は なに を します か。", "shuumatsu wa nani wo shimasu ka.", "सप्ताहांत पर आप क्या करते हैं?"),
-            JaEx("しゅうまつ は やすみます。", "shuumatsu wa yasumimasu.", "सप्ताहांत पर मैं आराम करता हूँ।"),
-            JaEx("しゅうまつ に りょこう に いきます。", "shuumatsu ni ryokou ni ikimasu.", "सप्ताहांत पर मैं यात्रा पर जाता हूँ।"),
+            JaEx("しゅうまつ は なに を します か。", "shuumatsu wa nani wo shimasu ka.", "सप्ताहांत पर आप क्या करते हैं?", "What does the festival do?"),
+            JaEx("しゅうまつ は やすみます。", "shuumatsu wa yasumimasu.", "सप्ताहांत पर मैं आराम करता हूँ।", "The holidays are over."),
+            JaEx("しゅうまつ に りょこう に いきます。", "shuumatsu ni ryokou ni ikimasu.", "सप्ताहांत पर मैं यात्रा पर जाता हूँ।", "I'm going to the shrine for the holidays."),
         ),
         "じかん" to listOf(
 
-            JaEx("じかん が ありません。", "jikan ga arimasen.", "मेरे पास समय नहीं है।"),
-            JaEx("じかん を まもって ください。", "jikan wo mamotte kudasai.", "कृपया समय का पालन करें।"),
-            JaEx("じかん が あれば、あいましょう。", "jikan ga areba, aimashou.", "अगर समय मिले तो मिलते हैं।"),
+            JaEx("じかん が ありません。", "jikan ga arimasen.", "मेरे पास समय नहीं है।", "There is no time."),
+            JaEx("じかん を まもって ください。", "jikan wo mamotte kudasai.", "कृपया समय का पालन करें।", "Please take care of yourself."),
+            JaEx("じかん が あれば、あいましょう。", "jikan ga areba, aimashou.", "अगर समय मिले तो मिलते हैं।", "If you have time, let's meet."),
         ),
         "いち" to listOf(
 
-            JaEx("りんご が いっこ あります。", "ringo ga ikko arimasu.", "एक सेब है।"),
-            JaEx("いち から じゅう まで かぞえて ください。", "ichi kara juu made kazoete kudasai.", "कृपया एक से दस तक गिनें।"),
-            JaEx("いち ばん すき な たべもの は なに です か。", "ichiban suki na tabemono wa nani desu ka.", "आपका सबसे पसंदीदा खाना क्या है?"),
+            JaEx("りんご が いっこ あります。", "ringo ga ikko arimasu.", "एक सेब है।", "There are a lot of apples."),
+            JaEx("いち から じゅう まで かぞえて ください。", "ichi kara juu made kazoete kudasai.", "कृपया एक से दस तक गिनें।", "Please count from one to all."),
+            JaEx("いち ばん すき な たべもの は なに です か。", "ichiban suki na tabemono wa nani desu ka.", "आपका सबसे पसंदीदा खाना क्या है?", "What is your favorite food?"),
         ),
         "に" to listOf(
 
-            JaEx("りんご を ふたつ ください。", "ringo wo futatsu kudasai.", "कृपया दो सेब दीजिए।"),
-            JaEx("いち、に、さん。", "ichi, ni, san.", "एक, दो, तीन।"),
-            JaEx("に じ に あいましょう。", "ni ji ni aimashou.", "दो बजे मिलते हैं।"),
+            JaEx("りんご を ふたつ ください。", "ringo wo futatsu kudasai.", "कृपया दो सेब दीजिए।", "Please give me two apples."),
+            JaEx("いち、に、さん。", "ichi, ni, san.", "एक, दो, तीन।", "I, ni, san."),
+            JaEx("に じ に あいましょう。", "ni ji ni aimashou.", "दो बजे मिलते हैं।", "Let's meet on the rainbow."),
         ),
         "さん" to listOf(
 
-            JaEx("みっつ の りんご が あります。", "mittsu no ringo ga arimasu.", "तीन सेब हैं।"),
-            JaEx("さん じ に おきましょう。", "san ji ni okimashou.", "चलो तीन बजे उठें।"),
-            JaEx("さん にん の ともだち が きます。", "san nin no tomodachi ga kimasu.", "तीन दोस्त आएँगे।"),
+            JaEx("みっつ の りんご が あります。", "mittsu no ringo ga arimasu.", "तीन सेब हैं।", "There are three apples."),
+            JaEx("さん じ に おきましょう。", "san ji ni okimashou.", "चलो तीन बजे उठें।", "Let's put it in the middle."),
+            JaEx("さん にん の ともだち が きます。", "san nin no tomodachi ga kimasu.", "तीन दोस्त आएँगे।", "Sannin's friends will be there."),
         ),
         "じゅう" to listOf(
 
-            JaEx("じゅう は おおきい かず です。", "juu wa ookii kazu desu.", "दस एक बड़ी संख्या है।"),
-            JaEx("じゅう じ に ねます。", "juu ji ni nemasu.", "मैं दस बजे सोता हूँ।"),
-            JaEx("じゅう まで かぞえて ください。", "juu made kazoete kudasai.", "कृपया दस तक गिनें।"),
+            JaEx("じゅう は おおきい かず です。", "juu wa ookii kazu desu.", "दस एक बड़ी संख्या है।", "The first one is a big one."),
+            JaEx("じゅう じ に ねます。", "juu ji ni nemasu.", "मैं दस बजे सोता हूँ।", "I will sleep all the time."),
+            JaEx("じゅう まで かぞえて ください。", "juu made kazoete kudasai.", "कृपया दस तक गिनें।", "Please count to the end."),
         ),
         "ひゃく" to listOf(
 
-            JaEx("ひゃく えん です。", "hyaku en desu.", "यह सौ येन है।"),
-            JaEx("ひゃく まで かぞえられます。", "hyaku made kazoeraremasu.", "मैं सौ तक गिन सकता हूँ।"),
-            JaEx("この みせ は ひゃく ねん いじょう です。", "kono mise wa hyaku nen ijou desu.", "यह दुकान सौ साल से अधिक पुरानी है।"),
+            JaEx("ひゃく えん です。", "hyaku en desu.", "यह सौ येन है।", "My name is Hyakuen."),
+            JaEx("ひゃく まで かぞえられます。", "hyaku made kazoeraremasu.", "मैं सौ तक गिन सकता हूँ।", "You can even count it down to Hyaku."),
+            JaEx("この みせ は ひゃく ねん いじょう です。", "kono mise wa hyaku nen ijou desu.", "यह दुकान सौ साल से अधिक पुरानी है।", "This appearance is very simple."),
         ),
         "わたし" to listOf(
 
-            JaEx("わたし は マイク です。", "watashi wa maiku desu.", "मैं माइक हूँ।"),
-            JaEx("わたし は にほんご を べんきょう して います。", "watashi wa nihongo wo benkyou shite imasu.", "मैं जापानी सीख रहा हूँ।"),
-            JaEx("わたし の いえ は えき の ちかく です。", "watashi no ie wa eki no chikaku desu.", "मेरा घर स्टेशन के पास है।"),
+            JaEx("わたし は マイク です。", "watashi wa maiku desu.", "मैं माइक हूँ।", "I'm Mike."),
+            JaEx("わたし は にほんご を べんきょう して います。", "watashi wa nihongo wo benkyou shite imasu.", "मैं जापानी सीख रहा हूँ।", "I am learning Japanese."),
+            JaEx("わたし の いえ は えき の ちかく です。", "watashi no ie wa eki no chikaku desu.", "मेरा घर स्टेशन के पास है।", "My house is near the station."),
         ),
         "あなた" to listOf(
 
-            JaEx("あなた は どこ の ひと です か。", "anata wa doko no hito desu ka.", "आप कहाँ के हैं?"),
-            JaEx("あなた の なまえ は なん です か。", "anata no namae wa nan desu ka.", "आपका नाम क्या है?"),
-            JaEx("あなた は にほんご が じょうず です。", "anata wa nihongo ga jouzu desu.", "आपकी जापानी अच्छी है।"),
+            JaEx("あなた は どこ の ひと です か。", "anata wa doko no hito desu ka.", "आप कहाँ के हैं?", "Where are you from?"),
+            JaEx("あなた の なまえ は なん です か。", "anata no namae wa nan desu ka.", "आपका नाम क्या है?", "What is your name?"),
+            JaEx("あなた は にほんご が じょうず です。", "anata wa nihongo ga jouzu desu.", "आपकी जापानी अच्छी है।", "You are good at Japanese."),
         ),
         "かれ" to listOf(
 
-            JaEx("かれ は がくせい です。", "kare wa gakusei desu.", "वह एक छात्र है।"),
-            JaEx("かれ は やさしい です。", "kare wa yasashii desu.", "वह दयालु है।"),
-            JaEx("かれ は いま にほん に います。", "kare wa ima nihon ni imasu.", "वह अभी जापान में है।"),
+            JaEx("かれ は がくせい です。", "kare wa gakusei desu.", "वह एक छात्र है।", "He is a schoolboy."),
+            JaEx("かれ は やさしい です。", "kare wa yasashii desu.", "वह दयालु है।", "He is kind."),
+            JaEx("かれ は いま にほん に います。", "kare wa ima nihon ni imasu.", "वह अभी जापान में है।", "He is really in Japan right now."),
         ),
         "かのじょ" to listOf(
 
-            JaEx("かのじょ は いしゃ です。", "kanojo wa isha desu.", "वह एक डॉक्टर है।"),
-            JaEx("かのじょ は きれい です。", "kanojo wa kirei desu.", "वह सुंदर है।"),
-            JaEx("かのじょ は うた が すき です。", "kanojo wa uta ga suki desu.", "उसे गाना पसंद है।"),
+            JaEx("かのじょ は いしゃ です。", "kanojo wa isha desu.", "वह एक डॉक्टर है।", "My name is Isha."),
+            JaEx("かのじょ は きれい です。", "kanojo wa kirei desu.", "वह सुंदर है।", "Kanojo is beautiful."),
+            JaEx("かのじょ は うた が すき です。", "kanojo wa uta ga suki desu.", "उसे गाना पसंद है।", "Kanojo likes singing."),
         ),
         "これ" to listOf(
 
-            JaEx("これ は ほん です。", "kore wa hon desu.", "यह एक किताब है।"),
-            JaEx("これ は いくら です か。", "kore wa ikura desu ka.", "यह कितने का है?"),
-            JaEx("これ は わたし の です。", "kore wa watashi no desu.", "यह मेरा है।"),
+            JaEx("これ は ほん です。", "kore wa hon desu.", "यह एक किताब है।", "This is true."),
+            JaEx("これ は いくら です か。", "kore wa ikura desu ka.", "यह कितने का है?", "how much is this."),
+            JaEx("これ は わたし の です。", "kore wa watashi no desu.", "यह मेरा है।", "This is mine."),
         ),
         "それ" to listOf(
 
-            JaEx("それ は なん です か。", "sore wa nan desu ka.", "वह क्या है?"),
-            JaEx("それ を ください。", "sore wo kudasai.", "कृपया वह दीजिए।"),
-            JaEx("それ は おいしい です。", "sore wa oishii desu.", "वह स्वादिष्ट है।"),
+            JaEx("それ は なん です か。", "sore wa nan desu ka.", "वह क्या है?", "What is that?"),
+            JaEx("それ を ください。", "sore wo kudasai.", "कृपया वह दीजिए।", "Please give me that."),
+            JaEx("それ は おいしい です。", "sore wa oishii desu.", "वह स्वादिष्ट है।", "It's delicious."),
         ),
         "あれ" to listOf(
 
-            JaEx("あれ は なん です か。", "are wa nan desu ka.", "वह (वहाँ) क्या है?"),
-            JaEx("あれ は やま です。", "are wa yama desu.", "वह (वहाँ) एक पहाड़ है।"),
-            JaEx("あれ は だれ の かばん です か。", "are wa dare no kaban desu ka.", "वह (वहाँ) किसका बैग है?"),
+            JaEx("あれ は なん です か。", "are wa nan desu ka.", "वह (वहाँ) क्या है?", "What is that?"),
+            JaEx("あれ は やま です。", "are wa yama desu.", "वह (वहाँ) एक पहाड़ है।", "That is Yama."),
+            JaEx("あれ は だれ の かばん です か。", "are wa dare no kaban desu ka.", "वह (वहाँ) किसका बैग है?", "Whose bag is that?"),
         ),
         "どこ" to listOf(
 
-            JaEx("えき は どこ です か。", "eki wa doko desu ka.", "स्टेशन कहाँ है?"),
-            JaEx("どこ に すんで います か。", "doko ni sunde imasu ka.", "आप कहाँ रहते हैं?"),
-            JaEx("どこ に いきます か。", "doko ni ikimasu ka.", "आप कहाँ जा रहे हैं?"),
+            JaEx("えき は どこ です か。", "eki wa doko desu ka.", "स्टेशन कहाँ है?", "Where is the station?"),
+            JaEx("どこ に すんで います か。", "doko ni sunde imasu ka.", "आप कहाँ रहते हैं?", "Where do you live?"),
+            JaEx("どこ に いきます か。", "doko ni ikimasu ka.", "आप कहाँ जा रहे हैं?", "Where are you going?"),
         ),
         "だれ" to listOf(
 
-            JaEx("あの ひと は だれ です か。", "ano hito wa dare desu ka.", "वह व्यक्ति कौन है?"),
-            JaEx("だれ が きました か。", "dare ga kimashita ka.", "कौन आया?"),
-            JaEx("これ は だれ の です か。", "kore wa dare no desu ka.", "यह किसका है?"),
+            JaEx("あの ひと は だれ です か。", "ano hito wa dare desu ka.", "वह व्यक्ति कौन है?", "Who is that person?"),
+            JaEx("だれ が きました か。", "dare ga kimashita ka.", "कौन आया?", "Who came?"),
+            JaEx("これ は だれ の です か。", "kore wa dare no desu ka.", "यह किसका है?", "Who does this belong to?"),
         ),
         "なに" to listOf(
 
-            JaEx("これ は なん です か。", "kore wa nan desu ka.", "यह क्या है?"),
-            JaEx("なに が すき です か。", "nani ga suki desu ka.", "आपको क्या पसंद है?"),
-            JaEx("きょう は なに を します か。", "kyou wa nani wo shimasu ka.", "आज आप क्या करेंगे?"),
+            JaEx("これ は なん です か。", "kore wa nan desu ka.", "यह क्या है?", "What is this?"),
+            JaEx("なに が すき です か。", "nani ga suki desu ka.", "आपको क्या पसंद है?", "What do you like?"),
+            JaEx("きょう は なに を します か。", "kyou wa nani wo shimasu ka.", "आज आप क्या करेंगे?", "What will you do today?"),
         ),
         "いつ" to listOf(
 
-            JaEx("いつ にほん に いきます か。", "itsu nihon ni ikimasu ka.", "आप जापान कब जाएँगे?"),
-            JaEx("いつ ひま です か。", "itsu hima desu ka.", "आप कब खाली हैं?"),
-            JaEx("いつ でも いい です。", "itsu demo ii desu.", "किसी भी समय चलता है।"),
+            JaEx("いつ にほん に いきます か。", "itsu nihon ni ikimasu ka.", "आप जापान कब जाएँगे?", "When are you going to Japan?"),
+            JaEx("いつ ひま です か。", "itsu hima desu ka.", "आप कब खाली हैं?", "When do you have free time?"),
+            JaEx("いつ でも いい です。", "itsu demo ii desu.", "किसी भी समय चलता है।", "Any time is fine."),
         ),
         "なぜ" to listOf(
 
-            JaEx("なぜ にほんご を べんきょう して います か。", "naze nihongo wo benkyou shite imasu ka.", "आप जापानी क्यों सीख रहे हैं?"),
-            JaEx("なぜ か わかりません。", "naze ka wakarimasen.", "मुझे नहीं पता क्यों।"),
-            JaEx("なぜ おくれて います か。", "naze okurete imasu ka.", "आप देर से क्यों हैं?"),
+            JaEx("なぜ にほんご を べんきょう して います か。", "naze nihongo wo benkyou shite imasu ka.", "आप जापानी क्यों सीख रहे हैं?", "Why are you learning Japanese?"),
+            JaEx("なぜ か わかりません。", "naze ka wakarimasen.", "मुझे नहीं पता क्यों।", "I don't know why."),
+            JaEx("なぜ おくれて います か。", "naze okurete imasu ka.", "आप देर से क्यों हैं?", "Why are you late?"),
         ),
         "どう" to listOf(
 
-            JaEx("おげんき です か。げんき です。", "ogenki desu ka. genki desu.", "आप कैसे हैं? मैं ठीक हूँ।"),
-            JaEx("どう です か。", "dou desu ka.", "कैसा है?"),
-            JaEx("コーヒー は どう です か。", "koohii wa dou desu ka.", "कॉफ़ी कैसी है?"),
+            JaEx("おげんき です か。げんき です。", "ogenki desu ka. genki desu.", "आप कैसे हैं? मैं ठीक हूँ।", "Are you okay? This is Genki."),
+            JaEx("どう です か。", "dou desu ka.", "कैसा है?", "What do you think?"),
+            JaEx("コーヒー は どう です か。", "koohii wa dou desu ka.", "कॉफ़ी कैसी है?", "How about some coffee?"),
         ),
         "いくら" to listOf(
 
-            JaEx("これ は いくら です か。", "kore wa ikura desu ka.", "यह कितने का है?"),
-            JaEx("いくら で すか。", "ikura desu ka.", "कितने का है?"),
-            JaEx("この かばん は いくら でした か。", "kono kaban wa ikura deshita ka.", "यह बैग कितने का था?"),
+            JaEx("これ は いくら です か。", "kore wa ikura desu ka.", "यह कितने का है?", "how much is this."),
+            JaEx("いくら で すか。", "ikura desu ka.", "कितने का है?", "How much does it cost?"),
+            JaEx("この かばん は いくら でした か。", "kono kaban wa ikura deshita ka.", "यह बैग कितने का था?", "How much did this bag cost?"),
         ),
         "おおきい" to listOf(
 
-            JaEx("この いえ は おおきい です。", "kono ie wa ookii desu.", "यह घर बड़ा है।"),
-            JaEx("おおきい ねこ が います。", "ookii neko ga imasu.", "वहाँ एक बड़ी बिल्ली है।"),
-            JaEx("ぞう は とても おおきい です。", "zou wa totemo ookii desu.", "हाथी बहुत बड़ा होता है।"),
+            JaEx("この いえ は おおきい です。", "kono ie wa ookii desu.", "यह घर बड़ा है।", "This house is big."),
+            JaEx("おおきい ねこ が います。", "ookii neko ga imasu.", "वहाँ एक बड़ी बिल्ली है।", "There is a big cat."),
+            JaEx("ぞう は とても おおきい です。", "zou wa totemo ookii desu.", "हाथी बहुत बड़ा होता है।", "Elephants are very big."),
         ),
         "ちいさい" to listOf(
 
-            JaEx("この ねこ は ちいさい です。", "kono neko wa chiisai desu.", "यह बिल्ली छोटी है।"),
-            JaEx("ちいさい みせ で かいました。", "chiisai mise de kaimashita.", "मैंने एक छोटी दुकान से ख़रीदा।"),
-            JaEx("うち は ちいさい です。", "uchi wa chiisai desu.", "मेरा घर छोटा है।"),
+            JaEx("この ねこ は ちいさい です。", "kono neko wa chiisai desu.", "यह बिल्ली छोटी है।", "This cat is small."),
+            JaEx("ちいさい みせ で かいました。", "chiisai mise de kaimashita.", "मैंने एक छोटी दुकान से ख़रीदा।", "It was small and big."),
+            JaEx("うち は ちいさい です。", "uchi wa chiisai desu.", "मेरा घर छोटा है।", "We are small."),
         ),
         "たかい" to listOf(
 
-            JaEx("この とけい は たかい です。", "kono tokei wa takai desu.", "यह घड़ी महँगी है।"),
-            JaEx("たかい やま に のぼりました。", "takai yama ni noborimashita.", "मैं ऊँचे पहाड़ पर चढ़ा।"),
-            JaEx("かれ は せ が たかい です。", "kare wa se ga takai desu.", "वह लंबा है।"),
+            JaEx("この とけい は たかい です。", "kono tokei wa takai desu.", "यह घड़ी महँगी है।", "This scale is very high."),
+            JaEx("たかい やま に のぼりました。", "takai yama ni noborimashita.", "मैं ऊँचे पहाड़ पर चढ़ा।", "I climbed a tall mountain."),
+            JaEx("かれ は せ が たかい です。", "kare wa se ga takai desu.", "वह लंबा है।", "He is very smart."),
         ),
         "やすい" to listOf(
 
-            JaEx("この みせ は やすい です。", "kono mise wa yasui desu.", "यह दुकान सस्ती है।"),
-            JaEx("やすい もの を さがして います。", "yasui mono wo sagashite imasu.", "मैं सस्ती चीज़ ढूँढ रहा हूँ।"),
-            JaEx("これ は やすい です ね。", "kore wa yasui desu ne.", "यह सस्ता है, है ना?"),
+            JaEx("この みせ は やすい です。", "kono mise wa yasui desu.", "यह दुकान सस्ती है।", "This appearance is easy."),
+            JaEx("やすい もの を さがして います。", "yasui mono wo sagashite imasu.", "मैं सस्ती चीज़ ढूँढ रहा हूँ।", "I'm looking for something easy."),
+            JaEx("これ は やすい です ね。", "kore wa yasui desu ne.", "यह सस्ता है, है ना?", "This is easy."),
         ),
         "あつい" to listOf(
 
-            JaEx("きょう は あつい です。", "kyou wa atsui desu.", "आज गर्मी है।"),
-            JaEx("この みず は あつい です。", "kono mizu wa atsui desu.", "यह पानी गर्म है।"),
-            JaEx("なつ は あつい です。", "natsu wa atsui desu.", "गर्मी में तेज़ गर्मी होती है।"),
+            JaEx("きょう は あつい です。", "kyou wa atsui desu.", "आज गर्मी है।", "It's hot today."),
+            JaEx("この みず は あつい です。", "kono mizu wa atsui desu.", "यह पानी गर्म है।", "This water is hot."),
+            JaEx("なつ は あつい です。", "natsu wa atsui desu.", "गर्मी में तेज़ गर्मी होती है।", "Summer is hot."),
         ),
         "さむい" to listOf(
 
-            JaEx("きょう は さむい です。", "kyou wa samui desu.", "आज ठंड है।"),
-            JaEx("ふゆ は さむい です。", "fuyu wa samui desu.", "सर्दी में ठंड होती है।"),
-            JaEx("さむい から、まど を しめて ください。", "samui kara, mado wo shimete kudasai.", "ठंड है, कृपया खिड़की बंद कर दीजिए।"),
+            JaEx("きょう は さむい です。", "kyou wa samui desu.", "आज ठंड है।", "It's cold today."),
+            JaEx("ふゆ は さむい です。", "fuyu wa samui desu.", "सर्दी में ठंड होती है।", "Fuyu is cold."),
+            JaEx("さむい から、まど を しめて ください。", "samui kara, mado wo shimete kudasai.", "ठंड है, कृपया खिड़की बंद कर दीजिए।", "It's cold, so please close the window."),
         ),
         "あたらしい" to listOf(
 
-            JaEx("あたらしい でんわ を かいました。", "atarashii denwa wo kaimashita.", "मैंने एक नया फ़ोन ख़रीदा।"),
-            JaEx("あたらしい ともだち が できました。", "atarashii tomodachi ga dekimashita.", "मुझे एक नया दोस्त मिला।"),
-            JaEx("これ は あたらしい ほん です。", "kore wa atarashii hon desu.", "यह एक नई किताब है।"),
+            JaEx("あたらしい でんわ を かいました。", "atarashii denwa wo kaimashita.", "मैंने एक नया फ़ोन ख़रीदा।", "I made a new phone call."),
+            JaEx("あたらしい ともだち が できました。", "atarashii tomodachi ga dekimashita.", "मुझे एक नया दोस्त मिला।", "I made a new friend."),
+            JaEx("これ は あたらしい ほん です。", "kore wa atarashii hon desu.", "यह एक नई किताब है।", "This is a new book."),
         ),
         "ふるい" to listOf(
 
-            JaEx("この ほん は ふるい です。", "kono hon wa furui desu.", "यह किताब पुरानी है।"),
-            JaEx("ふるい まち が すき です。", "furui machi ga suki desu.", "मुझे पुराने शहर पसंद हैं।"),
-            JaEx("この いえ は とても ふるい です。", "kono ie wa totemo furui desu.", "यह घर बहुत पुराना है।"),
+            JaEx("この ほん は ふるい です。", "kono hon wa furui desu.", "यह किताब पुरानी है।", "This book is a sieve."),
+            JaEx("ふるい まち が すき です。", "furui machi ga suki desu.", "मुझे पुराने शहर पसंद हैं।", "I like the town of Furuimachi."),
+            JaEx("この いえ は とても ふるい です。", "kono ie wa totemo furui desu.", "यह घर बहुत पुराना है।", "This house is very sieve."),
         ),
         "おいしい" to listOf(
 
-            JaEx("この りょうり は おいしい です。", "kono ryouri wa oishii desu.", "यह खाना स्वादिष्ट है।"),
-            JaEx("おいしい ものを たべたい です。", "oishii mono wo tabetai desu.", "मैं स्वादिष्ट खाना खाना चाहता हूँ।"),
-            JaEx("すし は とても おいしい です。", "sushi wa totemo oishii desu.", "सुशी बहुत स्वादिष्ट है।"),
+            JaEx("この りょうり は おいしい です。", "kono ryouri wa oishii desu.", "यह खाना स्वादिष्ट है।", "This gourd is delicious."),
+            JaEx("おいしい ものを たべたい です。", "oishii mono wo tabetai desu.", "मैं स्वादिष्ट खाना खाना चाहता हूँ।", "I want to eat something delicious."),
+            JaEx("すし は とても おいしい です。", "sushi wa totemo oishii desu.", "सुशी बहुत स्वादिष्ट है।", "Sushi is very delicious."),
         ),
         "まずい" to listOf(
 
-            JaEx("この くすり は まずい です。", "kono kusuri wa mazui desu.", "यह दवा बेस्वाद है।"),
-            JaEx("まずい と おもいません か。", "mazui to omoimasen ka.", "क्या आपको नहीं लगता यह बेस्वाद है?"),
-            JaEx("この コーヒー は まずい です。", "kono koohii wa mazui desu.", "यह कॉफ़ी बेस्वाद है।"),
+            JaEx("この くすり は まずい です。", "kono kusuri wa mazui desu.", "यह दवा बेस्वाद है।", "This medicine is bad."),
+            JaEx("まずい と おもいません か。", "mazui to omoimasen ka.", "क्या आपको नहीं लगता यह बेस्वाद है?", "Don't you think it's bad?"),
+            JaEx("この コーヒー は まずい です。", "kono koohii wa mazui desu.", "यह कॉफ़ी बेस्वाद है।", "This coffee is bad."),
         ),
         "きれい" to listOf(
 
-            JaEx("この こうえん は きれい です。", "kono kouen wa kirei desu.", "यह पार्क सुंदर है।"),
-            JaEx("かのじょ は きれい です。", "kanojo wa kirei desu.", "वह सुंदर है।"),
-            JaEx("へや を きれい に して ください。", "heya wo kirei ni shite kudasai.", "कृपया कमरा साफ़ कर दीजिए।"),
+            JaEx("この こうえん は きれい です。", "kono kouen wa kirei desu.", "यह पार्क सुंदर है।", "This garden is beautiful."),
+            JaEx("かのじょ は きれい です。", "kanojo wa kirei desu.", "वह सुंदर है।", "Kanojo is beautiful."),
+            JaEx("へや を きれい に して ください。", "heya wo kirei ni shite kudasai.", "कृपया कमरा साफ़ कर दीजिए।", "Please keep the room clean."),
         ),
         "いい" to listOf(
 
-            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।"),
-            JaEx("いい アイデア です ね。", "ii aidea desu ne.", "अच्छा विचार है।"),
-            JaEx("これ は いい ほん です。", "kore wa ii hon desu.", "यह एक अच्छी किताब है।"),
+            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।", "Today is a good day."),
+            JaEx("いい アイデア です ね。", "ii aidea desu ne.", "अच्छा विचार है।", "That's a good idea."),
+            JaEx("これ は いい ほん です。", "kore wa ii hon desu.", "यह एक अच्छी किताब है।", "This is a good book."),
         ),
         "わるい" to listOf(
 
-            JaEx("きょう は わるい てんき です。", "kyou wa warui tenki desu.", "आज मौसम ख़राब है।"),
-            JaEx("わるい ところ も あります。", "warui tokoro mo arimasu.", "कुछ बुरी बातें भी हैं।"),
-            JaEx("これは わるい きょういく です。", "kore wa warui kyouiku desu.", "यह बुरी आदत है।"),
+            JaEx("きょう は わるい てんき です。", "kyou wa warui tenki desu.", "आज मौसम ख़राब है।", "Today is a bad day."),
+            JaEx("わるい ところ も あります。", "warui tokoro mo arimasu.", "कुछ बुरी बातें भी हैं।", "There are also some bad points."),
+            JaEx("これは わるい きょういく です。", "kore wa warui kyouiku desu.", "यह बुरी आदत है।", "This is a bad idea."),
         ),
         "たのしい" to listOf(
 
-            JaEx("きょう は たのしかった です。", "kyou wa tanoshikatta desu.", "आज मज़ेदार था।"),
-            JaEx("にほんご は たのしい です。", "nihongo wa tanoshii desu.", "जापानी सीखना मज़ेदार है।"),
-            JaEx("たのしい えいが を みました。", "tanoshii eiga wo mimashita.", "मैंने एक मज़ेदार फ़िल्म देखी।"),
+            JaEx("きょう は たのしかった です。", "kyou wa tanoshikatta desu.", "आज मज़ेदार था।", "It was fun today."),
+            JaEx("にほんご は たのしい です。", "nihongo wa tanoshii desu.", "जापानी सीखना मज़ेदार है।", "Japanese is fun."),
+            JaEx("たのしい えいが を みました。", "tanoshii eiga wo mimashita.", "मैंने एक मज़ेदार फ़िल्म देखी।", "I watched a fun movie."),
         ),
         "かわいい" to listOf(
 
-            JaEx("この ねこ は かわいい です。", "kono neko wa kawaii desu.", "यह बिल्ली प्यारी है।"),
-            JaEx("この こ は とても かわいい です。", "kono ko wa totemo kawaii desu.", "यह बच्चा बहुत प्यारा है।"),
-            JaEx("かわいい ふく を かいました。", "kawaii fuku wo kaimashita.", "मैंने प्यारे कपड़े ख़रीदे।"),
+            JaEx("この ねこ は かわいい です。", "kono neko wa kawaii desu.", "यह बिल्ली प्यारी है।", "This cat is cute."),
+            JaEx("この こ は とても かわいい です。", "kono ko wa totemo kawaii desu.", "यह बच्चा बहुत प्यारा है।", "This one is very cute."),
+            JaEx("かわいい ふく を かいました。", "kawaii fuku wo kaimashita.", "मैंने प्यारे कपड़े ख़रीदे।", "I drew a cute balloon."),
         ),
         "はやい" to listOf(
 
-            JaEx("でんしゃ は はやい です。", "densha wa hayai desu.", "ट्रेन तेज़ होती है।"),
-            JaEx("かれ は はやく はしります。", "kare wa hayaku hashirimasu.", "वह तेज़ दौड़ता है।"),
-            JaEx("この くるま は とても はやい です。", "kono kuruma wa totemo hayai desu.", "यह कार बहुत तेज़ है।"),
+            JaEx("でんしゃ は はやい です。", "densha wa hayai desu.", "ट्रेन तेज़ होती है।", "Trains are fast."),
+            JaEx("かれ は はやく はしります。", "kare wa hayaku hashirimasu.", "वह तेज़ दौड़ता है।", "He is fast."),
+            JaEx("この くるま は とても はやい です。", "kono kuruma wa totemo hayai desu.", "यह कार बहुत तेज़ है।", "This car is very fast."),
         ),
         "おそい" to listOf(
 
-            JaEx("わたし は おそい です。", "watashi wa osoi desu.", "मैं धीमा हूँ।"),
-            JaEx("でんしゃ が おくれて います。", "densha ga okurete imasu.", "ट्रेन देर से चल रही है।"),
-            JaEx("おそく なって すみません。", "osoku natte sumimasen.", "देर हो गई, माफ़ कीजिए।"),
+            JaEx("わたし は おそい です。", "watashi wa osoi desu.", "मैं धीमा हूँ।", "I'm late."),
+            JaEx("でんしゃ が おくれて います。", "densha ga okurete imasu.", "ट्रेन देर से चल रही है।", "The train is late."),
+            JaEx("おそく なって すみません。", "osoku natte sumimasen.", "देर हो गई, माफ़ कीजिए।", "Sorry for being late."),
         ),
         "ながい" to listOf(
 
-            JaEx("この みち は ながい です。", "kono michi wa nagai desu.", "यह रास्ता लंबा है।"),
-            JaEx("かれ は かみ が ながい です。", "kare wa kami ga nagai desu.", "उसके बाल लंबे हैं।"),
-            JaEx("ぞう は はな が ながい です。", "zou wa hana ga nagai desu.", "हाथी की सूँड़ लंबी होती है।"),
+            JaEx("この みち は ながい です。", "kono michi wa nagai desu.", "यह रास्ता लंबा है।", "This road is long."),
+            JaEx("かれ は かみ が ながい です。", "kare wa kami ga nagai desu.", "उसके बाल लंबे हैं।", "He has a long hair."),
+            JaEx("ぞう は はな が ながい です。", "zou wa hana ga nagai desu.", "हाथी की सूँड़ लंबी होती है।", "Elephants have long flowers."),
         ),
         "みじかい" to listOf(
 
-            JaEx("この みち は みじかい です。", "kono michi wa mijikai desu.", "यह रास्ता छोटा है।"),
-            JaEx("みじかい し を かきました。", "mijikai shi wo kakimashita.", "मैंने एक छोटी कविता लिखी।"),
-            JaEx("ふゆ は ひ が みじかい です。", "fuyu wa hi ga mijikai desu.", "सर्दी में दिन छोटे होते हैं।"),
+            JaEx("この みち は みじかい です。", "kono michi wa mijikai desu.", "यह रास्ता छोटा है।", "This path is short."),
+            JaEx("みじかい し を かきました。", "mijikai shi wo kakimashita.", "मैंने एक छोटी कविता लिखी।", "I wrote a small paper."),
+            JaEx("ふゆ は ひ が みじかい です。", "fuyu wa hi ga mijikai desu.", "सर्दी में दिन छोटे होते हैं।", "Fuyu is very small."),
         ),
         "あか" to listOf(
 
-            JaEx("この りんご は あか です。", "kono ringo wa aka desu.", "यह सेब लाल है।"),
-            JaEx("あか い ふく を きて います。", "akai fuku wo kite imasu.", "मैंने लाल कपड़े पहने हैं।"),
-            JaEx("あか い はな が すき です。", "akai hana ga suki desu.", "मुझे लाल फूल पसंद हैं।"),
+            JaEx("この りんご は あか です。", "kono ringo wa aka desu.", "यह सेब लाल है।", "This apple is red."),
+            JaEx("あか い ふく を きて います。", "akai fuku wo kite imasu.", "मैंने लाल कपड़े पहने हैं।", "I am bringing red cloth."),
+            JaEx("あか い はな が すき です。", "akai hana ga suki desu.", "मुझे लाल फूल पसंद हैं।", "I like red flowers."),
         ),
         "あお" to listOf(
 
-            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。"),
-            JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।"),
-            JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।"),
+            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。", "Sora is Ao."),
+            JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।", "Please give me a blue pen."),
+            JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।", "The sea is blue."),
         ),
         "きいろ" to listOf(
 
-            JaEx("ばなな は きいろ です。", "banana wa kiiro desu.", "केला पीला होता है।"),
-            JaEx("きいろ い くつ を かいました。", "kiiroi kutsu wo kaimashita.", "मैंने पीले जूते ख़रीदे।"),
-            JaEx("この はな は きいろ です。", "kono hana wa kiiro desu.", "यह फूल पीला है।"),
+            JaEx("ばなな は きいろ です。", "banana wa kiiro desu.", "केला पीला होता है।", "Banana is yellow."),
+            JaEx("きいろ い くつ を かいました。", "kiiroi kutsu wo kaimashita.", "मैंने पीले जूते ख़रीदे।", "I wore yellow shoes."),
+            JaEx("この はな は きいろ です。", "kono hana wa kiiro desu.", "यह फूल पीला है।", "This flower is yellow."),
         ),
         "しろ" to listOf(
 
-            JaEx("ゆき は しろ です。", "yuki wa shiro desu.", "बर्फ़ सफ़ेद होती है।"),
-            JaEx("しろ い いぬ が います。", "shiroi inu ga imasu.", "एक सफ़ेद कुत्ता है।"),
-            JaEx("この しゃつ は しろ い です。", "kono shatsu wa shiroi desu.", "यह शर्ट सफ़ेद है।"),
+            JaEx("ゆき は しろ です。", "yuki wa shiro desu.", "बर्फ़ सफ़ेद होती है।", "Yuki is Shiro."),
+            JaEx("しろ い いぬ が います。", "shiroi inu ga imasu.", "एक सफ़ेद कुत्ता है।", "There is a white dog."),
+            JaEx("この しゃつ は しろ い です。", "kono shatsu wa shiroi desu.", "यह शर्ट सफ़ेद है।", "This chat is good."),
         ),
         "くろ" to listOf(
 
-            JaEx("この ねこ は くろ です。", "kono neko wa kuro desu.", "यह बिल्ली काली है।"),
-            JaEx("くろ い かばん を もって います。", "kuroi kaban wo motte imasu.", "मैं काला बैग लिए हुए हूँ।"),
-            JaEx("よる は くらくて くろ です。", "yoru wa kurakute kuro desu.", "रात अंधेरी और काली होती है।"),
+            JaEx("この ねこ は くろ です。", "kono neko wa kuro desu.", "यह बिल्ली काली है।", "This cat is black."),
+            JaEx("くろ い かばん を もって います。", "kuroi kaban wo motte imasu.", "मैं काला बैग लिए हुए हूँ।", "I'm carrying a black bag."),
+            JaEx("よる は くらくて くろ です。", "yoru wa kurakute kuro desu.", "रात अंधेरी और काली होती है।", "It's dark and black."),
         ),
         "みどり" to listOf(
 
-            JaEx("この は は みどり です。", "kono ha wa midori desu.", "यह पत्ता हरा है।"),
-            JaEx("みどり い やま が きれい です。", "midorii yama ga kirei desu.", "हरा पहाड़ सुंदर है।"),
-            JaEx("こうえん の くさ は みどり です。", "kouen no kusa wa midori desu.", "पार्क की घास हरी है।"),
+            JaEx("この は は みどり です。", "kono ha wa midori desu.", "यह पत्ता हरा है।", "This is Midori."),
+            JaEx("みどり い やま が きれい です。", "midorii yama ga kirei desu.", "हरा पहाड़ सुंदर है।", "The green mountain is beautiful."),
+            JaEx("こうえん の くさ は みどり です。", "kouen no kusa wa midori desu.", "पार्क की घास हरी है।", "The grass of Koen is green."),
         ),
         "こんにちは" to listOf(
 
-            JaEx("こんにちは。おげんき です か。", "konnichiwa. ogenki desu ka.", "नमस्ते। आप कैसे हैं?"),
-            JaEx("こんにちは。あつい です ね。", "konnichiwa. atsui desu ne.", "नमस्ते। गर्मी है, है ना?"),
-            JaEx("こんにちは。はじめまして。", "konnichiwa. hajimemashite.", "नमस्ते। आपसे मिलकर खुशी हुई।"),
+            JaEx("こんにちは。おげんき です か。", "konnichiwa. ogenki desu ka.", "नमस्ते। आप कैसे हैं?", "Hello. Are you okay?"),
+            JaEx("こんにちは。あつい です ね。", "konnichiwa. atsui desu ne.", "नमस्ते। गर्मी है, है ना?", "Hello. It's hot, isn't it?"),
+            JaEx("こんにちは。はじめまして。", "konnichiwa. hajimemashite.", "नमस्ते। आपसे मिलकर खुशी हुई।", "Hello. nice to meet you."),
         ),
         "おはよう" to listOf(
 
-            JaEx("おはよう ございます。", "ohayou gozaimasu.", "सुप्रभात।"),
-            JaEx("おはよう。いい てんき です ね。", "ohayou. ii tenki desu ne.", "सुप्रभात। मौसम अच्छा है, है ना?"),
-            JaEx("おはよう ございます。きょう も がんばりましょう。", "ohayou gozaimasu. kyou mo ganbarimashou.", "सुप्रभात। आज भी मेहनत करते हैं।"),
+            JaEx("おはよう ございます。", "ohayou gozaimasu.", "सुप्रभात।", "good morning."),
+            JaEx("おはよう。いい てんき です ね。", "ohayou. ii tenki desu ne.", "सुप्रभात। मौसम अच्छा है, है ना?", "good morning. It's a good idea."),
+            JaEx("おはよう ございます。きょう も がんばりましょう。", "ohayou gozaimasu. kyou mo ganbarimashou.", "सुप्रभात। आज भी मेहनत करते हैं।", "good morning. Let's do our best today too."),
         ),
         "こんばんは" to listOf(
 
-            JaEx("こんばんは。", "konbanwa.", "शुभ संध्या।"),
-            JaEx("こんばんは。よる ごはん は もう たべました か。", "konbanwa. yoru gohan wa mou tabemashita ka.", "शुभ संध्या। क्या आपने रात का खाना खा लिया?"),
-            JaEx("こんばんは。つき が きれい です ね。", "konbanwa. tsuki ga kirei desu ne.", "शुभ संध्या। चाँद सुंदर है, है ना?"),
+            JaEx("こんばんは。", "konbanwa.", "शुभ संध्या।", "Good evening."),
+            JaEx("こんばんは。よる ごはん は もう たべました か。", "konbanwa. yoru gohan wa mou tabemashita ka.", "शुभ संध्या। क्या आपने रात का खाना खा लिया?", "Good evening. Have you already eaten your dinner?"),
+            JaEx("こんばんは。つき が きれい です ね。", "konbanwa. tsuki ga kirei desu ne.", "शुभ संध्या। चाँद सुंदर है, है ना?", "Good evening. It has a beautiful appearance."),
         ),
         "ありがとう" to listOf(
 
-            JaEx("ありがとう ございます。", "arigatou gozaimasu.", "धन्यवाद।"),
-            JaEx("たすけて くれて ありがとう。", "tasukete kurete arigatou.", "मदद करने के लिए धन्यवाद।"),
-            JaEx("ありがとう ございました。", "arigatou gozaimashita.", "धन्यवाद। (पहले की बात के लिए)"),
+            JaEx("ありがとう ございます。", "arigatou gozaimasu.", "धन्यवाद।", "thank you."),
+            JaEx("たすけて くれて ありがとう。", "tasukete kurete arigatou.", "मदद करने के लिए धन्यवाद।", "Thank you for your help."),
+            JaEx("ありがとう ございました。", "arigatou gozaimashita.", "धन्यवाद। (पहले की बात के लिए)", "thank you very much."),
         ),
         "すみません" to listOf(
 
-            JaEx("すみません。えき は どこ です か。", "sumimasen. eki wa doko desu ka.", "माफ़ कीजिए। स्टेशन कहाँ है?"),
-            JaEx("すみません。また あとで。", "sumimasen. mata ato de.", "क्षमा करें। फिर मिलते हैं।"),
-            JaEx("すみません、おそくなりました。", "sumimasen, osoku narimashita.", "माफ़ कीजिए, मुझे देर हो गई।"),
+            JaEx("すみません。えき は どこ です か。", "sumimasen. eki wa doko desu ka.", "माफ़ कीजिए। स्टेशन कहाँ है?", "sorry. Where is the station?"),
+            JaEx("すみません。また あとで。", "sumimasen. mata ato de.", "क्षमा करें। फिर मिलते हैं।", "sorry. See you later."),
+            JaEx("すみません、おそくなりました。", "sumimasen, osoku narimashita.", "माफ़ कीजिए, मुझे देर हो गई।", "Sorry, I'm late."),
         ),
         "さようなら" to listOf(
 
-            JaEx("さようなら。また らいしゅう。", "sayounara. mata raishuu.", "अलविदा। अगले हफ़्ते मिलते हैं।"),
-            JaEx("さようなら。おげんき で。", "sayounara. ogenki de.", "अलविदा। अपना ख़्याल रखिए।"),
-            JaEx("では、さようなら。", "dewa, sayounara.", "तो फिर, अलविदा।"),
+            JaEx("さようなら。また らいしゅう。", "sayounara. mata raishuu.", "अलविदा। अगले हफ़्ते मिलते हैं।", "Goodbye. Reishu again."),
+            JaEx("さようなら。おげんき で。", "sayounara. ogenki de.", "अलविदा। अपना ख़्याल रखिए।", "Goodbye. At Ogenki."),
+            JaEx("では、さようなら。", "dewa, sayounara.", "तो फिर, अलविदा।", "Well then, goodbye."),
         ),
         "はじめまして" to listOf(
 
-            JaEx("はじめまして。わたし は マイク です。", "hajimemashite. watashi wa maiku desu.", "आपसे मिलकर खुशी हुई। मैं माइक हूँ।"),
-            JaEx("はじめまして。よろしく おねがい します。", "hajimemashite. yoroshiku onegai shimasu.", "आपसे मिलकर खुशी हुई। कृपया मेरा साथ दें।"),
-            JaEx("はじめまして。どこ から きました か。", "hajimemashite. doko kara kimashita ka.", "आपसे मिलकर खुशी हुई। आप कहाँ से आए हैं?"),
+            JaEx("はじめまして。わたし は マイク です。", "hajimemashite. watashi wa maiku desu.", "आपसे मिलकर खुशी हुई। मैं माइक हूँ।", "nice to meet you. I'm Mike."),
+            JaEx("はじめまして。よろしく おねがい します。", "hajimemashite. yoroshiku onegai shimasu.", "आपसे मिलकर खुशी हुई। कृपया मेरा साथ दें।", "nice to meet you. Thank you for your support."),
+            JaEx("はじめまして。どこ から きました か。", "hajimemashite. doko kara kimashita ka.", "आपसे मिलकर खुशी हुई। आप कहाँ से आए हैं?", "nice to meet you. Where did you come from?"),
         ),
         "よろしくおねがいします" to listOf(
 
-            JaEx("よろしく おねがい します。", "yoroshiku onegai shimasu.", "कृपया मेरा साथ दें।"),
-            JaEx("これから も よろしく おねがい します。", "korekara mo yoroshiku onegai shimasu.", "आगे भी कृपया मेरा साथ दें।"),
-            JaEx("おしごと がんばって ください。よろしく です。", "oshigoto ganbatte kudasai. yoroshiku desu.", "काम में मेहनत कीजिए। आपका बहुत-बहुत शुक्रिया।"),
+            JaEx("よろしく おねがい します。", "yoroshiku onegai shimasu.", "कृपया मेरा साथ दें।", "Thank you for your support."),
+            JaEx("これから も よろしく おねがい します。", "korekara mo yoroshiku onegai shimasu.", "आगे भी कृपया मेरा साथ दें।", "I look forward to your continued support."),
+            JaEx("おしごと がんばって ください。よろしく です。", "oshigoto ganbatte kudasai. yoroshiku desu.", "काम में मेहनत कीजिए। आपका बहुत-बहुत शुक्रिया।", "Please do your best at your job. Nice to meet you."),
         ),
         "うれしい" to listOf(
 
-            JaEx("あえて うれしい です。", "aete ureshii desu.", "आपसे मिलकर मुझे खुशी हुई।"),
-            JaEx("たんじょうび に プレゼント を もらって うれしかった です。", "tanjoubi ni purezento wo moratte ureshikatta desu.", "जन्मदिन पर उपहार पाकर मैं खुश हुआ।"),
-            JaEx("きょう は うれしい です。", "kyou wa ureshii desu.", "आज मैं खुश हूँ।"),
+            JaEx("あえて うれしい です。", "aete ureshii desu.", "आपसे मिलकर मुझे खुशी हुई।", "I'm really happy."),
+            JaEx("たんじょうび に プレゼント を もらって うれしかった です。", "tanjoubi ni purezento wo moratte ureshikatta desu.", "जन्मदिन पर उपहार पाकर मैं खुश हुआ।", "I was happy to receive a gift for my birthday."),
+            JaEx("きょう は うれしい です。", "kyou wa ureshii desu.", "आज मैं खुश हूँ।", "I'm happy today."),
         ),
         "かなしい" to listOf(
 
-            JaEx("さようなら は かなしい です。", "sayounara wa kanashii desu.", "विदाई दुखद होती है।"),
-            JaEx("この えいが は かなしかった です。", "kono eiga wa kanashikatta desu.", "यह फ़िल्म दुखद थी।"),
-            JaEx("なぜ かなしい の です か。", "naze kanashii no desu ka.", "आप उदास क्यों हैं?"),
+            JaEx("さようなら は かなしい です。", "sayounara wa kanashii desu.", "विदाई दुखद होती है।", "Goodbye is sad."),
+            JaEx("この えいが は かなしかった です。", "kono eiga wa kanashikatta desu.", "यह फ़िल्म दुखद थी।", "This painting was very sad."),
+            JaEx("なぜ かなしい の です か。", "naze kanashii no desu ka.", "आप उदास क्यों हैं?", "Why are you so sad?"),
         ),
         "こわい" to listOf(
 
-            JaEx("へび は こわい です。", "hebi wa kowai desu.", "साँप डरावना होता है।"),
-            JaEx("よる は こわい です。", "yoru wa kowai desu.", "रात डरावनी होती है।"),
-            JaEx("この えいが は こわい です。", "kono eiga wa kowai desu.", "यह फ़िल्म डरावनी है।"),
+            JaEx("へび は こわい です。", "hebi wa kowai desu.", "साँप डरावना होता है।", "Snakes are scary."),
+            JaEx("よる は こわい です。", "yoru wa kowai desu.", "रात डरावनी होती है।", "Night is scary."),
+            JaEx("この えいが は こわい です。", "kono eiga wa kowai desu.", "यह फ़िल्म डरावनी है।", "This picture is scary."),
         ),
         "あかい" to listOf(
 
-            JaEx("この りんご は あか です。", "kono ringo wa aka desu.", "यह सेब लाल है।"),
-            JaEx("あか い ふく を きて います。", "akai fuku wo kite imasu.", "मैंने लाल कपड़े पहने हैं।"),
-            JaEx("あか い はな が すき です。", "akai hana ga suki desu.", "मुझे लाल फूल पसंद हैं।"),
+            JaEx("この りんご は あか です。", "kono ringo wa aka desu.", "यह सेब लाल है।", "This apple is red."),
+            JaEx("あか い ふく を きて います。", "akai fuku wo kite imasu.", "मैंने लाल कपड़े पहने हैं।", "I am bringing red cloth."),
+            JaEx("あか い はな が すき です。", "akai hana ga suki desu.", "मुझे लाल फूल पसंद हैं।", "I like red flowers."),
         ),
         "あおい" to listOf(
 
-            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。"),
-            JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।"),
-            JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।"),
+            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。", "Sora is Ao."),
+            JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।", "Please give me a blue pen."),
+            JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।", "The sea is blue."),
         ),
         "きいろい" to listOf(
 
-            JaEx("ばなな は きいろ です。", "banana wa kiiro desu.", "केला पीला होता है।"),
-            JaEx("きいろ い くつ を かいました。", "kiiroi kutsu wo kaimashita.", "मैंने पीले जूते ख़रीदे।"),
-            JaEx("この はな は きいろ です。", "kono hana wa kiiro desu.", "यह फूल पीला है।"),
+            JaEx("ばなな は きいろ です。", "banana wa kiiro desu.", "केला पीला होता है।", "Banana is yellow."),
+            JaEx("きいろ い くつ を かいました。", "kiiroi kutsu wo kaimashita.", "मैंने पीले जूते ख़रीदे।", "I wore yellow shoes."),
+            JaEx("この はな は きいろ です。", "kono hana wa kiiro desu.", "यह फूल पीला है।", "This flower is yellow."),
         ),
         "しろい" to listOf(
 
-            JaEx("ゆき は しろ です。", "yuki wa shiro desu.", "बर्फ़ सफ़ेद होती है।"),
-            JaEx("しろ い いぬ が います。", "shiroi inu ga imasu.", "एक सफ़ेद कुत्ता है।"),
-            JaEx("この しゃつ は しろ い です。", "kono shatsu wa shiroi desu.", "यह शर्ट सफ़ेद है।"),
+            JaEx("ゆき は しろ です。", "yuki wa shiro desu.", "बर्फ़ सफ़ेद होती है।", "Yuki is Shiro."),
+            JaEx("しろ い いぬ が います。", "shiroi inu ga imasu.", "एक सफ़ेद कुत्ता है।", "There is a white dog."),
+            JaEx("この しゃつ は しろ い です。", "kono shatsu wa shiroi desu.", "यह शर्ट सफ़ेद है।", "This chat is good."),
         ),
         "くろい" to listOf(
 
-            JaEx("この ねこ は くろ です。", "kono neko wa kuro desu.", "यह बिल्ली काली है।"),
-            JaEx("くろ い かばん を もって います。", "kuroi kaban wo motte imasu.", "मैं काला बैग लिए हुए हूँ।"),
-            JaEx("よる は くらくて くろ です。", "yoru wa kurakute kuro desu.", "रात अंधेरी और काली होती है।"),
+            JaEx("この ねこ は くろ です。", "kono neko wa kuro desu.", "यह बिल्ली काली है।", "This cat is black."),
+            JaEx("くろ い かばん を もって います。", "kuroi kaban wo motte imasu.", "मैं काला बैग लिए हुए हूँ।", "I'm carrying a black bag."),
+            JaEx("よる は くらくて くろ です。", "yoru wa kurakute kuro desu.", "रात अंधेरी और काली होती है।", "It's dark and black."),
         ),
         "よい" to listOf(
 
-            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।"),
-            JaEx("いい アイデア です ね。", "ii aidea desu ne.", "अच्छा विचार है।"),
-            JaEx("これ は いい ほん です。", "kore wa ii hon desu.", "यह एक अच्छी किताब है।"),
+            JaEx("きょう は いい てんき です。", "kyou wa ii tenki desu.", "आज मौसम अच्छा है।", "Today is a good day."),
+            JaEx("いい アイデア です ね。", "ii aidea desu ne.", "अच्छा विचार है।", "That's a good idea."),
+            JaEx("これ は いい ほん です。", "kore wa ii hon desu.", "यह एक अच्छी किताब है।", "This is a good book."),
         ),
         "なん／なに" to listOf(
 
-            JaEx("これ は なん です か。", "kore wa nan desu ka.", "यह क्या है?"),
-            JaEx("なに が すき です か。", "nani ga suki desu ka.", "आपको क्या पसंद है?"),
-            JaEx("きょう は なに を します か。", "kyou wa nani wo shimasu ka.", "आज आप क्या करेंगे?"),
+            JaEx("これ は なん です か。", "kore wa nan desu ka.", "यह क्या है?", "What is this?"),
+            JaEx("なに が すき です か。", "nani ga suki desu ka.", "आपको क्या पसंद है?", "What do you like?"),
+            JaEx("きょう は なに を します か。", "kyou wa nani wo shimasu ka.", "आज आप क्या करेंगे?", "What will you do today?"),
         ),
         "おはようございます" to listOf(
 
-            JaEx("おはよう ございます。", "ohayou gozaimasu.", "सुप्रभात।"),
-            JaEx("おはよう。いい てんき です ね。", "ohayou. ii tenki desu ne.", "सुप्रभात। मौसम अच्छा है, है ना?"),
-            JaEx("おはよう ございます。きょう も がんばりましょう。", "ohayou gozaimasu. kyou mo ganbarimashou.", "सुप्रभात। आज भी मेहनत करते हैं।"),
+            JaEx("おはよう ございます。", "ohayou gozaimasu.", "सुप्रभात।", "good morning."),
+            JaEx("おはよう。いい てんき です ね。", "ohayou. ii tenki desu ne.", "सुप्रभात। मौसम अच्छा है, है ना?", "good morning. It's a good idea."),
+            JaEx("おはよう ございます。きょう も がんばりましょう。", "ohayou gozaimasu. kyou mo ganbarimashou.", "सुप्रभात। आज भी मेहनत करते हैं।", "good morning. Let's do our best today too."),
         ),
     )}
 
@@ -3363,15 +3381,32 @@ object Examples {
         val k = word.kana.trim()
         if (k.isEmpty()) return emptyList()
         val h = word.hi.trim()
+        val e = word.en.trim()
         val frames = if (k.endsWith("い")) listOf(
-            "これはとても${k}です。",
-            "あれはあまり${k}ではありません。",
-            "とても${k}ですね。"
+            "これはとても${k}です。" to "This is very $e.",
+            "あれはあまり${k}ではありません。" to "That is not very $e.",
+            "とても${k}ですね。" to "That is very $e, isn't it?"
         ) else listOf(
-            "「${k}」はどういういみですか。",
-            "「${k}」ということばをききました。",
-            "「${k}」のいみをおしえてください。"
+            "「${k}」はどういういみですか。" to "What does \"$e\" mean?",
+            "「${k}」ということばをききました。" to "I heard the word \"$e\".",
+            "「${k}」のいみをおしえてください。" to "Please tell me the meaning of \"$e\"."
         )
-        return frames.map { JaEx(it, "", h) }
+        return frames.map { (j, en) -> JaEx(j, "", h, en) }
+    }
+
+    fun nativeJa(word: Word, native: String, ex: JaEx): String = when (native) {
+        "ja" -> ""
+        "en" -> ex.en
+        "hi" -> ex.hi
+        else -> {
+            val direct = Gloss.lookup(ex.ja)
+            if (!direct.isNullOrEmpty()) {
+                direct
+            } else {
+                val k = word.kana.trim()
+                val template = if (k.isEmpty()) ex.ja else ex.ja.replace(k, "XKEYX")
+                if (template == ex.ja) "" else (Gloss.lookup(template) ?: "").replace("XKEYX", word.glossFor(native))
+            }
+        }
     }
 }

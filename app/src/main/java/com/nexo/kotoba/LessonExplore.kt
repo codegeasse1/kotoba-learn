@@ -599,6 +599,10 @@ private fun ExampleSheet(
     val jaEx = if (isJa) remember(word.kana) { Examples.jaForWord(word) } else emptyList()
     val examples = if (isJa) emptyList() else remember(word.en) { Examples.forWord(word) }
     val hindi = if (isJa) emptyList() else remember(word.en) { Examples.hindiFor(word) }
+    val nativeGlosses = remember(word.en, store.nativeLang) {
+        if (isJa || store.nativeLang == "hi" || store.nativeLang == "en") emptyList()
+        else Examples.nativeForWord(word, store.nativeLang)
+    }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             Modifier
@@ -651,10 +655,11 @@ private fun ExampleSheet(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            if (ex.hi.isNotBlank() && store.nativeLang == "hi") {
+                            val jaGloss = Examples.nativeJa(word, store.nativeLang, ex)
+                            if (jaGloss.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    ex.hi,
+                                    jaGloss,
                                     modifier = Modifier.padding(start = 24.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -690,8 +695,7 @@ private fun ExampleSheet(
                             }
                             val exGloss = when {
                                 store.nativeLang == "hi" -> if (i < hindi.size) hindi[i] else ""
-                                store.nativeLang == "en" -> ""
-                                else -> Gloss.lookup(ex) ?: ""
+                                else -> nativeGlosses.getOrElse(i) { "" }
                             }
                             if (exGloss.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
