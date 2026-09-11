@@ -42,6 +42,7 @@ class Store(private val ctx: Context) {
     var showTranslations by mutableStateOf(true)
     var speechRate by mutableStateOf(0.85f)
     var dailyNewLimit by mutableStateOf(20)
+    var dismissedUpdate by mutableStateOf("")
 
     private val file: File = File(ctx.filesDir, "kotoba.json")
 
@@ -60,6 +61,7 @@ class Store(private val ctx: Context) {
             showRomaji = o.optBoolean("showRomaji", true)
             showTranslations = o.optBoolean("showTranslations", true)
             speechRate = o.optDouble("rate", 0.85).toFloat()
+            dismissedUpdate = o.optString("dismissedUpdate", "")
             learnedKana = strSet(o, "kana")
             completedLessons = strSet(o, "lessons")
             val arr = o.optJSONArray("srs") ?: JSONArray()
@@ -99,6 +101,7 @@ class Store(private val ctx: Context) {
             o.put("showRomaji", showRomaji)
             o.put("showTranslations", showTranslations)
             o.put("rate", speechRate.toDouble())
+            o.put("dismissedUpdate", dismissedUpdate)
             o.put("kana", JSONArray(learnedKana.toList()))
             o.put("lessons", JSONArray(completedLessons.toList()))
             val arr = JSONArray()
@@ -229,6 +232,11 @@ class Store(private val ctx: Context) {
 
     fun setOnboarded() {
         onboarded = true
+        save()
+    }
+
+    fun dismissUpdate(version: String) {
+        dismissedUpdate = version
         save()
     }
 

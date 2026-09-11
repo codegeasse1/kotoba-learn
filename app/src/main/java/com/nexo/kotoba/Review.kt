@@ -3,6 +3,7 @@ package com.nexo.kotoba
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -274,7 +275,7 @@ private fun ReviewSession(
             )
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 GradeButton("Again", Color(0xFFD64545), Modifier.weight(1f)) {
                     store.grade(w.id, 0)
@@ -301,9 +302,16 @@ private fun ReviewSession(
 private fun GradeButton(label: String, color: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(48.dp),
+        modifier = modifier.height(46.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color)
     ) {
-        Text(label, fontWeight = FontWeight.Bold)
+        Text(
+            label,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            maxLines = 1,
+            softWrap = false
+        )
     }
 }

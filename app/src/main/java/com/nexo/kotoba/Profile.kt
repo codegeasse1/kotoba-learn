@@ -27,16 +27,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     var showReset by remember { mutableStateOf(false) }
+    var checking by remember { mutableStateOf(false) }
+    var upToDate by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
 
     Column(
         modifier = modifier
@@ -179,12 +187,49 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
         Spacer(Modifier.height(20.dp))
 
         OutlinedButton(
+            onClick = {
+                if (!checking) {
+                    checking = true
+                    upToDate = false
+                    scope.launch {
+                        val info = Updater.check(ctx)
+                        checking = false
+                        if (info != null) updateInfo = info else upToDate = true
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                if (checking) "Checking for updates…"
+                else "Check for updates  ·  v${Updater.currentVersion(ctx)}"
+            )
+        }
+        if (upToDate) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "You're on the latest version 🎉",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedButton(
             onClick = { showReset = true },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Reset all progress", color = MaterialTheme.colorScheme.error)
         }
         Spacer(Modifier.height(24.dp))
+    }
+
+    updateInfo?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            currentVersion = Updater.currentVersion(ctx),
+            onDismiss = { updateInfo = null }
+        )
     }
 
     if (showReset) {

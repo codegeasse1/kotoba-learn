@@ -25,6 +25,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -70,6 +72,13 @@ class MainActivity : ComponentActivity() {
                 Gloss.ensure(store.nativeLang)
                 Gloss.ensureTarget(store.target)
                 var screen by remember { mutableStateOf(Screen.HOME) }
+                val ctx = LocalContext.current
+                var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+                LaunchedEffect(store.onboarded) {
+                    if (!store.onboarded) return@LaunchedEffect
+                    val info = Updater.check(ctx)
+                    if (info != null && info.version != store.dismissedUpdate) updateInfo = info
+                }
                 BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
                 if (!store.onboarded) {
                     OnboardingDialog(store, onDone = { screen = Screen.HOME })
@@ -112,6 +121,16 @@ class MainActivity : ComponentActivity() {
                             Screen.PROFILE -> ProfileScreen(store, speaker, contentMod)
                         }
                     }
+                }
+                updateInfo?.let { info ->
+                    UpdateAvailableDialog(
+                        info = info,
+                        currentVersion = Updater.currentVersion(ctx),
+                        onDismiss = {
+                            store.dismissUpdate(info.version)
+                            updateInfo = null
+                        }
+                    )
                 }
             }
         }

@@ -26,6 +26,7 @@ Built on well-established language-learning research:
 - 🎯 **Learn any language** — the \"I'm learning…\" picker offers all 12 languages, so an English native can learn Spanish, Arabic, French… and a Hindi native can learn Japanese or German. For anything other than the hand-written Japanese/English tracks, the app builds the full curriculum (vocabulary, example sentences, grammar patterns and roleplay conversations) on the fly by translating the English course through the same offline gloss tables, so every lesson, example and grammar rule is available in the language you picked.
 - 🔟 **Ten+ examples everywhere** — every vocabulary word shows ten example sentences *in the language you're learning*, each with a gloss in your native language. `TargetExamples.kt` holds ten sentence frames per part of speech (noun/verb/adjective/adverb/number/other) in all 12 languages, and `Examples.exLines` blends any curated examples with those frames so no track ever falls back to English or shows only a handful. Grammar patterns are topped up to **ten or more** by `GrammarPacks.kt` (hand-written extras in `GrammarExtraEn/Ja.kt`, related-pattern borrowing, then a same-language safety net).
 - 🎮 **Gamification** — XP, levels, daily streaks, stats, and progress tracking that make daily practice a habit.
+- 🔄 **In-app updates** — on launch the app checks GitHub for the newest release. If a newer build exists it shows an **Update now** dialog that downloads the APK inside the app and hands it to the Android installer, plus an "Open GitHub release page" link for a manual download. Also reachable from Profile → **Check for updates**.
 - 🌍 **Direction-independent** — study any of the 12 languages (Japanese and English are hand-authored; the rest are auto-translated from the English course); toggle romaji and translations to taper off scaffolding.
 
 ## Screens
@@ -43,6 +44,8 @@ Output APK: `app/build/outputs/apk/debug/app-debug.apk`
 ## CI
 
 Every push to `main` triggers [`.github/workflows/build.yml`](.github/workflows/build.yml), which compiles the app and uploads the APK as a GitHub Actions artifact.
+
+Each successful build publishes a **GitHub Release** tagged `v<versionName>` with a signed `app-release.apk`. The app's built-in updater (`Updater.kt`) reads the latest release from `https://api.github.com/repos/codegeasse1/kotoba-learn/releases/latest`, so **bump `versionName`/`versionCode` in `app/build.gradle.kts` on every release** — that is what makes installed apps see a new update.
 
 ## Tech
 
