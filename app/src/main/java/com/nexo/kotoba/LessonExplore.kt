@@ -252,12 +252,11 @@ private fun FlashcardBrowse(store: Store, speaker: Speaker, lesson: Lesson, onSt
             FilledIconButton(onClick = { speak(store, speaker, if (targetJa) w.kana else w.en, targetJa) }) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
             }
-            TextButton(
+            OutlinedButton(
                 onClick = { exampleWord = w },
-                modifier = Modifier.size(width = 52.dp, height = 44.dp),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("💬", fontSize = 18.sp)
+                Text("📖 Example sentences", fontSize = 14.sp)
             }
         }
 
@@ -358,12 +357,12 @@ private fun WordListBrowser(
                         ) {
                             Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
                         }
-                        TextButton(
+                        OutlinedButton(
                             onClick = { exampleWord = w },
-                            modifier = Modifier.size(width = 40.dp, height = 34.dp),
-                            contentPadding = PaddingValues(0.dp)
+                            modifier = Modifier.padding(start = 6.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                         ) {
-                            Text("💬", fontSize = 15.sp)
+                            Text("Examples", fontSize = 12.sp)
                         }
                     }
                 }
@@ -431,12 +430,11 @@ private fun WordGridBrowser(
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(2.dp))
-                    TextButton(
+                    OutlinedButton(
                         onClick = { exampleWord = w },
-                        modifier = Modifier.size(width = 40.dp, height = 30.dp),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("💬", fontSize = 14.sp)
+                        Text("Examples", fontSize = 12.sp)
                     }
                 }
             }

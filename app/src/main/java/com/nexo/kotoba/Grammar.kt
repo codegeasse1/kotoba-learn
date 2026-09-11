@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -216,7 +218,13 @@ private fun patternSubtitle(p: Pattern, native: String): String {
 
 @Composable
 private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, onClose: () -> Unit) {
+    var quiz by remember { mutableStateOf(false) }
+    if (quiz) {
+        PatternQuiz(p, store, speaker, modifier, onClose = { quiz = false })
+        return
+    }
     BackHandler(onBack = onClose)
+    val exs = remember(p.id, store.nativeLang, p.lang) { GrammarPacks.examples(p) }
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -241,15 +249,25 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
             RuleCard(p, store)
             Spacer(Modifier.height(14.dp))
 
-            Text("Examples — ${p.examples.size} sentences", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Examples — ${exs.size} sentences",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedButton(onClick = { quiz = true }) {
+                    Text("🎯 Practice")
+                }
+            }
             Spacer(Modifier.height(4.dp))
             Text(
-                "Read each one aloud. Tap 🔊 to hear it.",
+                "Read each one aloud. Tap 🔊 to hear it, then tap Practice to test yourself.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(8.dp))
-            p.examples.forEach { ex ->
+            exs.forEach { ex ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -324,5 +342,221 @@ private fun RuleParagraphs(text: String) {
             Text(para, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+private data class QuizQ(
+    val prompt: String,
+    val answer: String,
+    val options: List<String>,
+    val sentence: String
+)
+
+/**
+ * A tiny multiple-choice drill built from a pattern's example sentences: the
+ * learner sees the meaning and picks the matching target sentence. Correct
+ * answers reuse the examples shown on the pattern page, so the quiz needs no
+ * extra content and works for every language track.
+ */
+@Composable
+private fun PatternQuiz(
+    p: Pattern,
+    store: Store,
+    speaker: Speaker,
+    modifier: Modifier = Modifier,
+    onClose: () -> Unit
+) {
+    BackHandler(onBack = onClose)
+    val native = store.nativeLang
+    val questions = remember(p.id, native, p.lang) {
+        val pool = GrammarPacks.examples(p).mapNotNull { ex ->
+            val prompt = ex.glossFor(native, p.lang)
+            if (prompt.isBlank()) null else QuizQ(prompt, ex.ja, emptyList(), ex.ja)
+        }
+        if (pool.size < 4) {
+            emptyList()
+        } else {
+            pool.shuffled().map { q ->
+                val distractors = pool.filter { it.answer != q.answer }
+                    .shuffled().take(3).map { it.answer }
+                q.copy(options = (distractors + q.answer).shuffled())
+            }
+        }
+    }
+    var qi by remember { mutableStateOf(0) }
+    var score by remember { mutableStateOf(0) }
+    var picked by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onClose) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Column {
+                Text(
+                    "Practice",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    p.titleEn,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            if (questions.isEmpty()) {
+                Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                    Text(
+                        "This pattern doesn't have enough examples to practise yet. Add more sentences and try again.",
+                        modifier = Modifier.padding(18.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                    Text("Back to examples")
+                }
+                Spacer(Modifier.height(24.dp))
+                return@Column
+            }
+
+            if (qi >= questions.size) {
+                val perfect = score == questions.size
+                Card(
+                    Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (perfect) MaterialTheme.colorScheme.tertiaryContainer
+                        else MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(22.dp)) {
+                        Text(
+                            if (perfect) "Perfect score! 🎉" else "Nice work!",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            "You got $score out of ${questions.size} correct.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+                Button(
+                    onClick = { qi = 0; score = 0; picked = null },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Practise again")
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {
+                    Text("Back to examples")
+                }
+                Spacer(Modifier.height(24.dp))
+                return@Column
+            }
+
+            val q = questions[qi]
+            Text(
+                "Question ${qi + 1} of ${questions.size}",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                "Score: $score",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Card(
+                Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(Modifier.padding(18.dp)) {
+                    Text(
+                        "Choose the sentence that means:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        q.prompt,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+
+            val revealed = picked != null
+            q.options.forEach { opt ->
+                val isAnswer = opt == q.answer
+                val bg = when {
+                    !revealed -> MaterialTheme.colorScheme.surfaceVariant
+                    isAnswer -> MaterialTheme.colorScheme.tertiaryContainer
+                    opt == picked -> MaterialTheme.colorScheme.errorContainer
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable(enabled = !revealed) {
+                            picked = opt
+                            if (isAnswer) score += 1
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = bg)
+                ) {
+                    Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            opt,
+                            modifier = Modifier.weight(1f),
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (revealed && isAnswer) {
+                            Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        } else if (revealed && opt == picked) {
+                            Text("✗", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+            if (revealed) {
+                FilledIconButton(onClick = { speak(store, speaker, q.answer, p.lang != "en") }) {
+                    Icon(Icons.Filled.VolumeUp, contentDescription = "Hear")
+                }
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        if (qi < questions.size - 1) {
+                            qi += 1
+                            picked = null
+                        } else {
+                            qi = questions.size
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (qi < questions.size - 1) "Next question" else "See results")
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
     }
 }
