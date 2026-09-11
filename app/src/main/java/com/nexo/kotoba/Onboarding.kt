@@ -80,12 +80,10 @@ fun OnboardingDialog(store: Store, onDone: () -> Unit) {
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (native == "hi")
-                            "Hindi is set as your teaching language. Every word, phrase and grammar rule will show a Hindi meaning."
-                        else if (native == "ja")
-                            "Japanese is set as your teaching language."
+                        if (native == "en")
+                            "English is set as your teaching language."
                         else
-                            "Explanations will be shown in ${nativeName(native)} when available, else English.",
+                            "Meanings and translations will be shown in ${nativeName(native)}.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -233,10 +233,6 @@ private fun FlashcardBrowse(store: Store, speaker: Speaker, lesson: Lesson, onSt
                         Spacer(Modifier.height(8.dp))
                         Text(w.kanji, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
-                    if (!targetJa && w.hi.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
-                        Text(w.hi, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                    }
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(
@@ -616,7 +612,7 @@ private fun ExampleSheet(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                if (isJa) "日本語の例文 + हिंदी अर्थ" else "Example sentences with translations",
+                if (isJa) "日本語の例文" else "Example sentences with translations",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -655,7 +651,7 @@ private fun ExampleSheet(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            if (ex.hi.isNotBlank()) {
+                            if (ex.hi.isNotBlank() && store.nativeLang == "hi") {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     ex.hi,
@@ -692,10 +688,15 @@ private fun ExampleSheet(
                                     Icon(Icons.Filled.VolumeUp, contentDescription = "Hear sentence")
                                 }
                             }
-                            if (i < hindi.size && hindi[i].isNotBlank()) {
+                            val exGloss = when {
+                                store.nativeLang == "hi" -> if (i < hindi.size) hindi[i] else ""
+                                store.nativeLang == "en" -> ""
+                                else -> Gloss.lookup(ex) ?: ""
+                            }
+                            if (exGloss.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    hindi[i],
+                                    exGloss,
                                     modifier = Modifier.padding(start = 24.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant

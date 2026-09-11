@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,11 +59,14 @@ class MainActivity : ComponentActivity() {
         val store = Store(applicationContext)
         store.load()
         KanjiData.init(applicationContext)
+        Gloss.attach(applicationContext)
+        Gloss.ensure(store.nativeLang)
         Thread { DictionaryData.init(applicationContext) }.start()
         speaker = Speaker(applicationContext)
 
         setContent {
             KotobaTheme {
+                Gloss.ensure(store.nativeLang)
                 var screen by remember { mutableStateOf(Screen.HOME) }
                 BackHandler(enabled = screen != Screen.HOME) { screen = Screen.HOME }
                 if (!store.onboarded) {
@@ -96,13 +100,15 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { pad ->
                     val contentMod = Modifier.padding(pad)
-                    when (screen) {
-                        Screen.HOME -> HomeScreen(store, speaker, contentMod, onNav = { screen = it })
-                        Screen.LEARN -> LearnScreen(store, speaker, contentMod)
-                        Screen.REVIEW -> ReviewScreen(store, speaker, contentMod)
-                        Screen.GRAMMAR -> GrammarScreen(store, speaker, contentMod)
-                        Screen.DICTIONARY -> DictionaryScreen(store, speaker, contentMod)
-                        Screen.PROFILE -> ProfileScreen(store, speaker, contentMod)
+                    key(store.nativeLang) {
+                        when (screen) {
+                            Screen.HOME -> HomeScreen(store, speaker, contentMod, onNav = { screen = it })
+                            Screen.LEARN -> LearnScreen(store, speaker, contentMod)
+                            Screen.REVIEW -> ReviewScreen(store, speaker, contentMod)
+                            Screen.GRAMMAR -> GrammarScreen(store, speaker, contentMod)
+                            Screen.DICTIONARY -> DictionaryScreen(store, speaker, contentMod)
+                            Screen.PROFILE -> ProfileScreen(store, speaker, contentMod)
+                        }
                     }
                 }
             }

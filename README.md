@@ -22,7 +22,7 @@ Built on well-established language-learning research:
 - 🧠 **Spaced-repetition reviews** — SM-2 scheduler with Again / Hard / Good / Easy grading, progress bars, and XP rewards. Every word in every module feeds one unified SRS.
 - 🗣️ **Phrase bank** — real-world chunked sentences with word-by-word breakdowns.
 - 📐 **Grammar patterns** — JLPT/CEFR patterns plus Genki 1 and JFZ grammar, taught as *patterns with audio examples*, explained in English, Japanese *and Hindi*.
-- 🪔 **Hindi support** — every word and pattern carries a Hindi gloss (with an override dictionary of common words for accuracy); empty glosses fall back to the English meaning.
+- 🌍 **12 native languages** — pick English, Hindi, Japanese, Spanish, Arabic, French, German, Bengali, Tamil, Telugu, Urdu or Kannada and every word, phrase, sentence and grammar pattern is shown with a meaning in that language (hand-written for Hindi/Japanese, an offline bundled gloss table for the rest). Empty glosses fall back to the English meaning.
 - 🎮 **Gamification** — XP, levels, daily streaks, stats, and progress tracking that make daily practice a habit.
 - 🌍 **Direction-independent** — switch between learning Japanese, English, or both; toggle romaji and translations to taper off scaffolding.
 

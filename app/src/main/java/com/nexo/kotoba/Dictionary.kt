@@ -62,7 +62,7 @@ fun DictionaryScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifi
                 Text("Dictionary", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
                 Text(
                     if (DictionaryData.loaded)
-                        "${DictionaryData.enAll.size} English→हिन्दी · ${DictionaryData.jaAll.size} 日本語→English"
+                        "${DictionaryData.enAll.size} English · ${DictionaryData.jaAll.size} 日本語 · offline"
                     else "Loading 240k+ words…",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -164,7 +164,11 @@ private fun EnResultCard(e: EnEntry, store: Store, speaker: Speaker) {
                 }
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    e.hi,
+                    when (store.nativeLang) {
+                        "hi" -> e.hi
+                        "en" -> e.head
+                        else -> Gloss.lookup(e.head) ?: e.hi
+                    },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
@@ -207,7 +211,7 @@ private fun JaResultCard(j: JaEntry, store: Store, speaker: Speaker) {
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    j.gloss,
+                    if (store.nativeLang == "en") j.gloss else Gloss.lookup(j.gloss) ?: j.gloss,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2

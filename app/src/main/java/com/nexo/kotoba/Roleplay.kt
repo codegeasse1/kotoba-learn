@@ -466,11 +466,14 @@ fun RoleplayScreen(rp: Roleplay, store: Store, speaker: Speaker, modifier: Modif
                     ) {
                         Column(Modifier.padding(12.dp)) {
                             Text(opt.text, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                            Text(
-                                opt.textHi,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            val optTr = if (store.nativeLang == "hi") opt.textHi else Gloss.lookup(opt.text) ?: ""
+                            if (optTr.isNotBlank()) {
+                                Text(
+                                    optTr,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -527,10 +530,11 @@ private fun MessageBubble(
             ) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
                     Text(m.text, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-                    if (revealed) {
+                    val tr = if (store.nativeLang == "hi") m.hi else Gloss.lookup(m.text) ?: ""
+                    if (revealed && tr.isNotBlank()) {
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            m.hi,
+                            tr,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
