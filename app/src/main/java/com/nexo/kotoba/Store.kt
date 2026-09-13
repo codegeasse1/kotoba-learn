@@ -43,6 +43,9 @@ class Store(private val ctx: Context) {
     var speechRate by mutableStateOf(0.85f)
     var dailyNewLimit by mutableStateOf(20)
     var dismissedUpdate by mutableStateOf("")
+    var extraExamples by mutableStateOf(true)
+    var aiEnabled by mutableStateOf(false)
+    var aiModelId by mutableStateOf("smollm2-135m")
 
     private val file: File = File(ctx.filesDir, "kotoba.json")
 
@@ -62,6 +65,9 @@ class Store(private val ctx: Context) {
             showTranslations = o.optBoolean("showTranslations", true)
             speechRate = o.optDouble("rate", 0.85).toFloat()
             dismissedUpdate = o.optString("dismissedUpdate", "")
+            extraExamples = o.optBoolean("extraExamples", true)
+            aiEnabled = o.optBoolean("aiEnabled", false)
+            aiModelId = o.optString("aiModelId", "smollm2-135m")
             learnedKana = strSet(o, "kana")
             completedLessons = strSet(o, "lessons")
             val arr = o.optJSONArray("srs") ?: JSONArray()
@@ -102,6 +108,9 @@ class Store(private val ctx: Context) {
             o.put("showTranslations", showTranslations)
             o.put("rate", speechRate.toDouble())
             o.put("dismissedUpdate", dismissedUpdate)
+            o.put("extraExamples", extraExamples)
+            o.put("aiEnabled", aiEnabled)
+            o.put("aiModelId", aiModelId)
             o.put("kana", JSONArray(learnedKana.toList()))
             o.put("lessons", JSONArray(completedLessons.toList()))
             val arr = JSONArray()
@@ -256,6 +265,9 @@ class Store(private val ctx: Context) {
         completedLessons = emptySet()
         srs = emptyMap()
         onboarded = false
+        extraExamples = true
+        aiEnabled = false
+        aiModelId = "smollm2-135m"
         file.delete()
     }
 }

@@ -1,5 +1,6 @@
 package com.nexo.kotoba
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,9 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -215,6 +218,41 @@ fun ProfileScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
         }
         Spacer(Modifier.height(12.dp))
 
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)) {
+            Column(Modifier.padding(20.dp)) {
+                Text("Advanced", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "Optional extras. Everything here works fully offline — no account and no API key.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(6.dp))
+                SettingSwitch(
+                    title = "More example sentences",
+                    subtitle = "Adds a bundled sentence bank so words show extra examples. Works in airplane mode.",
+                    checked = store.extraExamples,
+                    onCheckedChange = {
+                        store.extraExamples = it
+                        store.save()
+                    }
+                )
+                SettingSwitch(
+                    title = "On-device AI examples (experimental)",
+                    subtitle = "A small language model on your phone invents new sentences. Nothing is sent to a server.",
+                    checked = store.aiEnabled,
+                    onCheckedChange = {
+                        store.aiEnabled = it
+                        store.save()
+                    }
+                )
+                if (store.aiEnabled) {
+                    Spacer(Modifier.height(12.dp))
+                    AiModelPicker(store = store, ctx = ctx)
+                }
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+
         Text("About", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(4.dp))
         Text(
@@ -313,5 +351,87 @@ private fun SettingSwitch(
             )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun AiModelPicker(store: Store, ctx: Context) {
+    val scope = rememberCoroutineScope()
+    val model = OnDeviceAi.model(store.aiModelId)
+    var ready by remember(store.aiModelId) { mutableStateOf(OnDeviceAi.isReady(ctx, store.aiModelId)) }
+    var busy by remember { mutableStateOf(false) }
+    var pct by remember { mutableStateOf(0) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Text("AI model", fontWeight = FontWeight.Medium)
+    Text(
+        "Downloaded once, then it runs entirely on your phone.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(Modifier.height(8.dp))
+    OnDeviceAi.MODELS.forEach { m ->
+        FilterChip(
+            selected = store.aiModelId == m.id,
+            onClick = {
+                if (!busy && store.aiModelId != m.id) {
+                    store.aiModelId = m.id
+                    store.save()
+                    error = null
+                }
+            },
+            label = { Text(m.label) }
+        )
+    }
+    Spacer(Modifier.height(4.dp))
+    Text(
+        "${model.note} Download is about ${model.sizeMb} MB.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Spacer(Modifier.height(10.dp))
+
+    if (busy) {
+        LinearProgressIndicator(
+            progress = { pct / 100f },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(4.dp))
+        Text("Downloading… $pct%", style = MaterialTheme.typography.labelMedium)
+    } else if (ready) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Model ready ✓",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = {
+                OnDeviceAi.delete(ctx, store.aiModelId)
+                ready = false
+            }) {
+                Text("Delete", color = MaterialTheme.colorScheme.error)
+            }
+        }
+    } else {
+        Button(
+            onClick = {
+                busy = true
+                error = null
+                pct = 0
+                scope.launch {
+                    val err = OnDeviceAi.download(ctx, store.aiModelId) { p -> pct = p }
+                    busy = false
+                    if (err == null) ready = true else error = err
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Download model (${model.sizeMb} MB)")
+        }
+    }
+    error?.let {
+        Spacer(Modifier.height(6.dp))
+        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     }
 }

@@ -3508,6 +3508,62 @@ object Examples {
     }
 
     /**
+     * A learner-native rendering of a full English [sentence]. This is used for the
+     * extra, corpus-sourced examples where only the English side is available.
+     *
+     * Exact sentence glosses are rare in the bundled tables, so this falls back to
+     * a greedy phrase-by-phrase gist: the longest dictionary phrase that matches at
+     * each position wins, unknown words are skipped, and a result is only returned
+     * when enough of the sentence was actually translated to be useful.
+     */
+    fun sentenceGloss(sentence: String, native: String): String {
+        if (native.isBlank() || native == "en") return ""
+        val s = sentence.trim()
+        if (s.isEmpty()) return ""
+
+        Gloss.lookup(s)?.let { g -> cleanGloss(g)?.let { if (it.isNotBlank()) return it } }
+
+        val tokens = Regex("[\\p{L}\\p{N}']+").findAll(s).map { it.value }.toList()
+        if (tokens.size < 2) return ""
+
+        val parts = ArrayList<String>(tokens.size)
+        var translated = 0
+        var i = 0
+        while (i < tokens.size) {
+            var hit = 0
+            var piece: String? = null
+            for (len in minOf(4, tokens.size - i) downTo 1) {
+                val g = glossLookup(tokens.subList(i, i + len).joinToString(" "))
+                if (!g.isNullOrBlank()) {
+                    piece = g
+                    hit = len
+                    break
+                }
+            }
+            if (piece != null) {
+                parts.add(piece)
+                translated++
+                i += hit
+            } else {
+                i += 1
+            }
+        }
+        if (translated < 2) return ""
+        if (translated * 100 / tokens.size < 35) return ""
+        return parts.joinToString(" ")
+    }
+
+    /** Case-tolerant gloss lookup — dictionary keys mix "I" with lower-case words. */
+    private fun glossLookup(phrase: String): String? {
+        cleanGloss(Gloss.lookup(phrase))?.let { return it }
+        val lower = phrase.lowercase()
+        if (lower != phrase) cleanGloss(Gloss.lookup(lower))?.let { return it }
+        val cap = phrase.replaceFirstChar { it.uppercaseChar() }
+        if (cap != phrase) cleanGloss(Gloss.lookup(cap))?.let { return it }
+        return null
+    }
+
+    /**
      * Ten example sentences for [word] in the language being learned, each with a
      * native-language gloss. Curated/authored sentences come first; any shortfall
      * is filled from [TargetExamples] so every track always shows ten.

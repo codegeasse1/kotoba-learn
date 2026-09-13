@@ -47,6 +47,7 @@ Built on well-established language-learning research:
 - 🌍 **12 native languages** — pick English, Hindi, Japanese, Spanish, Arabic, French, German, Bengali, Tamil, Telugu, Urdu or Kannada and every word, phrase, sentence and grammar pattern is shown with a meaning in that language (hand-written for Hindi/Japanese, an offline bundled gloss table for the rest). Empty glosses fall back to English.
 - 🎯 **Learn any language, from any language** — the "I'm learning…" picker offers all 12 languages, so an English native can learn Spanish, Arabic or French, and a Hindi native can learn Japanese or German. For anything other than the hand-written Japanese/English tracks, the app builds the full curriculum on the fly by translating the English course through the same offline gloss tables, so every lesson, example and grammar rule is available in the language you picked.
 - 🔟 **Ten+ examples everywhere** — every vocabulary word shows ten example sentences in the language you're learning, each with a gloss in your native language. `TargetExamples.kt` holds ten sentence frames per part of speech in all 12 languages and `Examples.exLines` blends curated examples with those frames; grammar patterns are topped up to ten or more by `GrammarPacks.kt`. Words that are already complete utterances — greetings and courtesy phrases like **good evening, how are you, thank you, see you later, I'm fine** — get their own set of **natural, real-life dialogue examples** (reported speech and everyday exchanges) instead of the generic vocabulary frames, so they never read like a drill.
+- ➕ **Unlimited extra examples** — every word's example sheet has a **More examples** button that streams real sentences from a bundled Tatoeba corpus (~89,000 pairs, CC-BY 2.0 FR — see `docs/DATA-LICENSES.md`), and an optional **on-device AI** mode (Profile → Advanced) that invents brand-new sentences with a small model running entirely on your phone — no account, no API key, no server. A build-time script (`tools/build-ai-examples.mjs`) can also top up the corpus with a free key before you ship; see `docs/EXTRA-EXAMPLES.md`.
 - 🎮 **Gamification** — XP, levels, daily streaks, best-streak tracking, stats and progress tracking that make daily practice a habit.
 - 🔄 **In-app updates** — on launch the app checks GitHub for the newest release. If a newer build exists it shows an **Update now** dialog that downloads the APK inside the app and hands it to the Android installer, plus an "Open GitHub release page" link for a manual download. Also reachable from Profile → **Check for updates**.
 - 📴 **Offline-first** — the dictionary, gloss tables, kanji data and every course ship inside the APK; only optional network TTS and the update check need a connection.
@@ -72,10 +73,12 @@ Output APK: `app/build/outputs/apk/debug/app-debug.apk`
 
 ## CI & releases
 
-Every push to `main` triggers [`.github/workflows/build.yml`](.github/workflows/build.yml), which compiles the app and uploads the APK as a GitHub Actions artifact.
+Every push (on any branch) triggers [`.github/workflows/build.yml`](.github/workflows/build.yml), which builds a signed release APK and uploads it as a GitHub Actions **artifact**. It does **not** publish a release, so a branch build is a safe way to download and test before shipping.
 
-Each successful build publishes a **GitHub Release** tagged `v<versionName>` with a signed `app-release.apk`. The app's built-in updater (`Updater.kt`) reads the latest release from `https://api.github.com/repos/codegeasse1/kotoba-learn/releases/latest`, so **bump `versionName`/`versionCode` in `app/build.gradle.kts` on every release** — that is what makes installed apps see a new update.
+To publish, run the workflow manually (**Actions → Build APK → Run workflow**) and tick **release**. That produces the same artifact *and* a **GitHub Release** tagged `v<versionName>`, which is what the app's built-in updater (`Updater.kt`) reads from `https://api.github.com/repos/codegeasse1/kotoba-learn/releases/latest`. So **bump `versionName`/`versionCode` in `app/build.gradle.kts` before a release** — that is what makes installed apps see a new update.
+
+The APK ships `arm64-v8a` + `armeabi-v7a` native code only (see the `ndk { abiFilters }` block in `app/build.gradle.kts`). That is required by the optional on-device AI and avoids shipping ~60 MB of emulator-only libraries.
 
 ## Tech
 
-Kotlin · Jetpack Compose (Material 3) · Android Gradle Plugin 8.5 · Kotlin 2.0 · minSdk 26 (Android 8.0+)
+Kotlin · Jetpack Compose (Material 3) · Android Gradle Plugin 8.5 · Kotlin 2.0 · minSdk 26 (Android 8.0+) · optional MediaPipe LLM Inference

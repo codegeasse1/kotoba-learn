@@ -26,6 +26,9 @@ android {
         targetSdk = 34
         versionCode = 26
         versionName = "1.16.0"
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
 
     buildTypes {
@@ -67,5 +70,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.mediapipe:tasks-genai:0.10.35")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
