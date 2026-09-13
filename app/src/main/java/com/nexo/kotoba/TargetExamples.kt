@@ -27,8 +27,33 @@ object TargetExamples {
 
     )
 
+    /**
+     * Special sentence frames for conversational phrases ("phrase") that are
+     * already complete utterances — e.g. "good evening", "thank you", "see you
+     * later" — so they are shown inside natural, real-life dialogue instead of
+     * the generic vocabulary frames.
+     */
+    private val SPECIAL: Map<String, Map<String, List<String>>> = mapOf(
+        "en" to enSpecial(),
+        "hi" to hiSpecial(),
+        "ja" to jaSpecial(),
+        "es" to esSpecial(),
+        "ar" to arSpecial(),
+        "fr" to frSpecial(),
+        "de" to deSpecial(),
+        "bn" to bnSpecial(),
+        "ta" to taSpecial(),
+        "te" to teSpecial(),
+        "ur" to urSpecial(),
+        "kn" to knSpecial()
+    )
+
     /** The ten example frames for [lang] and part-of-speech bucket [pos]. */
     fun frames(lang: String, pos: String): List<String> {
+        if (pos == "phrase") {
+            val sp = SPECIAL[lang] ?: SPECIAL["en"]!!
+            return sp["phrase"]!!
+        }
         val m = FRAMES[lang] ?: FRAMES["en"]!!
         return m[pos] ?: m["other"]!!
     }
@@ -933,3 +958,182 @@ object TargetExamples {
         )
     )
 
+    private fun enSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "I asked him how he was, and he said \"XKEYX\" to me.",
+                "She looked up and replied \"XKEYX\" without hesitating.",
+                "He turned around and said \"XKEYX\" before he left.",
+                "I called her on the phone, and she answered \"XKEYX\" right away.",
+                "She waved at me and called out \"XKEYX\" across the street.",
+                "When I saw him this morning, he greeted me with \"XKEYX\" and a smile.",
+                "I sent her a message, and she texted back \"XKEYX\" a minute later.",
+                "He smiled and said \"XKEYX\" to everyone in the room.",
+                "She opened the door and said \"XKEYX\" in a quiet voice.",
+                "He looked up from his work and said \"XKEYX\" to me."
+            )
+    )
+
+    private fun hiSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "मैंने उससे पूछा कि वह कैसा है, और उसने मुझसे \"XKEYX\" कहा।",
+                "उसने बिना झिझक \"XKEYX\" कहा।",
+                "जाने से पहले उसने मुड़कर \"XKEYX\" कहा।",
+                "मैंने उसे फ़ोन किया, और उसने तुरंत \"XKEYX\" कहा।",
+                "उसने मुझे देखकर सड़क के उस पार से \"XKEYX\" कहा।",
+                "आज सुबह जब मैं उससे मिला, तो उसने मुस्कुराकर \"XKEYX\" कहा।",
+                "मैंने उसे संदेश भेजा, और उसने एक मिनट बाद \"XKEYX\" लिखा।",
+                "वह मुस्कुराया और कमरे में सबसे \"XKEYX\" कहा।",
+                "उसने दरवाज़ा खोला और धीमी आवाज़ में \"XKEYX\" कहा।",
+                "उसने अपने काम से सिर उठाकर मुझसे \"XKEYX\" कहा।"
+            )
+    )
+
+    private fun jaSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "彼に元気かと聞いたら、彼は私に「XKEYX」と言いました。",
+                "彼女はためらわずに「XKEYX」と答えました。",
+                "出かける前に彼は振り返って「XKEYX」と言いました。",
+                "私が電話すると、彼女はすぐに「XKEYX」と答えました。",
+                "彼女は手を振りながら、通りの向こうから「XKEYX」と呼びました。",
+                "今朝会ったとき、彼は笑顔で「XKEYX」と言いました。",
+                "私がメッセージを送ると、彼女はすぐに「XKEYX」と返信しました。",
+                "彼は笑って、部屋のみんなに「XKEYX」と言いました。",
+                "彼女はドアを開けて、小さな声で「XKEYX」と言いました。",
+                "彼は仕事の手を止めて、私に「XKEYX」と言いました。"
+            )
+    )
+
+    private fun esSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "Le pregunté cómo estaba, y me dijo \"XKEYX\".",
+                "Ella respondió \"XKEYX\" sin dudar.",
+                "Se dio la vuelta y dijo \"XKEYX\" antes de irse.",
+                "La llamé por teléfono y contestó \"XKEYX\" enseguida.",
+                "Me saludó con la mano y me gritó \"XKEYX\" desde el otro lado de la calle.",
+                "Cuando lo vi esta mañana, me recibió con un \"XKEYX\" y una sonrisa.",
+                "Le envié un mensaje y me respondió \"XKEYX\" un minuto después.",
+                "Sonrió y le dijo \"XKEYX\" a todos en la sala.",
+                "Abrió la puerta y dijo \"XKEYX\" en voz baja.",
+                "Levantó la vista de su trabajo y me dijo \"XKEYX\"."
+            )
+    )
+
+    private fun arSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "سألته كيف حاله، فقال لي «XKEYX».",
+                "أجابت «XKEYX» دون تردد.",
+                "استدار وقال «XKEYX» قبل أن يغادر.",
+                "اتصلت بها، فأجابت «XKEYX» على الفور.",
+                "لوّحت لي ونادت «XKEYX» من الجهة الأخرى من الشارع.",
+                "عندما رأيته هذا الصباح، استقبلني بـ«XKEYX» وابتسامة.",
+                "أرسلت لها رسالة، فأجابت «XKEYX» بعد دقيقة.",
+                "ابتسم وقال «XKEYX» لكل من في الغرفة.",
+                "فتح الباب وقال «XKEYX» بصوت هادئ.",
+                "رفع رأسه من عمله وقال لي «XKEYX»."
+            )
+    )
+
+    private fun frSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "Je lui ai demandé comment il allait, et il m'a dit \"XKEYX\".",
+                "Elle a répondu \"XKEYX\" sans hésiter.",
+                "Il s'est retourné et a dit \"XKEYX\" avant de partir.",
+                "Je l'ai appelée, et elle a répondu \"XKEYX\" tout de suite.",
+                "Elle m'a fait un signe et m'a crié \"XKEYX\" depuis l'autre côté de la rue.",
+                "Quand je l'ai vu ce matin, il m'a accueilli avec un \"XKEYX\" et un sourire.",
+                "Je lui ai envoyé un message, et elle m'a répondu \"XKEYX\" une minute plus tard.",
+                "Il a souri et a dit \"XKEYX\" à tout le monde dans la salle.",
+                "Elle a ouvert la porte et a dit \"XKEYX\" à voix basse.",
+                "Il a levé les yeux de son travail et m'a dit \"XKEYX\"."
+            )
+    )
+
+    private fun deSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "Ich fragte ihn, wie es ihm geht, und er sagte \"XKEYX\" zu mir.",
+                "Sie antwortete \"XKEYX\", ohne zu zögern.",
+                "Er drehte sich um und sagte \"XKEYX\", bevor er ging.",
+                "Ich rief sie an, und sie antwortete sofort \"XKEYX\".",
+                "Sie winkte mir zu und rief \"XKEYX\" von der anderen Straßenseite.",
+                "Als ich ihn heute Morgen sah, begrüßte er mich mit einem \"XKEYX\" und einem Lächeln.",
+                "Ich schickte ihr eine Nachricht, und sie antwortete eine Minute später \"XKEYX\".",
+                "Er lächelte und sagte \"XKEYX\" zu allen im Raum.",
+                "Sie öffnete die Tür und sagte \"XKEYX\" mit leiser Stimme.",
+                "Er sah von seiner Arbeit auf und sagte \"XKEYX\" zu mir."
+            )
+    )
+
+    private fun bnSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "আমি তাকে জিজ্ঞাসা করলাম সে কেমন আছে, আর সে আমাকে \"XKEYX\" বলল।",
+                "সে দ্বিধা না করে \"XKEYX\" বলে উত্তর দিল।",
+                "যাওয়ার আগে সে ঘুরে দাঁড়িয়ে \"XKEYX\" বলল।",
+                "আমি তাকে ফোন করলাম, আর সে সঙ্গে সঙ্গে \"XKEYX\" বলল।",
+                "সে আমাকে হাত নেড়ে রাস্তার ওপার থেকে \"XKEYX\" বলে ডাকল।",
+                "আজ সকালে তাকে দেখে সে হাসিমুখে \"XKEYX\" বলল।",
+                "আমি তাকে একটা বার্তা পাঠালাম, আর সে এক মিনিট পরে \"XKEYX\" লিখে পাঠাল।",
+                "সে হাসল এবং ঘরের সবাইকে \"XKEYX\" বলল।",
+                "সে দরজা খুলে নিচু স্বরে \"XKEYX\" বলল।",
+                "সে তার কাজ থেকে মুখ তুলে আমাকে \"XKEYX\" বলল।"
+            )
+    )
+
+    private fun taSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "நான் அவனிடம் எப்படி இருக்கிறாய் என்று கேட்டேன், அவன் என்னிடம் \"XKEYX\" என்றான்.",
+                "அவள் தயங்காமல் \"XKEYX\" என்று பதிலளித்தாள்.",
+                "கிளம்பும் முன் அவன் திரும்பி \"XKEYX\" என்றான்.",
+                "நான் அவளை அழைத்தேன், அவள் உடனே \"XKEYX\" என்றாள்.",
+                "அவள் என்னை நோக்கி கையசைத்து தெருவின் மறுபுறத்திலிருந்து \"XKEYX\" என்று கூப்பிட்டாள்.",
+                "இன்று காலையில் அவனைப் பார்த்தபோது, அவன் புன்னகையுடன் \"XKEYX\" என்றான்.",
+                "நான் அவளுக்கு ஒரு செய்தி அனுப்பினேன், ஒரு நிமிடத்தில் \"XKEYX\" என்று பதிலளித்தாள்.",
+                "அவன் சிரித்துக்கொண்டு அறையில் இருந்த அனைவரிடமும் \"XKEYX\" என்றான்.",
+                "அவள் கதவைத் திறந்து மெல்லிய குரலில் \"XKEYX\" என்றாள்.",
+                "அவன் தன் வேலையிலிருந்து நிமிர்ந்து என்னிடம் \"XKEYX\" என்றான்."
+            )
+    )
+
+    private fun teSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "నేను అతన్ని ఎలా ఉన్నావు అని అడిగాను, అతను నాతో \"XKEYX\" అన్నాడు.",
+                "ఆమె సందేహించకుండా \"XKEYX\" అని సమాధానమిచ్చింది.",
+                "వెళ్లే ముందు అతను తిరిగి \"XKEYX\" అన్నాడు.",
+                "నేను ఆమెకు ఫోన్ చేశాను, ఆమె వెంటనే \"XKEYX\" అని పలికింది.",
+                "ఆమె నాకు చేయి ఊపి వీధికి అవతలి నుంచి \"XKEYX\" అని పిలిచింది.",
+                "ఈ ఉదయం అతన్ని చూసినప్పుడు, అతను నవ్వుతూ \"XKEYX\" అన్నాడు.",
+                "నేను ఆమెకు సందేశం పంపాను, ఒక నిమిషంలో \"XKEYX\" అని జవాబిచ్చింది.",
+                "అతను నవ్వి గదిలో ఉన్న అందరికీ \"XKEYX\" అన్నాడు.",
+                "ఆమె తలుపు తెరిచి మెల్లగా \"XKEYX\" అన్నది.",
+                "అతను తన పని నుంచి తలెత్తి నాతో \"XKEYX\" అన్నాడు."
+            )
+    )
+
+    private fun urSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "میں نے اس سے پوچھا کہ وہ کیسا ہے، اور اس نے مجھ سے \"XKEYX\" کہا۔",
+                "اس نے بغیر جھجک \"XKEYX\" کہا۔",
+                "جانے سے پہلے وہ مڑا اور \"XKEYX\" کہا۔",
+                "میں نے اسے فون کیا، اور اس نے فوراً \"XKEYX\" کہا۔",
+                "اس نے مجھے دیکھ کر سڑک کے دوسری طرف سے \"XKEYX\" کہا۔",
+                "آج صبح جب میں اس سے ملا، تو اس نے مسکرا کر \"XKEYX\" کہا۔",
+                "میں نے اسے پیغام بھیجا، اور اس نے ایک منٹ بعد \"XKEYX\" لکھا۔",
+                "وہ مسکرایا اور کمرے میں سب سے \"XKEYX\" کہا۔",
+                "اس نے دروازہ کھولا اور آہستہ آواز میں \"XKEYX\" کہا۔",
+                "اس نے اپنے کام سے سر اٹھا کر مجھ سے \"XKEYX\" کہا۔"
+            )
+    )
+
+    private fun knSpecial(): Map<String, List<String>> = mapOf(
+        "phrase" to listOf(
+                "ಅವನು ಹೇಗಿದ್ದಾನೆ ಎಂದು ನಾನು ಕೇಳಿದೆ, ಅವನು ನನಗೆ \"XKEYX\" ಎಂದನು.",
+                "ಅವಳು ಹಿಂಜರಿಯದೆ \"XKEYX\" ಎಂದು ಉತ್ತರಿಸಿದಳು.",
+                "ಹೊರಡುವ ಮೊದಲು ಅವನು ತಿರುಗಿ \"XKEYX\" ಎಂದನು.",
+                "ನಾನು ಅವಳಿಗೆ ಫೋನ್ ಮಾಡಿದೆ, ಅವಳು ತಕ್ಷಣ \"XKEYX\" ಎಂದಳು.",
+                "ಅವಳು ನನಗೆ ಕೈ ಬೀಸಿ ಬೀದಿಯ ಆಚೆಯಿಂದ \"XKEYX\" ಎಂದು ಕೂಗಿದಳು.",
+                "ಇಂದು ಬೆಳಿಗ್ಗೆ ಅವನನ್ನು ನೋಡಿದಾಗ, ಅವನು ನಗುತ್ತಾ \"XKEYX\" ಎಂದನು.",
+                "ನಾನು ಅವಳಿಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿದೆ, ಒಂದು ನಿಮಿಷದಲ್ಲಿ \"XKEYX\" ಎಂದು ಉತ್ತರಿಸಿದಳು.",
+                "ಅವನು ನಗುತ್ತಾ ಕೋಣೆಯ ಎಲ್ಲರಿಗೂ \"XKEYX\" ಎಂದನು.",
+                "ಅವಳು ಬಾಗಿಲು ತೆರೆದು ಮೆಲ್ಲಗೆ \"XKEYX\" ಎಂದಳು.",
+                "ಅವನು ತನ್ನ ಕೆಲಸದಿಂದ ತಲೆ ಎತ್ತಿ ನನಗೆ \"XKEYX\" ಎಂದನು."
+            )
+    )

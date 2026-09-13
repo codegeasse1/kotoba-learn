@@ -3426,8 +3426,47 @@ object Examples {
         else -> "other"
     }
 
+    /**
+     * True when the entry is already a complete utterance — a greeting, a
+     * courtesy formula or a whole sentence like "good evening", "thank you",
+     * "see you later" or "how are you?". Those get real conversational examples
+     * instead of the generic vocabulary frames.
+     */
+    fun isSentenceLike(key: String): Boolean {
+        if (key.isEmpty()) return false
+        if (key.endsWith(".") || key.endsWith("?") || key.endsWith("!")) return true
+        if (key in INTERJECTIONS) return true
+        if (!key.contains(" ")) return false
+        return SENTENCE_STARTS.any { key.startsWith(it) }
+    }
+
+    private val INTERJECTIONS = setOf(
+        "yes", "no", "okay", "ok", "hello", "hi", "hey", "bye", "goodbye",
+        "thanks", "sorry", "please", "welcome", "sure", "maybe", "congratulations"
+    )
+
+    private val SENTENCE_STARTS = listOf(
+        "i ", "i'm ", "i am ", "we ", "you ", "he ", "she ", "they ", "it's ", "it is ",
+        "let's ", "let us ", "don't ", "do you", "do i", "does ", "did ", "can you",
+        "can i", "could you", "would you", "will you", "shall ", "what ", "where ",
+        "when ", "why ", "who ", "whose ", "how ", "good morning", "good afternoon",
+        "good evening", "good night", "nice to ", "thank you", "thanks", "sorry",
+        "excuse me", "see you", "have a ", "of course", "you're ", "please ",
+        "congratulations", "welcome", "happy ", "here you", "there you", "how's ",
+        "what's ", "no thank", "not at all", "never mind", "by the way", "take care",
+        "good luck", "bless you", "long time"
+    )
+
+    /** Capitalise the first letter of a phrase so it reads well inside a quote. */
+    private fun phraseCase(s: String): String {
+        val t = s.trim()
+        if (t.isEmpty()) return t
+        return t.substring(0, 1).uppercase() + t.substring(1)
+    }
+
     /** Coarse part-of-speech bucket used to choose example frames for a word. */
     fun posBucket(word: Word): String {
+        if (isSentenceLike(normalize(word.en))) return "phrase"
         val p = word.ipa.trim().lowercase()
         if (p.isNotEmpty()) {
             val direct = bucketOf(p)
@@ -3476,6 +3515,19 @@ object Examples {
     fun exLines(word: Word, target: String, native: String): List<ExLine> {
         val out = ArrayList<ExLine>(10)
         val showGloss = native.isNotBlank() && native != target
+        val key = normalize(word.en)
+        if (key.isNotEmpty() && isSentenceLike(key)) {
+            val tw = phraseCase(targetWordIn(word, target))
+            val gframes = if (showGloss) TargetExamples.frames(native, "phrase") else emptyList()
+            val nw = if (gframes.isNotEmpty()) phraseCase(nativeWordIn(word, native)) else ""
+            val sub = if (target == "ja") word.romaji else ""
+            TargetExamples.frames(target, "phrase").forEachIndexed { i, f ->
+                val text = f.replace("XKEYX", tw)
+                val gloss = if (gframes.isNotEmpty()) (gframes.getOrNull(i) ?: "").replace("XKEYX", nw) else ""
+                out.add(ExLine(text, sub, gloss))
+            }
+            return out
+        }
         when (target) {
             "ja" -> jaForWord(word).forEach { ex ->
                 out.add(ExLine(ex.ja, ex.romaji, if (showGloss) nativeJa(word, native, ex) else ""))

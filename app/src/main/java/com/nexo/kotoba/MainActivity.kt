@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
         Gloss.ensure(store.nativeLang)
         Gloss.ensureTarget(store.target)
         Thread { DictionaryData.init(applicationContext) }.start()
+        Thread { Verbs.init(applicationContext) }.start()
         speaker = Speaker(applicationContext)
 
         setContent {
@@ -117,7 +118,7 @@ class MainActivity : ComponentActivity() {
                             Screen.LEARN -> LearnScreen(store, speaker, contentMod)
                             Screen.REVIEW -> ReviewScreen(store, speaker, contentMod)
                             Screen.GRAMMAR -> GrammarScreen(store, speaker, contentMod)
-                            Screen.DICTIONARY -> DictionaryScreen(store, speaker, contentMod)
+                            Screen.DICTIONARY -> WordsScreen(store, speaker, contentMod)
                             Screen.PROFILE -> ProfileScreen(store, speaker, contentMod)
                         }
                     }

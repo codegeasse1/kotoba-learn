@@ -110,18 +110,19 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             val jfz = Jfz.patterns.filter { matches(it) }
             val jg = JapaneseGrammar.patterns.filter { matches(it) }
             val eg = EnglishGrammar.patterns.filter { matches(it) }
+            val tenses = Tenses.patterns.filter { matches(it) }
             val otherCore = if (learningOther) remember(targetLang) { TargetContent.patterns(targetLang) } else emptyList()
             val otherCoreMatches = otherCore.filter { it.source.isEmpty() && matches(it) }
             val otherEssentials = otherCore.filter { it.source == "english" && matches(it) }
             val total = (if (learningJa) jaCore.size + genki.size + jfz.size + jg.size else 0) +
-                (if (learningEn) enCore.size + eg.size else 0) +
+                (if (learningEn) enCore.size + eg.size + tenses.size else 0) +
                 (if (learningOther) otherCoreMatches.size + otherEssentials.size else 0)
 
             val practicePool = when {
                 learningJa -> Data.allPatterns.filter { it.lang == "ja" && it.source.isEmpty() } +
                     Genki.patterns + Jfz.patterns + JapaneseGrammar.patterns
                 learningEn -> Data.allPatterns.filter { it.lang == "en" && it.source.isEmpty() } +
-                    EnglishGrammar.patterns
+                    EnglishGrammar.patterns + Tenses.patterns
                 else -> otherCore
             }
 
@@ -163,6 +164,8 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                     Spacer(Modifier.height(12.dp))
                 }
                 if (learningEn) {
+                    SectionList("Tenses", tenses, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
+                    Spacer(Modifier.height(12.dp))
                     SectionList("English patterns", enCore, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
                     Spacer(Modifier.height(12.dp))
                     SectionList("English Grammar Essentials", eg, query.isNotEmpty(), store.nativeLang, onClick = { open = it })
