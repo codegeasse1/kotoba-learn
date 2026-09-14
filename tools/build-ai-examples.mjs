@@ -13,8 +13,13 @@
  *
  *     the model is asked for two short Tamil sentences that use the Tamil word,
  *     each with an English meaning, and the good lines are appended to
- *     `app/src/main/assets/sentences_gen_ta.tsv`. Lines that don't contain the
- *     word, aren't written in the target script, or are duplicates are dropped.
+ *     `app/src/main/assets/sentences_gen_ta.tsv`. A generated line is dropped
+ *     unless it passes a mechanical guard-rail (`validPair`): it must contain
+ *     the word, be written in the target language's own script with no letters
+ *     from any other writing system, contain no brackets or stray `|`, not
+ *     duplicate an existing row, and its English side must read as a finished
+ *     sentence (a missing full stop is repaired; a truncated gloss such as
+ *     "Save for the" is thrown away).
  *
  *  2. "legacy append" (kept for compatibility). Items without `en` append plain
  *     sentences to `sentences.tsv` — the Japanese/English corpus.
@@ -62,6 +67,63 @@ const SCRIPT = {
 };
 
 const NONLATIN_RE = /[A-Za-z]/;
+
+// Every non-Latin script we might accidentally get back from a model. A target
+// sentence may only use the script of its own language (plus the usual
+// punctuation), so e.g. a Kannada example that picks up a Cyrillic or Hebrew
+// word is rejected. The Devanagari range excludes the danda (U+0964/5) because
+// that terminator legitimately appears in Tamil/Bengali text too.
+const FOREIGN_SCRIPTS = [
+  /[\u0400-\u04ff]/,                                     // Cyrillic
+  /[\u0370-\u03ff]/,                                     // Greek
+  /[\u0590-\u05ff]/,                                     // Hebrew
+  /[\u0600-\u06ff]/,                                     // Arabic
+  /[\u0900-\u0963\u0966-\u097f]/,                        // Devanagari
+  /[\u0980-\u09ff]/,                                     // Bengali
+  /[\u0b80-\u0bff]/,                                     // Tamil
+  /[\u0c00-\u0c7f]/,                                     // Telugu
+  /[\u0c80-\u0cff]/,                                     // Kannada
+  /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/, // CJK / kana
+  /[\uac00-\ud7af]/,                                     // Hangul
+];
+// Index into FOREIGN_SCRIPTS of the script that `lang` is allowed to use.
+const OWN_SCRIPT = { ar: 3, hi: 4, bn: 5, ta: 6, te: 7, kn: 8, ja: 9 };
+
+const TERMINAL_RE = /[.!?]$/;
+// A gloss that ends on one of these was cut off mid-sentence by the model.
+const DANGLING_RE =
+  /\b(a|an|the|of|to|in|on|at|for|with|and|or|but|is|are|was|were|be|been|being|am|do|does|did|will|would|can|could|shall|should|may|might|must|has|have|had|it|its|he|she|they|them|we|you|i|my|your|his|her|our|their|this|that|these|those|very|so|too|then|than|there|here|when|where|who|what|how|why|which|some|any|all|more|most|much|many|few|little|one|two|three|not|no|if|as|by|from|into|over|under|about|after|before|up|down|out|off)$/;
+
+/** Mechanical guard-rail shared by both modes: is this pair worth keeping? */
+function validPair(target, gloss, lang, word) {
+  if (!target || !gloss) return null;
+  if (target.length < 4 || target.length > 60) return null;
+  if (gloss.length > 70) return null;
+  if (/[|()[\]{}]/.test(target)) return null;
+  if (/[|()[\]{}]/.test(gloss)) return null;
+  if (target.toLowerCase() === gloss.toLowerCase()) return null;
+  if (!/[\p{L}]/u.test(gloss)) return null;
+  if (word && !target.includes(word)) return null;
+
+  const script = SCRIPT[lang];
+  if (script) {
+    if (!script.test(target)) return null;
+    if (NONLATIN_RE.test(target)) return null;
+  }
+  // Script purity: no letters from an unrelated writing system.
+  for (let i = 0; i < FOREIGN_SCRIPTS.length; i++) {
+    if (OWN_SCRIPT[lang] === i) continue;
+    if (FOREIGN_SCRIPTS[i].test(target)) return null;
+  }
+
+  // The English side of a row is shown to English-track learners, so it must
+  // read as a finished sentence: repair a missing full stop, drop truncated ones.
+  let en = gloss;
+  if (!TERMINAL_RE.test(en)) en += ".";
+  if (DANGLING_RE.test(en.slice(0, -1).toLowerCase().trim())) return null;
+  if (en.split(/\s+/).length < 3) return null;
+  return { target, gloss: en };
+}
 
 function readLines(file) {
   const seen = new Set();
@@ -123,19 +185,14 @@ async function topUp(item) {
     if (bar <= 0) continue;
     const target = strip(raw.slice(0, bar));
     const gloss = strip(raw.slice(bar + 1)).replace(/^["'\u201c\u201d\s]+|["'\u201c\u201d\s]+$/g, "");
-    if (!target || !gloss) continue;
-    if (target.length > 60 || gloss.length > 70) continue;
-    // The model sometimes repeats the line's fields ("English|target|English")
-    // or adds an explanatory parenthesis; both leak into the corpus as junk.
-    if (/[|()]/.test(target) || /[|()]/.test(gloss)) continue;
-    if (target.toLowerCase() === gloss.toLowerCase()) continue;
-    if (script && !script.test(target)) continue;
-    if (script && NONLATIN_RE.test(target)) continue;
-    if (!target.includes(word)) continue;
-    const key = target.toLowerCase();
+    // validPair enforces script purity, rejects bracketed/duplicated junk,
+    // repairs or rejects a truncated English side, etc. — see above.
+    const pair = validPair(target, gloss, lang, word);
+    if (!pair) continue;
+    const key = pair.target.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    fresh.push(target + "\t" + gloss);
+    fresh.push(pair.target + "\t" + pair.gloss);
     added++;
   }
   if (fresh.length) writeFileSync(file, (rows.join("\n") ? rows.join("\n") + "\n" : "") + fresh.join("\n") + "\n", "utf8");

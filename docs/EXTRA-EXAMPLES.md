@@ -134,12 +134,61 @@ An item like
 ```
 
 asks for two short Tamil sentences that use that word, each with an English
-meaning, and keeps only lines that actually contain the word and are written in
-the target script — which is exactly how the checked-in
-`sentences_gen_<lang>.tsv` files were produced. Items without `en` keep the
-original behaviour (plain sentences appended to `sentences.tsv`).
+meaning, and keeps only lines that pass a mechanical guard-rail (`validPair` in
+the script) — which is exactly how the checked-in `sentences_gen_<lang>.tsv`
+files were produced and re-audited. A line is dropped unless:
+
+* it contains the word the learner is studying, is 4–60 characters long and is
+  a duplicate-free addition;
+* it is written in the target language's own script with **no letters from any
+  other writing system** (a Kannada sentence that drifts into Cyrillic, Hebrew,
+  Tamil or CJK is rejected — the check excludes the danda, which Tamil and
+  Bengali legitimately use as a full stop);
+* it contains no brackets and no stray `|` (models like to add a gloss or a
+  parenthetical explanation that would otherwise leak into the corpus);
+* its English side is a finished sentence: a missing full stop is repaired, and
+  a truncated translation such as "Save for the" (ending on a function word) is
+  thrown away. The English side is what English-native learners see, and it must
+  end in terminal punctuation or the app's display filter hides the row.
+
+Items without `en` keep the original behaviour (plain sentences appended to
+`sentences.tsv`).
 
 Free tiers that work out of the box: Groq, Google AI Studio (Gemini),
 OpenRouter (`:free` models), Cerebras, Mistral. Any of them is fine — the script
 only needs a `/chat/completions` endpoint.
+
+## Corpus audit (the checked-in data)
+
+The bundled tables are audited mechanically rather than trusted. The last audit
+swept every asset for rows that would be shown to a learner and looked bad:
+
+* **Wrong-script contamination removed.** A target sentence must use only its own
+  writing system. Sweeping the ten `sentences_gen_*` files and the two Tatoeba
+  slices found and fixed a handful of rows where a letter from an unrelated
+  script had crept in (Cyrillic "теше"/"дверь" in Tamil/Telugu, Hebrew in
+  Kannada, Tamil and Bengali letters in the Telugu/Kannada files, CJK and
+  Devanagari in Tamil, …). `validPair` now blocks this at generation time.
+* **Japanese examples re-punctuated.** The generated Japanese rows in `Tenses.kt`
+  and `EnglishGrammar.kt` had been terminated with the Devanagari danda `।`
+  instead of the Japanese full stop `。` (and seven Hindi rows the other way
+  round); all 985 are corrected.
+* **English sides normalised.** Every `sentences_gen_*` English gloss that lacked
+  terminal punctuation now ends in `.` — the English-track display filter needs a
+  terminal mark, so those rows were previously unreachable for an English
+  native. Truncated glosses (a sentence cut off on "the", "is", "very", …) were
+  either completed or deleted.
+* **Duplicate/anti-examples kept out.** Example sheets draw only from curated
+  pairs; the English→Hindi gloss table's rows are never shown as example
+  sentences, and `sentenceKey` de-duplicates case- and punctuation-insensitively
+  so "Good night" / "Good night!" / "Good night." is one card, not three.
+* **`en_hi.tsv` (the offline English→Hindi dictionary) tidied.** The vendored
+  table had machine-mangled Hindi: compound verbs glued together
+  (`छोड़देना`, `अवमानितकरना`), `{}`/`[]` usage notes rendered with mismatched
+  brackets (`इक्का{ताशका)`), and underscores standing in for spaces
+  (`के_साथ`). All bracketed notes are now well-formed `(…)`, `_` is a space, the
+  glued verbal compounds are split where a Hindi word list confirms every piece
+  (`छोड़ देना`, `अवमानित करना`, `कम होना`), and a token is left alone rather than
+  guessed at whenever the split can't be verified — so the dictionary never
+  invents a wrong reading.
 

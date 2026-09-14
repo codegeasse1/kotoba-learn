@@ -2499,7 +2499,7 @@ object Examples {
         "コーヒー" to listOf(
 
             JaEx("コーヒー を のみます。", "koohii wo nomimasu.", "मैं कॉफ़ी पीता हूँ।", "I drink coffee."),
-            JaEx("コーヒー は にがい です。", "koohii wa nigai desu.", "कॉफ़ी कड़वी होती है。", "Coffee is bitter."),
+            JaEx("コーヒー は にがい です。", "koohii wa nigai desu.", "कॉफ़ी कड़वी होती है।", "Coffee is bitter."),
             JaEx("あさ に コーヒー を のみます。", "asa ni koohii wo nomimasu.", "सुबह मैं कॉफ़ी पीता हूँ।", "I drink coffee in the morning."),
         ),
         "ジュース" to listOf(
@@ -2612,7 +2612,7 @@ object Examples {
         ),
         "おじいさん" to listOf(
 
-            JaEx("おじいさん は おちゃ が すき です。", "ojiisan wa ocha ga suki desu.", "दादाजी को चाय पसंद है。", "Grandpa likes tea."),
+            JaEx("おじいさん は おちゃ が すき です。", "ojiisan wa ocha ga suki desu.", "दादाजी को चाय पसंद है।", "Grandpa likes tea."),
             JaEx("おじいさん は しんぶん を よんで います。", "ojiisan wa shinbun wo yonde imasu.", "दादाजी अख़बार पढ़ रहे हैं।", "The old man is reading Shinbun."),
             JaEx("おじいさん に あいに いきます。", "ojiisan ni ai ni ikimasu.", "मैं दादाजी से मिलने जाता हूँ।", "I'm going to visit my grandfather."),
         ),
@@ -2750,7 +2750,7 @@ object Examples {
         ),
         "くつ" to listOf(
 
-            JaEx("くつ を はきます。", "kutsu wo hakimasu.", "मैं जूते पहनता हूँ。", "I'll put on my shoes."),
+            JaEx("くつ を はきます。", "kutsu wo hakimasu.", "मैं जूते पहनता हूँ।", "I'll put on my shoes."),
             JaEx("この くつ は あたらしい です。", "kono kutsu wa atarashii desu.", "ये जूते नए हैं।", "These shoes are new."),
             JaEx("くつ を ぬぎます。", "kutsu wo nugimasu.", "मैं जूते उतारता हूँ।", "Take off your shoes."),
         ),
@@ -3230,7 +3230,7 @@ object Examples {
         ),
         "あお" to listOf(
 
-            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。", "Sora is Ao."),
+            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है।", "Sora is Ao."),
             JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।", "Please give me a blue pen."),
             JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।", "The sea is blue."),
         ),
@@ -3332,7 +3332,7 @@ object Examples {
         ),
         "あおい" to listOf(
 
-            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है。", "Sora is Ao."),
+            JaEx("そら は あお です。", "sora wa ao desu.", "आकाश नीला है।", "Sora is Ao."),
             JaEx("あお い ペン を ください。", "aoi pen wo kudasai.", "कृपया नीला पेन दीजिए।", "Please give me a blue pen."),
             JaEx("うみ は あお い です。", "umi wa aoi desu.", "समुद्र नीला है।", "The sea is blue."),
         ),

@@ -495,7 +495,7 @@ object JpN4 {
             "उपकार की दिशा: あげる=मैं किसी के लिए करूँ, くれる=कोई मेरे लिए करे, もらう=मुझे उपकार मिले।",
             """
                 ★ともだちが ケーキを つくってくれました。|tomodachi ga keeki wo tsukutte kuremashita|My friend made me a cake.|मेरे दोस्त ने मेरे लिए केक बनाया।
-                ★ははに てがみを かいてあげます。|haha ni tegami wo kaite agemasu|I'll write a letter for my mother.|मैं माँ के लिए पत्र लिखूँगा。
+                ★ははに てがみを かいてあげます。|haha ni tegami wo kaite agemasu|I'll write a letter for my mother.|मैं माँ के लिए पत्र लिखूँगा।
                 ★せんせいに ほんを かりてもらいました。|sensei ni hon wo karite moraimashita|I got the teacher to lend me a book.|मैंने शिक्षक से किताब उधार ली।
             """),
         L.jp("jpN4-j", "～やすい / にくい — 'easy to ~ / hard to ~'", "〜やすい・にくい",

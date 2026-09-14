@@ -1214,7 +1214,7 @@ Tシャツ|Tshatsu||T-shirt|
 つくえのうえにほんがあります|tsukue no ue ni hon ga arimasu|There is a book on the desk.|मेज़ पर किताब है।
 ぎんこうはえきのとなりです|ginkou wa eki no tonari desu|The bank is next to the station.|बैंक स्टेशन के बगल में है।"""),
         gp("genki-5", "Lesson 5 · Adjectives (い & な)", "い-けいようし ・ な-けいようし", "い-adjectives end in い (あたらしい new); negative: drop い → くない (あたらしくない). Past: かった (あたらしかった). な-adjectives (しずか quiet): negative しずかじゃない, past しずかだった. すき/きらい/じょうず/へた take が: すしがすきです.", "い形容詞は「い」で終わり、否定は「くない」、過去は「かった」。な形容詞は否定「じゃない」、過去「だった」。すき・きらい・じょうず・へたは「が」を使います。", "い-विशेषण い पर समाप्त; नकारात्मक くない; भूतकाल かった। な-विशेषण के लिए じゃない/だった।", """このほんはあたらしいです|kono hon wa atarashii desu|This book is new.|यह किताब नई है।
-このへやはしずかじゃないです|kono heya wa shizuka ja nai desu|This room is not quiet.|यह कमरा शांत नहीं है。
+このへやはしずかじゃないです|kono heya wa shizuka ja nai desu|This room is not quiet.|यह कमरा शांत नहीं है।
 わたしはすしがすきです|watashi wa sushi ga suki desu|I like sushi.|मुझे सुशी पसंद है।"""),
         gp("genki-6", "Lesson 6 · て-form — please, doing, may", "て-けい", "て-form of verbs: たべる→たべて, のむ→のんで, いく→いって. 〜てください = please do. 〜ています = doing now / state. 〜てもいいです = may do. 〜てはいけません = must not. をください = please give me.", "て形：たべる→たべて、のむ→のんで、いく→いって。てください＝お願い、ています＝進行・状態、てもいいです＝許可、てはいけません＝禁止。", "て-form: たべて, のんで आदि। てください = कृपया करें।", """ここにすわってください|koko ni suwatte kudasai|Please sit here.|कृपया यहाँ बैठिए।
 まいあさコーヒーをのんでいます|maiasa koohii o nonde imasu|(I) drink coffee every morning.|मैं हर सुबह कॉफ़ी पीता हूँ।
