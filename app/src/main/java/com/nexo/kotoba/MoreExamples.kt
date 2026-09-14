@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +21,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,17 +55,18 @@ fun MoreExamplesSection(
     speaker: Speaker,
     lang: String,
     modifier: Modifier = Modifier,
-    onCountChange: ((Int) -> Unit)? = null
+    onCountChange: ((Int) -> Unit)? = null,
+    startOffset: Int = 0
 ) {
     val native = store.nativeLang
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var extra by remember(word.id, lang, native) { mutableStateOf(listOf<Examples.ExLine>()) }
-    var extraOffset by remember(word.id, lang, native) { mutableStateOf(0) }
-    var extraDone by remember(word.id, lang, native) { mutableStateOf(false) }
+    var extra by remember(word.id, lang, native, startOffset) { mutableStateOf(listOf<Examples.ExLine>()) }
+    var extraOffset by remember(word.id, lang, native, startOffset) { mutableStateOf(startOffset) }
+    var extraDone by remember(word.id, lang, native, startOffset) { mutableStateOf(false) }
     var extraBusy by remember { mutableStateOf(false) }
-    var extraTouched by remember(word.id, lang, native) { mutableStateOf(false) }
+    var extraTouched by remember(word.id, lang, native, startOffset) { mutableStateOf(false) }
 
     Column(modifier.fillMaxWidth()) {
         if (store.extraExamples) {
@@ -93,13 +96,13 @@ fun MoreExamplesSection(
                     Text(
                         when {
                             extraBusy -> "Loading more…"
-                            extra.isEmpty() -> "More examples (offline)"
+                            extra.isEmpty() && startOffset == 0 -> "More examples (offline)"
                             else -> "Load 10 more"
                         }
                     )
                 }
             }
-            if (extraDone && extra.isEmpty()) {
+            if (extraDone && extra.isEmpty() && startOffset == 0) {
                 Text(
                     if (extraTouched) "No more bundled examples for this word."
                     else "No bundled examples for this word yet.",
@@ -236,7 +239,14 @@ fun ExampleSheet(
     onDismiss: () -> Unit
 ) {
     val native = store.nativeLang
-    val lines = remember(word.id, lang, native) { Examples.exLines(word, lang, native) }
+    val ctx = LocalContext.current
+    // Examples come from the bundled corpora — real sentences that actually use
+    // the word, each with its own translation. They are never built from a fixed
+    // "sentence frame" with the taught word dropped into the blank.
+    var lines by remember(word.id, lang, native) { mutableStateOf<List<Examples.ExLine>?>(null) }
+    LaunchedEffect(word.id, lang, native) {
+        lines = withContext(Dispatchers.IO) { Corpus.extra(ctx, word, lang, native, 0, 10) }
+    }
     val heading = when {
         lang == "en" -> word.en
         word.kana.isNotEmpty() -> word.kana
@@ -244,6 +254,7 @@ fun ExampleSheet(
     }
     val targetName = languageLabel(lang)
     var moreCount by remember(word.id, lang, native) { mutableStateOf(0) }
+    val loaded = lines.orEmpty()
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -259,21 +270,43 @@ fun ExampleSheet(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "${lines.size + moreCount} $targetName example sentences",
+                "${loaded.size + moreCount} $targetName example sentences",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(12.dp))
 
-            lines.forEach { ex -> SheetLine(ex, store, speaker, lang) }
+            when {
+                lines == null -> Row(
+                    Modifier.fillMaxWidth().padding(vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(Modifier.width(22.dp).height(22.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Finding real examples…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                loaded.isEmpty() -> Text(
+                    "No bundled examples for this word yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                else -> {
+                    loaded.forEach { ex -> SheetLine(ex, store, speaker, lang) }
 
-            MoreExamplesSection(
-                word = word,
-                store = store,
-                speaker = speaker,
-                lang = lang,
-                onCountChange = { moreCount = it }
-            )
+                    MoreExamplesSection(
+                        word = word,
+                        store = store,
+                        speaker = speaker,
+                        lang = lang,
+                        onCountChange = { moreCount = it },
+                        startOffset = loaded.size
+                    )
+                }
+            }
         }
     }
 }

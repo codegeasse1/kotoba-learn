@@ -233,7 +233,7 @@ object Corpus {
             if (tab <= 0) continue
             val left = raw.substring(0, tab)
             val right = raw.substring(tab + 1)
-            if (needles.none { containsStem(left, it) }) continue
+            if (needles.none { containsForTarget(left, it, target) }) continue
             if (!seen.add(left.lowercase())) continue
             val gloss = when {
                 !wantGloss -> ""
@@ -317,6 +317,40 @@ object Corpus {
             from = i + 1
         }
     }
+
+    /**
+     * Match a word in the language being learned. Latin/Cyrillic-style scripts are
+     * space-delimited, so the word-boundary stem match works; Japanese is not, so
+     * the word is matched as a substring while making sure a kanji is not just
+     * part of a longer kanji compound (母 inside 母国 "motherland" is a different
+     * word and must not match). Kana readings of a single mora (日 → ひ) are only
+     * accepted when the whole sentence is that word, otherwise they match almost
+     * every sentence.
+     */
+    private fun containsForTarget(text: String, word: String, target: String): Boolean =
+        if (target == "ja") containsJa(text, word) else containsStem(text, word)
+
+    private fun containsJa(text: String, needle: String): Boolean {
+        val n = needle.trim()
+        if (n.isEmpty()) return false
+        val kanji = n.any { isKanji(it) }
+        if (!kanji) {
+            if (n.length >= 2) return text.contains(n)
+            return text.trim() == n
+        }
+        var from = 0
+        while (true) {
+            val i = text.indexOf(n, from)
+            if (i < 0) return false
+            val before = if (i == 0) null else text[i - 1]
+            val after = if (i + n.length >= text.length) null else text[i + n.length]
+            if ((before == null || !isKanji(before)) && (after == null || !isKanji(after))) return true
+            from = i + 1
+        }
+    }
+
+    private fun isKanji(c: Char): Boolean =
+        c.code in 0x3400..0x4DBF || c.code in 0x4E00..0x9FFF || c.code in 0xF900..0xFAFF
 
     /**
      * True when position [i] in [t] starts a word. An apostrophe also counts as a
