@@ -1733,3 +1733,12 @@ export function counts(cap = 6000) {
   for (const id of Object.keys(cats)) res[id] = generate(cats[id], cap).length;
   return res;
 }
+
+// CLI: `node tools/practice-recipes.mjs [outFile]` writes the DSL asset
+// (default: app/src/main/assets/practice_drills.txt).
+if (typeof process !== "undefined" && process.argv && (process.argv[1] || "").endsWith("practice-recipes.mjs")) {
+  const { writeFileSync } = await import("node:fs");
+  const out = process.argv[2] || new URL("../app/src/main/assets/practice_drills.txt", import.meta.url).pathname;
+  writeFileSync(out, buildAsset());
+  console.error("wrote " + out);
+}

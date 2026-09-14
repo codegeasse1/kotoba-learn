@@ -9,11 +9,33 @@ download.
 ## Where it is
 
 * **Grammar → Practice** — the full topic list, grouped into Tenses, Verbs &
-  modals, Nouns & pronouns, Prepositions, and Sentences & style.
+  modals, Nouns & pronouns, Prepositions, and Sentences & style. A **🎲 Random
+  mix of every topic** card sits at the top of the list.
 * **Grammar → any pattern → 🎯 Practice** — opens the drill set that best matches
   that pattern (see `Practice.categoryForPattern`). Patterns with no close match
   fall back to the old example-based quiz (`PatternQuiz`).
-* **Grammar → 🎯 Practice random grammar** — opens a random drill topic.
+* **Grammar → 🎯 Practice random grammar** — opens the **mixed** drill set: a
+  fresh sample drawn from *every* topic, so consecutive opens give completely
+  different kinds of question (a `has/have` item, then a `must` item, then a
+  preposition item, …). This is what stops the old "same category every time"
+  behaviour.
+
+## How questions are chosen
+
+Every topic has **1000+ drills** and a session shows a **fresh random sample of
+10** each time it is opened, so the same ten questions never come back:
+
+* `Practice.forCategory(id)` returns the topic's pool (curated + generated).
+* `DrillSession` shuffles that pool and takes the first 10.
+* **+10 more** in the header (and **Practise 10 more questions** on the results
+  card) reveals the next ten from the same shuffled deck without repeating what
+  has already been shown.
+* **Practise again** reshuffles the whole pool for a new set.
+* The answer options are shuffled too, so the correct option is not always in the
+  same position.
+
+The mixed set (`Practice.MIXED_ID`) is rebuilt on every open: it samples ~12
+random topics × 60 drills, dedupes and shuffles, and returns up to 600.
 
 ## The two drill modes
 
@@ -40,31 +62,66 @@ grammar. Here the learner has to know both the rule and the meaning.
   contains a `___` gap, `wrong` are three competing forms of the same slot, and
   `hi` is the hand-written Hindi translation of the correct sentence.
 * `DrillCategory(id, title, emoji, group, blurb, matchKeys)` — a topic.
-* `Practice.RAW` — the drill library, one drill per line:
+* `Practice.RAW` — a small hand-written drill library, one drill per line:
   `category|sentence with ___|answer|wrong1;wrong2;wrong3|hindi`
-  (lines starting with `#` are comments).
+  (lines starting with `#` are comments). These curated drills are kept because
+  they are the best-quality examples for their topics.
+* **`app/src/main/assets/practice_drills.txt`** — the generated drill pack: 47
+  topics, ~206,000 recipe combinations (every topic ≥ 1018 drills), shipped
+  offline. It is a bilingual template DSL (see below) and is interpreted at
+  runtime by the generator in `Practice.kt` (`loadGeneratedAsset` / `generate`).
+  Generation is lazy and LRU-cached per topic, and each topic is uniformly
+  reservoir-sampled down to `GEN_CAP = 1500` drills so memory stays bounded while
+  a fresh random sample is always available.
 * `Practice.categoryForPattern(p)` — maps a grammar `Pattern` to a drill topic by
   matching the longest `matchKey` against the pattern's English title.
+
+### Rebuilding `practice_drills.txt`
+
+The pack is produced from **`tools/practice-recipes.mjs`** — a self-contained
+recipe library with a bilingual template per topic and a reference generator. Run
+it to regenerate the asset:
+
+```
+node tools/practice-recipes.mjs > app/src/main/assets/practice_drills.txt
+```
+
+(The module also exports `buildAsset()`, `parseAsset(text)`, `generate(cat, cap)`
+and `counts(cap)` for testing. The Kotlin interpreter mirrors the JS reference
+generator exactly, including per-template dedupe and reservoir sampling.)
+
+The DSL is tab-separated; `~` separates a value's fields, ` | ` separates values,
+and `,` separates wrong answers:
+
+| line | meaning |
+| --- | --- |
+| `#n <catId> <count>` | how many distinct drills the recipe expands to |
+| `#l <lib> <v1 \| v2 …>` | a shared value library (a value is `en~hi~gapHi~answer~wrongs`) |
+| `#c <catId>` | start a category |
+| `#s <slot> <@LIB \| inline>` | fill a slot (repeatable — values accumulate) |
+| `#t <en> <hi>` | a template (`{slot}` placeholders, `___` gap, `{gap}` in Hindi) |
+| `#a <ans> <wrongs> <gapHi>` | the template's own answer / wrongs / Hindi gap word |
+| `#b <slot>` | which slot gets blanked (its value supplies the answer) |
+
+### Adding a topic
+
+1. Add a recipe to `tools/practice-recipes.mjs` (see the `cat(...)` calls) and
+   regenerate the asset, or add curated drills to `Practice.RAW`.
+2. Add a `DrillCategory` in `Practice.categories`, choosing `matchKeys` that pick
+   up the matching grammar patterns (longest key wins).
+3. A topic with no drills simply never appears in the hub, and its patterns fall
+   back to the example-based quiz.
 
 Translations are authored in Hindi. Other native languages fall back to
 `Examples.sentenceGloss`, the same greedy phrase-by-phrase gloss the rest of the
 app uses for corpus sentences — so those renderings are a gist, not a polished
-translation.
+translation. (The drills themselves are English-only, so a non-English *target*
+falls back to the pattern quiz entirely.)
 
-## Adding a topic
+## The vocabulary quiz
 
-1. Add drills to `Practice.RAW` using the line format above. Keep every option a
-   form of the *same* word or phrase so the choices are genuinely confusable, and
-   make sure exactly one option is correct for the given translation.
-2. Add a `DrillCategory` in `Practice.categories`, choosing `matchKeys` that pick
-   up the matching grammar patterns (longest key wins).
-3. A topic with no drills simply never appears in the hub, and its patterns fall
-   back to `PatternQuiz`.
-
-## Grammar example pages
-
-The pattern detail page shows ten example sentences and a **Load 10 more**
-button. The pool behind it is `GrammarPacks.pool(pattern)`, which gathers the
-pattern's own examples, the hand-written extras (`GrammarExtraEn` /
-`GrammarExtraJa`), closely-related patterns, and finally a rich pattern in the
-same language — de-duplicated and capped at 60.
+The lesson quiz (`Learn.kt`) draws its questions the same way: a lesson's ten
+words are asked first, then the rest of that language's vocabulary, never
+repeating a word. **+10** in the header and **10 more questions** on the results
+card append ten fresh questions. "Practice again" starts a new random set. This
+replaces the old fixed ten-question quiz that repeated identically every time.

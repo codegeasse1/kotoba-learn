@@ -1081,7 +1081,10 @@ fun DrillSession(
             val q = questions[qi]
             val tr = q.translation(native)
             val prompt = if (mode == DrillMode.FILL) q.sentence else tr.ifBlank { q.sentence }
-            val choices = if (mode == DrillMode.FILL) q.options() else q.options().map { q.filledWith(it) }
+            val choices = remember(q, mode) {
+                val opts = q.options().shuffled()
+                if (mode == DrillMode.FILL) opts else opts.map { q.filledWith(it) }
+            }
             val correct = if (mode == DrillMode.FILL) q.answer else q.full()
 
             Text(
