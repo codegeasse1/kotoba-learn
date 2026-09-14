@@ -417,10 +417,11 @@ private fun aiPromptText(
         append("Two sentences that already exist for this word (do not reuse them):\n")
         demos.forEach { append("${it.text} | ${it.gloss}\n") }
     }
-    append("Write $count different $langName sentences that each use the word \"$w\".\n")
+    append("Write $count different $langName sentences. Every sentence must use the word \"$w\".\n")
     append("Rules:\n")
     append("- One sentence per line, then a pipe symbol \"|\", then the English meaning of that sentence.\n")
     append("- Each sentence is 4 to 12 words long, simple and natural.\n")
+    append("- Every sentence MUST contain the word \"$w\" itself (an inflected form is fine). A sentence without that word is wrong.\n")
     if (lang != "en") append("- Write only in $langName script. Never use Latin letters.\n")
     append("- Every line is a different sentence. Do not number the lines. Do not write anything else.")
     if (repeats.isNotEmpty()) {
@@ -474,9 +475,86 @@ private fun plausibleWords(words: List<String>): Boolean {
 }
 
 /**
+ * Whether a generated sentence actually uses the target word.
+ *
+ * Small models drift: asked for sentences about "morning" they happily write
+ * "I wake up early, ready for work." — a pleasant sentence that is useless as an
+ * example for that word. The old filter only dropped a line that was *exactly* the
+ * headword, so unrelated sentences went straight to the screen.
+ *
+ * Matching tolerates inflection, because a good example is allowed to conjugate the
+ * word ("run" -> "running", "study" -> "studies", "dance" -> "dancing"). English gets
+ * an explicit suffix list (so a short headword like "car" cannot be matched by "care"
+ * or "card"); the other space-separated languages match the headword as a stem, which
+ * is how their inflected forms are built; and Japanese, written without spaces, is a
+ * plain substring test with the inflecting tail trimmed off.
+ */
+internal fun containsHeadword(text: String, headword: String, lang: String): Boolean {
+    val head = headword.trim().lowercase()
+    if (head.isEmpty()) return true
+    val headTokens = aiWords(head)
+    if (headTokens.isEmpty()) return true
+
+    if (lang == "ja" || head.any { it.isCjk() }) {
+        if (text.contains(head, ignoreCase = true)) return true
+        // Verbs and adjectives inflect at the tail (たべる -> たべます), so the stem
+        // still counts — but never trim a two-character word down to one character.
+        val stem = if (head.length >= 3) head.dropLast(1) else ""
+        return stem.length >= 2 && text.contains(stem, ignoreCase = true)
+    }
+
+    val textTokens = aiWords(text)
+    if (textTokens.size < headTokens.size) return false
+    for (start in 0..(textTokens.size - headTokens.size)) {
+        var all = true
+        for (i in headTokens.indices) {
+            if (!tokenMatches(textTokens[start + i], headTokens[i], lang)) {
+                all = false
+                break
+            }
+        }
+        if (all) return true
+    }
+    return false
+}
+
+private fun Char.isCjk(): Boolean = code in 0x3040..0x30FF || code in 0x4E00..0x9FFF
+
+/** A single token counts as the headword, allowing it to carry an inflection. */
+private fun tokenMatches(token: String, head: String, lang: String): Boolean {
+    if (token == head) return true
+    if (lang == "en") return englishMatches(token, head)
+    // Hindi, Bengali, Tamil, Telugu, Kannada, Urdu, Spanish, French, German, ...:
+    // the dictionary form is the stem, so inflected forms simply extend its tail
+    // (hablar -> hablo/hablas). Arabic and Urdu attach prefixes as well, so the
+    // headword is also looked for inside the token. A slightly shorter stem catches
+    // the languages whose dictionary form ends in an infinitive marker.
+    if (token.startsWith(head)) return true
+    if (head.length >= 3 && token.contains(head)) return true
+    return head.length >= 4 && token.startsWith(head.dropLast(2))
+}
+
+private val EN_INFLECTIONS = listOf("s", "es", "ed", "ing", "er", "ers", "est", "ly", "'s", "\u2019s")
+
+private fun englishMatches(token: String, head: String): Boolean {
+    for (tail in EN_INFLECTIONS) {
+        if (token == head + tail) return true
+        // "run" -> "running", "stop" -> "stopped": the final consonant doubles.
+        if (head.isNotEmpty() && token == head + head.last() + tail) return true
+        // "dance" -> "dancing", "like" -> "liked": a silent -e is dropped.
+        if (head.endsWith("e") && token == head.dropLast(1) + tail) return true
+        // "study" -> "studies"/"studied": -y becomes -i-.
+        if (head.endsWith("y") && token == head.dropLast(1) + "i" + tail) return true
+    }
+    // Long enough words may take a suffix the list above doesn't cover.
+    return head.length >= 4 && token.startsWith(head)
+}
+
+/**
  * Turns a model reply into example lines. Anything that isn't a plausible sentence,
- * or that repeats something already on screen (including the headword itself), is
- * dropped.
+ * that doesn't actually contain the headword (so "morning" never yields "I wake up
+ * early, ready for work."), or that repeats something already on screen (including the
+ * headword itself), is dropped.
  */
 internal fun parseAiLines(
     raw: String,
@@ -506,6 +584,7 @@ internal fun parseAiLines(
         meaning = meaning.trim().trim('"', '\'', '“', '”', '「', '」').trim()
         if (!plausibleSentence(text, lang)) continue
         if (!plausibleMeaning(meaning, lang, native)) continue
+        if (!containsHeadword(text, headword, lang)) continue
         val key = aiKey(text)
         if (key.isBlank() || !blocked.add(key)) continue
         if (!seen.add(key)) continue

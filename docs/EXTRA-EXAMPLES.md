@@ -135,10 +135,17 @@ MediaPipe's native loader fails in the worst way.
 * Every call includes a random everyday **situation** ("ordering food or a drink", …),
   so two taps ask for genuinely different sentences even if a model ignores the seed.
 * The reply is filtered before anything is shown: each line must be in the target
-  script, 4–16 words, not a run-on, not the same few words over and over, and not the
-  headword itself. Duplicates — inside one reply or against lines already displayed —
-  are dropped. A bad generation therefore shows a short "tap again to retry" message
-  instead of the model's rambling.
+  script, 4–16 words, not a run-on, not the same few words over and over, and it must
+  actually **use the headword**. That last check allows inflection ("run" → "running",
+  "study" → "studies", "dance" → "dancing") but rejects a fluent sentence that never
+  mentions the word — small models love to answer "morning" with *"I wake up early,
+  ready for work."*. English matches against an explicit suffix list (so "car" is not
+  satisfied by "care" or "card"), the other space-separated languages match the
+  headword as a stem (which is how their inflected forms are built), and Japanese is a
+  substring test with the inflecting tail trimmed. Lines that fail are dropped, so a
+  reply of five unrelated sentences now yields nothing and the user is asked to retry
+  instead of being shown five wrong examples. Duplicates — inside one reply or against
+  lines already displayed — are also dropped.
 * The model is asked for the **English** meaning (what it is strongest at). That is
   shown as-is to learners whose native language is English and rendered through the
   bundled gloss tables for everyone else.

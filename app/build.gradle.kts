@@ -24,8 +24,8 @@ android {
         applicationId = "com.nexo.kotoba"
         minSdk = 26
         targetSdk = 34
-        versionCode = 28
-        versionName = "1.16.2"
+        versionCode = 29
+        versionName = "1.16.3"
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
