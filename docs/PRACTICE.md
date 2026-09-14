@@ -35,7 +35,16 @@ Every topic has **1000+ drills** and a session shows a **fresh random sample of
   same position.
 
 The mixed set (`Practice.MIXED_ID`) is rebuilt on every open: it samples ~12
-random topics × 60 drills, dedupes and shuffles, and returns up to 600.
+random topics × up to 60 drills, dedupes and shuffles, and returns up to 600.
+Because it touches every topic, it does **not** expand each topic in full — it
+goes through `Practice.sampleFor`, which reuses an already-cached topic or expands
+it with a much smaller budget (`MIXED_TPL_CAP` / `MIXED_TARGET`). Expanding twelve
+topics in full on the composition thread is what used to freeze the 🎲 button and,
+on slower phones, kill the app.
+
+`DrillSession` also builds the pool **off the main thread**
+(`withContext(Dispatchers.Default)` behind a "Building your questions…" spinner),
+so even the largest topic can never block the UI.
 
 ## The two drill modes
 
@@ -112,11 +121,11 @@ and `,` separates wrong answers:
 3. A topic with no drills simply never appears in the hub, and its patterns fall
    back to the example-based quiz.
 
-Translations are authored in Hindi. Other native languages fall back to
-`Examples.sentenceGloss`, the same greedy phrase-by-phrase gloss the rest of the
-app uses for corpus sentences — so those renderings are a gist, not a polished
-translation. (The drills themselves are English-only, so a non-English *target*
-falls back to the pattern quiz entirely.)
+Translations are authored in Hindi (`Drill.hi`, always present). Other native
+languages use `Examples.exactGloss(full(), native)` — the bundled meaning table's
+real translation of that exact sentence — and show no translation when the table
+has none, so a drill never displays a guessed gloss. (The drills themselves are
+English-only, so a non-English *target* falls back to the pattern quiz entirely.)
 
 ## The vocabulary quiz
 

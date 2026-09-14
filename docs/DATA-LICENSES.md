@@ -11,7 +11,7 @@ redistribution. This file records what each asset is and where it came from.
 | --- | --- | --- | --- |
 | `sentences.tsv` | `<japanese>` `\t` `<english>` | ~89k | Tatoeba (via manythings.org/anki `jpn-eng`) |
 | `sentences_<lang>.tsv` | `<target>` `\t` `<english>` | see below | Tatoeba (via manythings.org/anki `<code>-eng`) |
-| `sentences_gen_<lang>.tsv` | `<target>` `\t` `<english>` | ~1.3–3.3k | written for this project (build-time AI top-up) |
+| `sentences_gen_<lang>.tsv` | `<target>` `\t` `<english>` | ~1.3–9.5k | written for this project (build-time AI top-up) |
 
 `<lang>` is one of `hi es ar fr de bn ta te ur kn` — the ten targets that are not
 hand-authored. `sentences.tsv` also backs the English track (its English column).
@@ -37,6 +37,8 @@ hand-authored. `sentences.tsv` also backs the English track (its English column)
   is required — they are simply redistributable under this project's MIT licence.
   Every one of them can be regenerated (or topped up) with
   `tools/build-ai-examples.mjs` — see [EXTRA-EXAMPLES.md](EXTRA-EXAMPLES.md).
+  The Hindi file was topped up to 9,470 pairs so that every English course word
+  has a real, curated Hindi translation to draw on (see EXTRA-EXAMPLES.md).
 
 Coverage is verified mechanically: **99–100 % of the taught words in every one of
 the ten generated tracks have at least one bundled example**, averaging 2.5–4.3

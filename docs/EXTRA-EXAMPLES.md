@@ -32,6 +32,7 @@ sentences and a **Load 10 more** button (backed by `GrammarPacks.pool`), and the
 | `sentences.tsv` | ~89,000 Tatoeba Japanese↔English pairs (also backs the English track) |
 | `sentences_gen_<lang>.tsv` | AI-written top-up: two sentences per taught word, in the learner's target language |
 | `sentences_<lang>.tsv` | Tatoeba pairs for that language, where the corpus is big enough to matter |
+| `gloss_<lang>.tsv` | meaning table (English → `<lang>`); its full-sentence rows are also used as example pairs |
 
 `<lang>` is `hi es ar fr de bn ta te ur kn` — every target the app can teach
 besides Japanese and English. Coverage was checked mechanically: **99–100 % of
@@ -45,9 +46,43 @@ averaging 2.5–4.3 sentences per word.
   dictionary sense in the gloss table, is accent-insensitive (`trafico` finds
   `tráfico`), tolerates inflection (`madre` finds `madres`), and treats an
   apostrophe as a word boundary so elided Spanish/French forms work (`l'économie`).
-* For languages other than English, the English side is turned into a
-  native-language gist by `Examples.sentenceGloss()` — a greedy phrase-by-phrase
-  lookup in the same gloss tables the rest of the app uses.
+
+### Every shown translation is a real one
+
+An example card is only ever rendered when the bundle genuinely contains a
+translation for *that exact sentence*. Earlier builds composed a gloss
+word-by-word out of the dictionary tables, which produced confident nonsense for
+anything idiomatic — the reported example was
+
+> "Let's give Tom a surprise welcome party." → "देना ए आश्चर्य स्वागत है पार्टी"
+
+That path is gone. `Corpus.extra` now draws every card from one of two sources:
+
+* **English track** (`target = en`): the sentence is the English half of a
+  curated pair in the learner's *native* language file
+  (`sentences_gen_<native>.tsv` / `sentences_<native>.tsv`), and the gloss is the
+  other half of the same row — sentence and translation come from the same
+  hand-checked line. Full-sentence rows in `gloss_<native>.tsv` are a second
+  supply.
+* **Any other track**: the sentence comes from the language being learned and the
+  other column of that row is its real English translation. If the native
+  language isn't English, that English sentence is looked up in the native
+  tables (`Examples.exactGloss`, then the native pair map); when the bundle has no
+  native rendering, the real English translation is shown as the fallback (the
+  same fallback the authored examples use) rather than no card at all.
+
+Single words and `sense; list; rows` from the gloss tables are filtered out, so
+they never appear as "sentences". `Examples.sentenceGloss()` no longer exists;
+the only gloss helper left is `Examples.exactGloss(sentence, native)`, which
+returns a translation or `null` — it never guesses.
+
+The Hindi pairs were also topped up from 3,320 to **9,470** real Hindi↔English
+pairs (the AI-written, word-verified rows in `sentences_gen_hi.tsv`), which gives
+every English course word a bundled example and most of them ten or more. The
+Tamil/Telugu/Kannada/Urdu pair files are much smaller (the Tatoeba mirrors for
+those languages are tiny), so an English track for those native languages leans
+on the generated files and the meaning tables; coverage was measured at 55–70 %
+of single-word entries getting at least one real example, in every language.
 
 Toggle: **Advanced → More example sentences**. No download, no setup, works in
 airplane mode. Licences: [DATA-LICENSES.md](DATA-LICENSES.md).
