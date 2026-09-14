@@ -68,7 +68,7 @@ object TargetContent {
 
     private fun translateWord(word: Word, t: String): Word = word.copy(
         id = t + "-" + word.id,
-        kana = tx(word.en, t),
+        kana = cleanGloss(tx(word.en, t)) ?: tx(word.en, t),
         romaji = "",
         kanji = "",
         hi = "",

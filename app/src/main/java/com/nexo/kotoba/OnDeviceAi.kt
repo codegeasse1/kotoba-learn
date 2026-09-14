@@ -20,10 +20,17 @@ import java.net.URL
  * after the one-time download there is no internet, no account, and no API key —
  * which is what makes it usable in an offline-first app.
  *
- * The models are small (~136 MB / ~547 MB) and permissively licensed; the URLs
+ * The models are small (~521 MB / ~1.5 GB) and permissively licensed; the URLs
  * point at public, non-gated Hugging Face files.
+ *
+ * IMPORTANT: every entry must be a MediaPipe `.task` bundle. LiteRT-LM `.litertlm`
+ * files look like the same thing but are NOT loadable by `LlmInference` — they fail
+ * with "SentencePiece tokenizer is not found in the model", so don't add one here.
  */
 object OnDeviceAi {
+
+    /** Id of the model offered by default (the first entry of [MODELS]). */
+    const val DEFAULT_ID = "qwen2.5-0.5b"
 
     data class Model(
         val id: String,
@@ -36,20 +43,20 @@ object OnDeviceAi {
 
     val MODELS: List<Model> = listOf(
         Model(
-            id = "smollm2-135m",
-            label = "Light · SmolLM2 135M",
-            sizeMb = 136,
-            url = "https://huggingface.co/litert-community/SmolLM2-135M-Instruct/resolve/main/SmolLM2_135M_Instruct.litertlm",
-            file = "SmolLM2_135M_Instruct.litertlm",
-            note = "Smallest download. Best at short English sentences."
-        ),
-        Model(
             id = "qwen2.5-0.5b",
-            label = "Balanced · Qwen2.5 0.5B",
-            sizeMb = 547,
+            label = "Light · Qwen2.5 0.5B",
+            sizeMb = 521,
             url = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct/resolve/main/Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
             file = "Qwen2.5-0.5B-Instruct_q8_ekv1280.task",
-            note = "Bigger and more multilingual, but a large download."
+            note = "Smallest download that works. Best for English, Japanese and other widely-supported languages."
+        ),
+        Model(
+            id = "qwen2.5-1.5b",
+            label = "Better · Qwen2.5 1.5B",
+            sizeMb = 1524,
+            url = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+            file = "Qwen2.5-1.5B-Instruct_q8_ekv1280.task",
+            note = "Clearly better sentences, but a very large download."
         )
     )
 
@@ -157,12 +164,23 @@ object OnDeviceAi {
             val current = synchronized(this@OnDeviceAi) {
                 if (engine == null || enginePath != f.absolutePath) {
                     engine?.close()
+                    engine = null
                     val options = LlmInference.LlmInferenceOptions.builder()
                         .setModelPath(f.absolutePath)
                         .setMaxTopK(40)
+                        .setMaxTokens(256)
                         .build()
-                    engine = LlmInference.createFromOptions(app, options)
-                    enginePath = f.absolutePath
+                    try {
+                        engine = LlmInference.createFromOptions(app, options)
+                        enginePath = f.absolutePath
+                    } catch (e: Exception) {
+                        enginePath = null
+                        throw IllegalStateException(
+                            "This model could not be loaded (${e.message ?: "unknown error"}). " +
+                                "Try deleting it and downloading another model in Profile → Advanced.",
+                            e
+                        )
+                    }
                 }
                 engine!!
             }

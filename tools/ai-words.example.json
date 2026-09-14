@@ -1,5 +1,6 @@
 [
   { "word": "coffee", "lang": "en", "native": "hi" },
   { "word": "airport", "lang": "en", "native": "en" },
-  { "word": "水", "lang": "ja", "native": "en" }
+  { "word": "水", "lang": "ja", "native": "en" },
+  { "lang": "ta", "en": "butterfly", "words": ["வண்ணத்துப்பூச்சி"] }
 ]

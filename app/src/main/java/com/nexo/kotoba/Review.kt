@@ -161,6 +161,7 @@ private fun ReviewSession(
     var index by remember { mutableStateOf(0) }
     var revealed by remember { mutableStateOf(false) }
     var done by remember { mutableStateOf(false) }
+    var exWord by remember { mutableStateOf<Word?>(null) }
     val targetJa = store.target != "en"
 
     fun next() {
@@ -268,6 +269,11 @@ private fun ReviewSession(
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Reveal answer") }
         } else {
+            OutlinedButton(
+                onClick = { exWord = w },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("💬 More examples") }
+            Spacer(Modifier.height(8.dp))
             Text(
                 "How well did you remember it?",
                 style = MaterialTheme.typography.bodyMedium,
@@ -295,6 +301,16 @@ private fun ReviewSession(
                 }
             }
         }
+    }
+
+    exWord?.let { ex ->
+        ExampleSheet(
+            word = ex,
+            store = store,
+            speaker = speaker,
+            lang = store.target,
+            onDismiss = { exWord = null }
+        )
     }
 }
 

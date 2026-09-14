@@ -327,6 +327,8 @@ fun VerbsScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier) {
 @Composable
 private fun VerbCard(e: VerbEntry, native: String, store: Store, speaker: Speaker) {
     val meaning = Verbs.meaning(e, native)
+    var showExamples by remember { mutableStateOf(false) }
+    val exampleWord = remember(e.base, store.target) { wordForHeadword(e.base, store) }
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
         shape = RoundedCornerShape(14.dp),
@@ -368,7 +370,20 @@ private fun VerbCard(e: VerbEntry, native: String, store: Store, speaker: Speake
             ) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
             }
+            IconButton(onClick = { showExamples = true }, modifier = Modifier.size(34.dp)) {
+                Text("💬", fontSize = 15.sp)
+            }
         }
+    }
+
+    if (showExamples) {
+        ExampleSheet(
+            word = exampleWord,
+            store = store,
+            speaker = speaker,
+            lang = store.target,
+            onDismiss = { showExamples = false }
+        )
     }
 }
 

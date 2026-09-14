@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -246,6 +247,7 @@ private fun JaResultCard(j: JaEntry, store: Store, speaker: Speaker) {
 @Composable
 private fun AppResultCard(w: Word, store: Store, speaker: Speaker) {
     val targetJa = w.kana.isNotEmpty()
+    var showExamples by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
         shape = RoundedCornerShape(14.dp),
@@ -288,7 +290,20 @@ private fun AppResultCard(w: Word, store: Store, speaker: Speaker) {
             ) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = "Hear", modifier = Modifier.size(16.dp))
             }
+            IconButton(onClick = { showExamples = true }, modifier = Modifier.size(34.dp)) {
+                Text("💬", fontSize = 16.sp)
+            }
         }
+    }
+
+    if (showExamples) {
+        ExampleSheet(
+            word = w,
+            store = store,
+            speaker = speaker,
+            lang = w.lang.ifEmpty { store.target },
+            onDismiss = { showExamples = false }
+        )
     }
 }
 

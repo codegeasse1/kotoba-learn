@@ -61,7 +61,8 @@ data class QuizQuestion(
     val promptIsJa: Boolean,
     val options: List<QuizOption>,
     val correct: Int,
-    val answer: String = ""
+    val answer: String = "",
+    val word: Word? = null
 )
 
 data class QuizOption(val emoji: String, val label: String)
@@ -568,7 +569,8 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                     promptIsJa = false,
                     options = emptyList(),
                     correct = -1,
-                    answer = w.en
+                    answer = w.en,
+                    word = w
                 )
                 QuizType.TYPE_AUDIO -> QuizQuestion(
                     type = QuizType.TYPE_AUDIO,
@@ -577,7 +579,8 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                     promptIsJa = false,
                     options = emptyList(),
                     correct = -1,
-                    answer = w.en
+                    answer = w.en,
+                    word = w
                 )
                 QuizType.CHOICE -> {
                     val distractors = pool.filter { it.id != w.id }.shuffled(rnd).take(3)
@@ -602,7 +605,8 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                             )
                         },
                         correct = options.indexOf(w),
-                        answer = ""
+                        answer = "",
+                        word = w
                     )
                 }
             }
@@ -646,6 +650,7 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
             Column(
                 Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(20.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -759,6 +764,10 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
+                        q.word?.let { ex ->
+                            Spacer(Modifier.height(8.dp))
+                            ExpandableMoreExamples(ex, store, speaker, lesson.lang)
+                        }
                         Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = {
@@ -803,6 +812,10 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
+                        q.word?.let { ex ->
+                            Spacer(Modifier.height(8.dp))
+                            ExpandableMoreExamples(ex, store, speaker, lesson.lang)
+                        }
                         Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = {

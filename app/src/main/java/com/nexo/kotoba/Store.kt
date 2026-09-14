@@ -45,7 +45,7 @@ class Store(private val ctx: Context) {
     var dismissedUpdate by mutableStateOf("")
     var extraExamples by mutableStateOf(true)
     var aiEnabled by mutableStateOf(false)
-    var aiModelId by mutableStateOf("smollm2-135m")
+    var aiModelId by mutableStateOf(OnDeviceAi.DEFAULT_ID)
 
     private val file: File = File(ctx.filesDir, "kotoba.json")
 
@@ -67,7 +67,8 @@ class Store(private val ctx: Context) {
             dismissedUpdate = o.optString("dismissedUpdate", "")
             extraExamples = o.optBoolean("extraExamples", true)
             aiEnabled = o.optBoolean("aiEnabled", false)
-            aiModelId = o.optString("aiModelId", "smollm2-135m")
+            val savedModel = o.optString("aiModelId", OnDeviceAi.DEFAULT_ID)
+            aiModelId = if (OnDeviceAi.MODELS.any { it.id == savedModel }) savedModel else OnDeviceAi.DEFAULT_ID
             learnedKana = strSet(o, "kana")
             completedLessons = strSet(o, "lessons")
             val arr = o.optJSONArray("srs") ?: JSONArray()
@@ -267,7 +268,7 @@ class Store(private val ctx: Context) {
         onboarded = false
         extraExamples = true
         aiEnabled = false
-        aiModelId = "smollm2-135m"
+        aiModelId = OnDeviceAi.DEFAULT_ID
         file.delete()
     }
 }
