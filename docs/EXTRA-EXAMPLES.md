@@ -1,11 +1,10 @@
 # Extra example sentences
 
 Kotoba's hand-authored example sentences are deliberately small — about ten per
-word. Some learners want more, so the app can show extra examples from three
-sources. All three are free, and none of them needs an account or an API key on
-the phone.
+word. Learners who want more page through a bundled corpus of real sentences,
+entirely offline, with no account and no API key on the phone.
 
-The whole feature lives in `MoreExamples.kt`, which is the *single*
+The word-example feature lives in `MoreExamples.kt`, which is the *single*
 implementation used by every screen that shows a word:
 
 * the word-detail sheet and the three word browsers (`LessonExplore.kt`),
@@ -15,11 +14,16 @@ implementation used by every screen that shows a word:
 * the 4,400-verb trainer (`Verbs.kt`).
 
 Screens without room for examples show a small **💬 More examples** button that
-expands into the block in place. The **Load 10 more** / **✨ Generate more**
-buttons are rendered *below* the lines they add, so newly loaded examples appear
-directly above the button instead of pushing it off screen.
+expands into the block in place. The **Load 10 more** button is rendered *below*
+the lines it adds, so newly loaded examples appear directly above the button
+instead of pushing it off screen.
 
-## Option 4 — bundled corpus (default, always offline)
+The grammar screens follow the same model: every pattern shows ten example
+sentences and a **Load 10 more** button (backed by `GrammarPacks.pool`), and the
+**Practice** section drills each grammar topic with hand-written questions — see
+[PRACTICE.md](PRACTICE.md).
+
+## Bundled corpus (always offline)
 
 `app/src/main/assets/` holds one corpus per target language:
 
@@ -60,12 +64,13 @@ www.manythings.org/anki, applies the per-language length/script filters and row
 caps, and rewrites `sentences.tsv` + `sentences_<lang>.tsv`. Nothing else needs
 the network — `sentences_gen_<lang>.tsv` is checked in.
 
-## Option 3 — build-time AI top-up (opt-in, needs a free key on the build machine)
+## Build-time AI top-up (development tool, opt-in)
 
 `tools/build-ai-examples.mjs` asks any OpenAI-compatible endpoint for sentences
 and appends the good ones to the corpus **at build time**. The key is read from
 the environment and is never written to the repo or the APK, so the shipped app
-stays key-free and offline.
+stays key-free and offline. This is a maintainer script, not a feature inside the
+app — the app itself has no AI and no download.
 
 ```sh
 cp tools/ai-words.example.json tools/ai-words.json     # then edit it
@@ -89,78 +94,3 @@ Free tiers that work out of the box: Groq, Google AI Studio (Gemini),
 OpenRouter (`:free` models), Cerebras, Mistral. Any of them is fine — the script
 only needs a `/chat/completions` endpoint.
 
-## Option 1 — on-device language model (optional, experimental)
-
-**Advanced → On-device AI examples** enables a small LLM that runs entirely on the
-phone through MediaPipe LLM Inference. There is no key and, after the one-time
-download, no network traffic at all. The learner picks one of:
-
-| Model | Size | Download |
-| --- | --- | --- |
-| Qwen2.5 0.5B Instruct (`.task`, q8) | ~547 MB | default |
-| Qwen2.5 1.5B Instruct (`.task`, q8) | ~1.6 GB | better sentences |
-
-Both are MediaPipe **`.task`** bundles from `litert-community`. This matters: the
-LiteRT-LM `.litertlm` files look similar but `LlmInference` cannot load them —
-they fail with *"SentencePiece tokenizer is not found in the model"*. Don't add
-one to `OnDeviceAi.MODELS`.
-
-`OnDeviceAi.kt` downloads the model into the app's private files directory
-(`files/ai-models/`), keeps it warm between calls, and serialises generation behind
-a `Mutex`. Each call creates a fresh session with a **random seed**: MediaPipe's
-session options default to `randomSeed = 0`, which makes sampling deterministic, so
-tapping generate twice used to return the identical sentence. The engine is created
-with a **1024-token** context (`MAX_TOKENS`): the original 256 was enough for the old
-one-paragraph prompt, but not for the ChatML prompt described below, and MediaPipe
-does not truncate an over-long query — it rejects it, which crashed the app on a real
-device. A load failure is turned into a plain-English message pointing the learner
-back at **Profile → Advanced**.
-
-Downloads are verified against the exact byte length of the published file (both the
-completed transfer and, on later launches, `isReady`): a download that stops early
-used to pass the old "bigger than 1 MB" check, and a truncated `.task` handed to
-MediaPipe's native loader fails in the worst way.
-
-`MoreExamples.kt` writes the prompt, and that is what decides the quality:
-
-* Both bundled models are instruction-tuned and expect **Qwen's ChatML template**
-  (`<|im_start|>` … `<|im_end|>`). Handing one a bare paragraph makes it continue the
-  text instead of answering it, which is what produced word-salad.
-* The prompt quotes up to two examples the app already has for that word, so the
-  model has the format, the level and the target script to imitate, and it lists the
-  sentences already on screen so it does not repeat them.
-* The prompt is held under a hard character budget (`AI_MAX_PROMPT_CHARS`). When it
-  would overflow, the worked examples are dropped first and then the "do not repeat"
-  list, so the query always fits the context.
-* Every call includes a random everyday **situation** ("ordering food or a drink", …),
-  so two taps ask for genuinely different sentences even if a model ignores the seed.
-* The reply is filtered before anything is shown: each line must be in the target
-  script, 4–16 words, not a run-on, not the same few words over and over, and it must
-  actually **use the headword**. That last check allows inflection ("run" → "running",
-  "study" → "studies", "dance" → "dancing") but rejects a fluent sentence that never
-  mentions the word — small models love to answer "morning" with *"I wake up early,
-  ready for work."*. English matches against an explicit suffix list (so "car" is not
-  satisfied by "care" or "card"), the other space-separated languages match the
-  headword as a stem (which is how their inflected forms are built), and Japanese is a
-  substring test with the inflecting tail trimmed. Lines that fail are dropped, so a
-  reply of five unrelated sentences now yields nothing and the user is asked to retry
-  instead of being shown five wrong examples. Duplicates — inside one reply or against
-  lines already displayed — are also dropped.
-* The model is asked for the **English** meaning (what it is strongest at). That is
-  shown as-is to learners whose native language is English and rendered through the
-  bundled gloss tables for everyone else.
-
-**Honest expectations:** these are 0.5B–1.5B parameter models. They are decent at
-short sentences in well-resourced languages (English, Spanish, German, Japanese)
-and noticeably weaker in Tamil, Telugu or Kannada. The UI labels the feature
-"experimental" for that reason — and that is exactly why the bundled corpus above
-exists, so every language has good examples with no model at all. It never sends
-anything to a server.
-
-### Device requirements
-
-MediaPipe LLM Inference needs a reasonably modern ARM64 (or 32-bit ARM) device
-with several hundred MB of free RAM, and it does **not** run on emulators. The
-APK therefore ships only `arm64-v8a` and `armeabi-v7a` native code (see the
-`ndk { abiFilters }` block in `app/build.gradle.kts`) — this also keeps the APK
-from carrying ~60 MB of x86 emulator libraries that no phone would ever use.

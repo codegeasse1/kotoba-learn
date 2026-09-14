@@ -136,6 +136,38 @@ object GrammarPacks {
             .mapValues { (_, v) -> v.sortedByDescending { it.examples.size } }
     }
 
+    /**
+     * Every example available for [p], gathered from the pattern's own list, the
+     * hand-written extras, closely-related patterns and finally a rich pattern in
+     * the same language. De-duplicated and capped at [limit].
+     *
+     * The grammar detail screen shows the first ten of this pool and reveals ten
+     * more each time the learner taps "Load 10 more", so the pool is deliberately
+     * larger than [target] for most patterns.
+     */
+    fun pool(p: Pattern, limit: Int = 60): List<PatternExample> {
+        val out = ArrayList<PatternExample>(limit)
+        val seen = HashSet<String>()
+        fun add(e: PatternExample) {
+            val key = e.ja.trim().lowercase()
+            if (key.isEmpty() || seen.add(key)) out.add(e)
+        }
+        p.examples.forEach { add(it) }
+        extras[p.id]?.forEach { add(it) }
+        for (rid in relatives[p.id].orEmpty()) index[rid]?.examples?.forEach { add(it) }
+        if (out.size < limit) {
+            for (q in richByLang[p.lang].orEmpty()) {
+                if (out.size >= limit) break
+                if (q.id == p.id) continue
+                for (e in q.examples) {
+                    if (out.size >= limit) break
+                    add(e)
+                }
+            }
+        }
+        return out
+    }
+
     /** The examples to display for [p]: at least [TARGET] where possible. */
     fun examples(p: Pattern): List<PatternExample> {
         if (p.examples.size >= TARGET) return p.examples

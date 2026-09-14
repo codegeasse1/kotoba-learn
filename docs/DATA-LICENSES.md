@@ -59,17 +59,8 @@ sentences per word (Tatoeba + generated combined).
 reads its API key only from the environment, and the key is never committed or
 shipped. See [EXTRA-EXAMPLES.md](EXTRA-EXAMPLES.md).
 
-## Licences of optional runtime downloads
+## Runtime downloads
 
-The optional on-device AI models are **not** bundled in the APK; the user
-downloads one from Hugging Face the first time they enable the feature. Both are
-Apache-2.0:
-
-* `litert-community/Qwen2.5-0.5B-Instruct` (`…_multi-prefill-seq_q8_ekv1280.task`, ~521 MB)
-* `litert-community/Qwen2.5-1.5B-Instruct` (`…_multi-prefill-seq_q8_ekv1280.task`, ~1.5 GB)
-
-Only MediaPipe `.task` bundles can be loaded by `LlmInference` — `.litertlm`
-files fail with "SentencePiece tokenizer is not found in the model".
-
-The MediaPipe LLM Inference runtime (`com.google.mediapipe:tasks-genai`) is also
-Apache-2.0.
+The app ships no optional runtime model downloads. Everything the learner can
+reach — the corpus examples, the grammar patterns and the Practice drills — is
+bundled in the APK or authored in Kotlin, so the app stays fully offline.

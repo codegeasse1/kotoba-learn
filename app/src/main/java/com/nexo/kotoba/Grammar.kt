@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -49,6 +50,8 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
     var open by remember { mutableStateOf<Pattern?>(null) }
     var autoQuiz by remember { mutableStateOf(false) }
     var q by remember { mutableStateOf("") }
+    var practice by remember { mutableStateOf(false) }
+    var drillCat by remember { mutableStateOf<DrillCategory?>(null) }
     val scroll = rememberScrollState()
     val targetLang = store.target
     val learningJa = targetLang == "ja"
@@ -63,7 +66,39 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
     }
 
     when {
-        open != null -> PatternDetail(open!!, store, speaker, modifier, autoQuiz = autoQuiz, onClose = { open = null; autoQuiz = false })
+        open != null -> PatternDetail(
+            open!!,
+            store,
+            speaker,
+            modifier,
+            autoQuiz = autoQuiz,
+            onDrillPattern = { p ->
+                Practice.categoryForPattern(p)?.let {
+                    open = null
+                    autoQuiz = false
+                    drillCat = it
+                }
+            },
+            onClose = { open = null; autoQuiz = false }
+        )
+        drillCat != null -> DrillSession(drillCat!!, store, speaker, modifier, onClose = { drillCat = null })
+        practice && learningEn -> Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(scroll)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+        ) {
+            Text("Grammar", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
+            Text(
+                "Learn the patterns, not the jargon — search any topic like 'would' or 'have'.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(14.dp))
+            GrammarModeToggle(practice, onPick = { practice = it })
+            Spacer(Modifier.height(14.dp))
+            PracticeHub(store, speaker, Modifier, onOpen = { drillCat = it })
+        }
         else -> Column(
             modifier = modifier
                 .fillMaxSize()
@@ -77,6 +112,11 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(14.dp))
+
+            if (learningEn) {
+                GrammarModeToggle(practice, onPick = { practice = it })
+                Spacer(Modifier.height(14.dp))
+            }
 
             OutlinedTextField(
                 value = q,
@@ -129,8 +169,13 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             if (practicePool.isNotEmpty()) {
                 Button(
                     onClick = {
-                        autoQuiz = true
-                        open = practicePool.random()
+                        val cats = if (learningEn) Practice.categories.filter { Practice.count(it.id) > 0 } else emptyList()
+                        if (cats.isNotEmpty()) {
+                            drillCat = cats.random()
+                        } else {
+                            autoQuiz = true
+                            open = practicePool.random()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -174,6 +219,23 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             }
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun GrammarModeToggle(practice: Boolean, onPick: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        FilterChip(
+            selected = !practice,
+            onClick = { onPick(false) },
+            label = { Text("Patterns") }
+        )
+        Spacer(Modifier.width(8.dp))
+        FilterChip(
+            selected = practice,
+            onClick = { onPick(true) },
+            label = { Text("Practice") }
+        )
     }
 }
 
@@ -243,14 +305,16 @@ private fun patternSubtitle(p: Pattern, native: String): String {
 }
 
 @Composable
-private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, autoQuiz: Boolean = false, onClose: () -> Unit) {
+private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: Modifier = Modifier, autoQuiz: Boolean = false, onDrillPattern: ((Pattern) -> Unit)? = null, onClose: () -> Unit) {
     var quiz by remember { mutableStateOf(autoQuiz) }
     if (quiz) {
         PatternQuiz(p, store, speaker, modifier, onClose = { quiz = false })
         return
     }
     BackHandler(onBack = onClose)
-    val exs = remember(p.id, store.nativeLang, p.lang) { GrammarPacks.examples(p) }
+    val pool = remember(p.id, store.nativeLang, p.lang) { GrammarPacks.pool(p) }
+    var shown by remember(p.id, store.nativeLang, p.lang) { mutableStateOf(minOf(10, pool.size)) }
+    val exs = pool.take(shown)
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -277,12 +341,19 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Examples — ${exs.size} sentences",
+                    if (pool.size > shown) "Examples — $shown of ${pool.size} sentences"
+                    else "Examples — ${pool.size} sentences",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-                OutlinedButton(onClick = { quiz = true }) {
+                OutlinedButton(onClick = {
+                    if (onDrillPattern != null && Practice.categoryForPattern(p) != null) {
+                        onDrillPattern(p)
+                    } else {
+                        quiz = true
+                    }
+                }) {
                     Text("🎯 Practice")
                 }
             }
@@ -323,6 +394,15 @@ private fun PatternDetail(p: Pattern, store: Store, speaker: Speaker, modifier: 
                     }
                 }
                 Spacer(Modifier.height(8.dp))
+            }
+            if (shown < pool.size) {
+                Spacer(Modifier.height(4.dp))
+                OutlinedButton(
+                    onClick = { shown = minOf(shown + 10, pool.size) },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Load 10 more")
+                }
             }
             Spacer(Modifier.height(24.dp))
         }
