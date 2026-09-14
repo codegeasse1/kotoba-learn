@@ -89,6 +89,10 @@ async function build(lang, cfg) {
     if (!en || !target) continue;
     if (target.length > cfg.maxTarget || en.length > cfg.maxEn) continue;
     if (!cfg.script.test(target)) continue;
+    // Rows that carry a translator's parenthesis or a stray delimiter are
+    // annotations, not sentences ("Tom forgot to pay the bill (at the shop)").
+    if (/[|()]/.test(en) || /[|()]/.test(target)) continue;
+    if (en.toLowerCase() === target.toLowerCase()) continue;
     const cur = best.get(target);
     if (cur === undefined || en.length < cur.length) best.set(target, en);
   }

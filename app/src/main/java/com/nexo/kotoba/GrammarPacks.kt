@@ -129,21 +129,17 @@ object GrammarPacks {
             Genki.patterns + Jfz.patterns).associateBy { it.id }
     }
 
-    /** Rich patterns to borrow from when a topic has no close relative. */
-    private val richByLang: Map<String, List<Pattern>> by lazy {
-        index.values.filter { it.examples.size >= TARGET }
-            .groupBy { it.lang }
-            .mapValues { (_, v) -> v.sortedByDescending { it.examples.size } }
-    }
-
     /**
-     * Every example available for [p], gathered from the pattern's own list, the
-     * hand-written extras, closely-related patterns and finally a rich pattern in
-     * the same language. De-duplicated and capped at [limit].
+     * Every example available for [p]: the pattern's own list, the hand-written
+     * extras and the examples of a closely-related pattern on the *same* grammar
+     * point. De-duplicated and capped at [limit].
+     *
+     * Nothing is ever borrowed from an unrelated pattern, so a sheet about the
+     * past perfect continuous can only ever show present-perfect-continuous
+     * sentences — never a stray "I am a teacher" from the verb-to-be topic.
      *
      * The grammar detail screen shows the first ten of this pool and reveals ten
-     * more each time the learner taps "Load 10 more", so the pool is deliberately
-     * larger than [target] for most patterns.
+     * more each time the learner taps "Load 10 more".
      */
     fun pool(p: Pattern, limit: Int = 60): List<PatternExample> {
         val out = ArrayList<PatternExample>(limit)
@@ -155,16 +151,6 @@ object GrammarPacks {
         p.examples.forEach { add(it) }
         extras[p.id]?.forEach { add(it) }
         for (rid in relatives[p.id].orEmpty()) index[rid]?.examples?.forEach { add(it) }
-        if (out.size < limit) {
-            for (q in richByLang[p.lang].orEmpty()) {
-                if (out.size >= limit) break
-                if (q.id == p.id) continue
-                for (e in q.examples) {
-                    if (out.size >= limit) break
-                    add(e)
-                }
-            }
-        }
         return out
     }
 
@@ -183,16 +169,6 @@ object GrammarPacks {
             for (rid in relatives[p.id].orEmpty()) {
                 if (out.size >= TARGET) break
                 index[rid]?.examples?.forEach { add(it) }
-            }
-        }
-        if (out.size < TARGET) {
-            for (q in richByLang[p.lang].orEmpty()) {
-                if (out.size >= TARGET) break
-                if (q.id == p.id) continue
-                for (e in q.examples) {
-                    if (out.size >= TARGET) break
-                    add(e)
-                }
             }
         }
         return out

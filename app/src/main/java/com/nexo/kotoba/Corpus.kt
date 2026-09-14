@@ -17,8 +17,12 @@ import android.content.Context
  *                             every line is guaranteed to use the word being studied.
  *  - `sentences_<lang>.tsv`   `<target> \t english` — the matching Tatoeba pairs (real
  *                             human sentences), read afterwards to keep the list going.
- *  - `gloss_<lang>.tsv`       `english \t <lang>` — the meaning table, which also
- *                             contains thousands of full-sentence translations.
+ *  - `gloss_<lang>.tsv`       `english \t <lang>` — the meaning table. Its
+ *                             single-word/sense rows supply the UI glosses; its
+ *                             full-sentence rows are machine-translated and are
+ *                             therefore used *only to look a translation up*,
+ *                             never shown as an example (they used to leak
+ *                             awkward renderings onto the word sheet).
  *
  * Everything is bundled, so this keeps working in airplane mode: no network, no
  * API key, no model.
@@ -27,8 +31,8 @@ import android.content.Context
  * that exact sentence:
  *
  *  - On an English track the sentence comes from the native language's own pair
- *    files (or the sentence translations in its meaning table), so the sentence
- *    and its translation are the two halves of the same curated row.
+ *    files, so the sentence and its translation are the two halves of the same
+ *    curated row.
  *  - On any other track the sentence comes from the language being learned, and
  *    the other column of that row is its real English translation. For a learner
  *    whose native language isn't English, that English sentence is then looked up
@@ -108,8 +112,14 @@ object Corpus {
             val en = english.trim()
             val g = gloss.trim()
             if (en.isEmpty() || g.isEmpty()) return
-            if (!looksLikeExample(en, fromPairs)) return
-            if (map.putIfAbsent(en.lowercase(), g) == null) list.add(en to g)
+            val first = map.putIfAbsent(en.lowercase(), g) == null
+            // Only curated sentence pairs (the Tatoeba slice and the checked-in
+            // generated top-up) may be *shown* as examples. The meaning table's
+            // rows are still recorded so they can translate a sentence, but its
+            // machine-translated full sentences are never displayed — that path
+            // produced wrong renderings such as
+            // "Good evening! Table for how many?" → "शुभ संध्या! कितने के लिए तालिका?".
+            if (first && fromPairs && looksLikeExample(en, true)) list.add(en to g)
         }
         if (native != "en") {
             for (asset in ASSETS_FOR[native].orEmpty()) {
@@ -166,6 +176,43 @@ object Corpus {
     }
 
     /**
+     * True when [s] reads as a complete example rather than a dictionary
+     * fragment.
+     *
+     * English text (the sentence half of a pair, or the pivot translation) must
+     * end in terminal punctuation — our sources otherwise hand back bare labels
+     * such as "Good evening greeting" or sense lists. Other languages are judged
+     * by length alone, because many of their sentences (Arabic and Tamil
+     * especially) carry no sentence-final punctuation at all, and demanding it
+     * would throw away thousands of perfectly good examples.
+     */
+    private fun isShowable(s: String, english: Boolean): Boolean {
+        val t = s.trim()
+        if (t.length < 3) return false
+        if (t.contains('(') || t.contains(')') || t.contains('|')) return false
+        if (english) {
+            return t.last() in ".\u0021\u003F\u2026\u3002\uFF01\uFF1F\u0964\u0965\u06D4\"'\u2019\u201D"
+        }
+        return t.count { it == ' ' } >= 2 || t.length >= 12
+    }
+
+    /**
+     * Dedupe key: the sentence with case, punctuation and extra whitespace
+     * removed, so "Good night", "Good night!" and "Good night." count as one
+     * example instead of three near-identical ones.
+     */
+    private fun sentenceKey(s: String): String {
+        val sb = StringBuilder(s.length)
+        for (c in s) {
+            when {
+                c.isLetterOrDigit() -> sb.append(c.lowercaseChar())
+                c == ' ' -> sb.append(' ')
+            }
+        }
+        return sb.toString().trim().replace(Regex("\\s+"), " ")
+    }
+
+    /**
      * Extra examples for [word] in the language being learned, starting at
      * [offset] in the list of matches, up to [limit].
      *
@@ -188,6 +235,9 @@ object Corpus {
         val seen = HashSet<String>(limit * 2)
         var skipped = 0
         val wantGloss = native.isNotBlank() && native != target
+        // The headword itself, normalized: an "example" that is just the word
+        // repeated ("Good night." for the word "good night") adds nothing.
+        val headKeys = needles.mapTo(HashSet<String>()) { sentenceKey(it) }
 
         // English track: the sentence is the English half of a curated pair, and
         // its translation is the other half. No pair, no card.
@@ -196,7 +246,9 @@ object Corpus {
                 ensureNativeLoaded(ctx, native)
                 for ((sentence, gloss) in nativePairs) {
                     if (needles.none { containsWord(sentence, it) }) continue
-                    if (!seen.add(sentence.lowercase())) continue
+                    if (!isShowable(sentence, true)) continue
+                    val key = sentenceKey(sentence)
+                    if (key in headKeys || !seen.add(key)) continue
                     if (skipped < offset) {
                         skipped++
                         continue
@@ -211,7 +263,9 @@ object Corpus {
                     if (tab <= 0) continue
                     val sentence = raw.substring(tab + 1)
                     if (needles.none { containsWord(sentence, it) }) continue
-                    if (!seen.add(sentence.lowercase())) continue
+                    if (!isShowable(sentence, true)) continue
+                    val key = sentenceKey(sentence)
+                    if (key in headKeys || !seen.add(key)) continue
                     if (skipped < offset) {
                         skipped++
                         continue
@@ -234,7 +288,9 @@ object Corpus {
             val left = raw.substring(0, tab)
             val right = raw.substring(tab + 1)
             if (needles.none { containsForTarget(left, it, target) }) continue
-            if (!seen.add(left.lowercase())) continue
+            if (!isShowable(left, false)) continue
+            val key = sentenceKey(left)
+            if (key in headKeys || !seen.add(key)) continue
             val gloss = when {
                 !wantGloss -> ""
                 native == "en" -> right

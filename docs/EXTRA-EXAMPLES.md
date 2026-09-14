@@ -23,7 +23,10 @@ instead of pushing it off screen.
 The grammar screens follow the same model: every pattern shows ten example
 sentences and a **Load 10 more** button (backed by `GrammarPacks.pool`), and the
 **Practice** section drills each grammar topic with hand-written questions — see
-[PRACTICE.md](PRACTICE.md).
+[PRACTICE.md](PRACTICE.md). A pattern's pool is its own examples plus hand-written
+extras plus, only if it is still short, the examples of a pattern that teaches the
+**same** grammar point (`relatives`); nothing is ever borrowed from an unrelated
+topic, so a *past perfect continuous* sheet can no longer show "I am a teacher".
 
 ## Bundled corpus (always offline)
 
@@ -34,7 +37,7 @@ sentences and a **Load 10 more** button (backed by `GrammarPacks.pool`), and the
 | `sentences.tsv` | ~89,000 Tatoeba Japanese↔English pairs (also backs the English track) |
 | `sentences_gen_<lang>.tsv` | AI-written top-up: two sentences per taught word, in the learner's target language |
 | `sentences_<lang>.tsv` | Tatoeba pairs for that language, where the corpus is big enough to matter |
-| `gloss_<lang>.tsv` | meaning table (English → `<lang>`); its full-sentence rows are also used as example pairs |
+| `gloss_<lang>.tsv` | meaning table (English → `<lang>`). Only its single-word/sense rows are shown in the UI; its machine-translated full-sentence rows are used to look a translation up, never displayed as an example |
 
 `<lang>` is `hi es ar fr de bn ta te ur kn` — every target the app can teach
 besides Japanese and English. Coverage was checked mechanically: **99–100 % of
@@ -69,8 +72,9 @@ That path is gone. `Corpus.extra` now draws every card from one of two sources:
   curated pair in the learner's *native* language file
   (`sentences_gen_<native>.tsv` / `sentences_<native>.tsv`), and the gloss is the
   other half of the same row — sentence and translation come from the same
-  hand-checked line. Full-sentence rows in `gloss_<native>.tsv` are a second
-  supply.
+  hand-checked line. The machine-translated full-sentence rows of
+  `gloss_<native>.tsv` are never shown as examples (they are still consulted to
+  translate a sentence, but a card's text always comes from a curated pair).
 * **Any other track**: the sentence comes from the language being learned and the
   other column of that row is its real English translation. If the native
   language isn't English, that English sentence is looked up in the native
@@ -78,18 +82,21 @@ That path is gone. `Corpus.extra` now draws every card from one of two sources:
   native rendering, the real English translation is shown as the fallback (the
   same fallback the authored examples use) rather than no card at all.
 
-Single words and `sense; list; rows` from the gloss tables are filtered out, so
-they never appear as "sentences". `Examples.sentenceGloss()` no longer exists;
-the only gloss helper left is `Examples.exactGloss(sentence, native)`, which
-returns a translation or `null` — it never guesses.
+Bare words and `sense; list; rows` never appear as "sentences": every card is
+de-duplicated punctuation- and case-insensitively (`Good night`, `Good night!`
+and `Good night.` collapse to one), a row that is just the headword repeated is
+dropped, English cards must end in terminal punctuation, and non-English cards
+must be a real sentence (three or more words, or a non-space-joining script of
+reasonable length). `Examples.sentenceGloss()` no longer exists; the only gloss
+helper left is `Examples.exactGloss(sentence, native)`, which returns a
+translation or `null` — it never guesses.
 
 The Hindi pairs were also topped up from 3,320 to **9,470** real Hindi↔English
-pairs (the AI-written, word-verified rows in `sentences_gen_hi.tsv`), which gives
-every English course word a bundled example and most of them ten or more. The
-Tamil/Telugu/Kannada/Urdu pair files are much smaller (the Tatoeba mirrors for
-those languages are tiny), so an English track for those native languages leans
-on the generated files and the meaning tables; coverage was measured at 55–70 %
-of single-word entries getting at least one real example, in every language.
+pairs (the AI-written, word-verified rows in `sentences_gen_hi.tsv`). After the
+quality filters, **99.2 % of single-word entries (5,312 words) have at least one
+real English example, 42 % have three or more and 10 % have ten or more**; the
+handful with none simply show "No bundled examples for this word yet." instead of
+invented text.
 
 Toggle: **Advanced → More example sentences**. No download, no setup, works in
 airplane mode. Licences: [DATA-LICENSES.md](DATA-LICENSES.md).

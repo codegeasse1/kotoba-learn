@@ -125,6 +125,10 @@ async function topUp(item) {
     const gloss = strip(raw.slice(bar + 1)).replace(/^["'\u201c\u201d\s]+|["'\u201c\u201d\s]+$/g, "");
     if (!target || !gloss) continue;
     if (target.length > 60 || gloss.length > 70) continue;
+    // The model sometimes repeats the line's fields ("English|target|English")
+    // or adds an explanatory parenthesis; both leak into the corpus as junk.
+    if (/[|()]/.test(target) || /[|()]/.test(gloss)) continue;
+    if (target.toLowerCase() === gloss.toLowerCase()) continue;
     if (script && !script.test(target)) continue;
     if (script && NONLATIN_RE.test(target)) continue;
     if (!target.includes(word)) continue;
