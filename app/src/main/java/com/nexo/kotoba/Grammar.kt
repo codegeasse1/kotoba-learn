@@ -169,9 +169,9 @@ fun GrammarScreen(store: Store, speaker: Speaker, modifier: Modifier = Modifier)
             if (practicePool.isNotEmpty()) {
                 Button(
                     onClick = {
-                        val cats = if (learningEn) Practice.categories.filter { Practice.count(it.id) > 0 } else emptyList()
-                        if (cats.isNotEmpty()) {
-                            drillCat = cats.random()
+                        val hasDrills = if (learningEn) Practice.categories.any { Practice.count(it.id) > 0 } else false
+                        if (hasDrills) {
+                            drillCat = Practice.mixedCategory
                         } else {
                             autoQuiz = true
                             open = practicePool.random()

@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +86,196 @@ data class DrillCategory(
  * 🎯 Practice button on any pattern opens a matching drill set when one exists.
  */
 object Practice {
+
+    /** Set from MainActivity so the generated drill pack can be read from assets. */
+    @Volatile private var appCtx: android.content.Context? = null
+    fun attach(context: android.content.Context) {
+        appCtx = context.applicationContext
+    }
+
+    /**
+     * The shipped runtime drill pack (`assets/practice_drills.txt`) is a compact
+     * recipe format. Every category in [categories] has a matching recipe that is
+     * expanded into thousands of drills on first use, so opening a topic never
+     * shows the same ten questions twice. [GEN_CAP] bounds how many generated
+     * drills are held in memory per topic (uniformly sampled, so a huge recipe
+     * still gives varied questions).
+     */
+    private const val GEN_CAP = 1500
+    const val MIXED_ID = "__mixed__"
+    private const val MIXED_SIZE = 600
+
+    private class GVal(val en: String, val hi: String, val gapHi: String, val ans: String, val wrongs: String)
+    private class GTpl(val en: String, val hi: String) {
+        var ans = ""
+        var wrongs = ""
+        var gapHi = ""
+        var blank: String? = null
+    }
+    private class GCat(val id: String) {
+        val slots = LinkedHashMap<String, ArrayList<GVal>>()
+        val tpls = ArrayList<GTpl>()
+    }
+
+    private val genLibs = HashMap<String, List<GVal>>()
+    private val genCats = HashMap<String, GCat>()
+    private val genCounts = HashMap<String, Int>()
+    private val genPool = object : LinkedHashMap<String, List<Drill>>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<Drill>>?): Boolean = size > 6
+    }
+
+    private val drillsReady: Unit by lazy { loadGeneratedAsset() }
+
+    private val SLOT_RE = Regex("\\{([a-zA-Z0-9_]+)\\}")
+    private val SPACES = Regex(" +")
+
+    private fun gval(s: String): GVal {
+        val p = s.split("~")
+        return GVal(
+            p.getOrElse(0) { "" }, p.getOrElse(1) { "" }, p.getOrElse(2) { "" },
+            p.getOrElse(3) { "" }, p.getOrElse(4) { "" }
+        )
+    }
+
+    private fun parseGenValues(spec: String): List<GVal> =
+        spec.split("|").map { gval(it.trim()) }.filter { it.en.isNotEmpty() }
+
+    private fun loadGeneratedAsset() {
+        val ctx = appCtx ?: return
+        val text = try {
+            ctx.assets.open("practice_drills.txt").bufferedReader().use { it.readText() }
+        } catch (e: Exception) {
+            return
+        }
+        var cat: GCat? = null
+        var tpl: GTpl? = null
+        for (line in text.lineSequence()) {
+            if (line.isBlank()) continue
+            val f = line.split("\t")
+            when (f.getOrElse(0) { "" }) {
+                "#l" -> if (f.size >= 3) genLibs[f[1]] = parseGenValues(f[2])
+                "#n" -> if (f.size >= 3) f[2].trim().toIntOrNull()?.let { genCounts[f[1]] = it }
+                "#c" -> { cat = GCat(f.getOrElse(1) { "" }); genCats[cat!!.id] = cat!!; tpl = null }
+                "#s" -> {
+                    val c = cat ?: continue
+                    val spec = f.getOrElse(2) { "" }
+                    val vals = if (spec.startsWith("@")) genLibs[spec.substring(1)].orEmpty() else parseGenValues(spec)
+                    c.slots.getOrPut(f.getOrElse(1) { "" }) { ArrayList() }.addAll(vals)
+                }
+                "#t" -> {
+                    val c = cat ?: continue
+                    tpl = GTpl(f.getOrElse(1) { "" }, f.getOrElse(2) { "" })
+                    c.tpls.add(tpl!!)
+                }
+                "#a" -> tpl?.let {
+                    it.ans = f.getOrElse(1) { "" }.trim()
+                    it.wrongs = f.getOrElse(2) { "" }.trim()
+                    it.gapHi = f.getOrElse(3) { "" }.trim()
+                }
+                "#b" -> tpl?.let { it.blank = f.getOrElse(1) { "" }.trim().takeIf { s -> s.isNotEmpty() } }
+            }
+        }
+    }
+
+    private fun refsOf(t: GTpl): List<String> {
+        val out = LinkedHashSet<String>()
+        for (s in listOf(t.en, t.hi)) {
+            for (m in SLOT_RE.findAll(s)) if (m.groupValues[1] != "gap") out.add(m.groupValues[1])
+        }
+        return out.toList()
+    }
+
+    /** Expands one recipe into drills, uniformly sampling down to [GEN_CAP]. */
+    private fun generate(cat: GCat): List<Drill> {
+        val rnd = java.util.Random()
+        val reservoir = ArrayList<Drill>(GEN_CAP)
+        var seen = 0
+        for (t in cat.tpls) {
+            val names = ArrayList(refsOf(t))
+            val blank = t.blank
+            if (blank != null && !names.contains(blank)) names.add(blank)
+            val vals = names.map { cat.slots[it] ?: emptyList<GVal>() }
+            if (vals.any { it.isEmpty() }) continue
+            var total = 1L
+            for (v in vals) total *= v.size
+            val idx = IntArray(names.size)
+            val localSeen = HashSet<String>()
+            var k = 0L
+            while (k < total) {
+                val chosen = HashMap<String, GVal>(names.size)
+                for (i in names.indices) chosen[names[i]] = vals[i][idx[i]]
+                for (i in names.indices.reversed()) {
+                    if (++idx[i] < vals[i].size) break
+                    idx[i] = 0
+                }
+                k++
+                val bv = if (blank != null) chosen[blank] else null
+                val answer = bv?.ans?.takeIf { it.isNotEmpty() } ?: t.ans
+                val wrongs = (bv?.wrongs?.takeIf { it.isNotEmpty() } ?: t.wrongs)
+                    .split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (answer.isEmpty() || wrongs.size < 3) continue
+                val gapHi = bv?.gapHi?.takeIf { it.isNotEmpty() } ?: t.gapHi
+                var en = t.en
+                var hi = t.hi
+                for (i in names.indices) {
+                    val v = chosen.getValue(names[i])
+                    en = en.replace("{" + names[i] + "}", v.en)
+                    hi = hi.replace("{" + names[i] + "}", v.hi)
+                }
+                var sentence = SPACES.replace(en, " ").trim()
+                if (sentence.isNotEmpty() && sentence[0] in 'a'..'z') {
+                    sentence = sentence[0].uppercaseChar() + sentence.substring(1)
+                }
+                hi = SPACES.replace(hi.replace("{gap}", gapHi), " ").trim()
+                if (!sentence.contains("___")) continue
+                val full = sentence.replace("___", answer)
+                if (!localSeen.add(full + "|" + answer)) continue
+                val drill = Drill(cat.id, sentence, answer, wrongs, hi)
+                seen++
+                if (reservoir.size < GEN_CAP) reservoir.add(drill)
+                else {
+                    val j = rnd.nextInt(seen + 1)
+                    if (j < GEN_CAP) reservoir[j] = drill
+                }
+            }
+        }
+        return reservoir
+    }
+
+    private fun generatedFor(id: String): List<Drill> {
+        drillsReady
+        val cat = genCats[id] ?: return emptyList()
+        synchronized(genPool) {
+            genPool[id]?.let { return it }
+            val list = generate(cat)
+            genPool[id] = list
+            return list
+        }
+    }
+
+    private fun generatedCount(id: String): Int {
+        drillsReady
+        return minOf(genCounts[id] ?: 0, GEN_CAP)
+    }
+
+    /** A synthetic category that draws a fresh sample from every real topic. */
+    val mixedCategory = DrillCategory(
+        MIXED_ID, "Random mix of every topic", "🎲", "Mixed",
+        "A fresh sample from all grammar topics", emptyList()
+    )
+
+    private fun mixedDrills(): List<Drill> {
+        drillsReady
+        val ids = categories.map { it.id }.filter { count(it.id) > 0 }
+        if (ids.isEmpty()) return emptyList()
+        val rnd = java.util.Random()
+        val out = ArrayList<Drill>()
+        for (cid in ids.shuffled(rnd).take(12)) {
+            val src = forCategory(cid)
+            out.addAll(src.shuffled(rnd).take(60))
+        }
+        return out.shuffled(rnd).distinctBy { it.sentence + "|" + it.answer }.take(MIXED_SIZE)
+    }
 
     private const val RAW = """
 # id|sentence with ___|answer|wrong1;wrong2;wrong3|hindi
@@ -585,8 +776,23 @@ wish|I ___ you good luck!|wish|wishes;hope;want|मैं तुम्हें 
     private val parsed: List<Drill> by lazy { parse(RAW) }
     private val byCat: Map<String, List<Drill>> by lazy { parsed.groupBy { it.category } }
 
-    fun forCategory(id: String): List<Drill> = byCat[id].orEmpty()
-    fun count(id: String): Int = byCat[id]?.size ?: 0
+    fun forCategory(id: String): List<Drill> {
+        if (id == MIXED_ID) return mixedDrills()
+        val curated = byCat[id].orEmpty()
+        val generated = generatedFor(id)
+        if (generated.isEmpty()) return curated
+        if (curated.isEmpty()) return generated
+        val out = ArrayList<Drill>(curated.size + generated.size)
+        val seen = HashSet<String>(curated.size + generated.size)
+        for (d in curated) if (seen.add(d.sentence + "|" + d.answer)) out.add(d)
+        for (d in generated) if (seen.add(d.sentence + "|" + d.answer)) out.add(d)
+        return out
+    }
+
+    fun count(id: String): Int {
+        if (id == MIXED_ID) return MIXED_SIZE
+        return (byCat[id]?.size ?: 0) + generatedCount(id)
+    }
     fun category(id: String): DrillCategory? = categories.firstOrNull { it.id == id }
 
     /** The drill set that matches a grammar [p], or null when none is close enough. */
@@ -643,6 +849,32 @@ fun PracticeHub(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(14.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpen(Practice.mixedCategory) },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        ) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(Practice.mixedCategory.emoji, fontSize = 24.sp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(Practice.mixedCategory.title, fontWeight = FontWeight.Bold)
+                    Text(
+                        Practice.mixedCategory.blurb,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Icon(
+                    Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(Modifier.height(10.dp))
         Practice.categories.map { it.group }.distinct().forEach { group ->
             val cats = Practice.categories.filter { it.group == group && Practice.count(it.id) > 0 }
             if (cats.isEmpty()) return@forEach
@@ -722,9 +954,12 @@ fun DrillSession(
 ) {
     BackHandler(onBack = onClose)
     val native = store.nativeLang
-    val pool = remember(category.id) { Practice.forCategory(category.id) }
     var round by remember(category.id) { mutableStateOf(0) }
-    val questions = remember(category.id, native, round) { pool.shuffled().take(questionLimit) }
+    val pool = remember(category.id, round) { Practice.forCategory(category.id) }
+    val deck = remember(category.id, native, round) { pool.shuffled() }
+    var shown by remember(category.id, native, round) { mutableStateOf(questionLimit) }
+    val questions = deck.take(shown.coerceAtMost(deck.size))
+    val moreAvailable = shown < deck.size
     var qi by remember(category.id, native, round) { mutableStateOf(0) }
     var score by remember(category.id, native, round) { mutableStateOf(0) }
     var picked by remember(category.id, native, round) { mutableStateOf<String?>(null) }
@@ -746,6 +981,12 @@ fun DrillSession(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            Spacer(Modifier.weight(1f))
+            if (moreAvailable) {
+                TextButton(onClick = { shown = minOf(shown + 10, deck.size) }) {
+                    Text("+10 more")
+                }
             }
         }
         Spacer(Modifier.height(6.dp))
@@ -805,11 +1046,29 @@ fun DrillSession(
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-                Button(
-                    onClick = { round += 1; picked = null },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Practise again")
+                if (moreAvailable) {
+                    Button(
+                        onClick = { shown = minOf(shown + 10, deck.size); picked = null },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Practise 10 more questions")
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+                if (moreAvailable) {
+                    OutlinedButton(
+                        onClick = { round += 1; picked = null },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Practise again")
+                    }
+                } else {
+                    Button(
+                        onClick = { round += 1; picked = null },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Practise again")
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) {

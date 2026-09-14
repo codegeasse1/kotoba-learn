@@ -548,95 +548,130 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
     fun norm(s: String): String =
         s.trim().lowercase().replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()
 
-    fun buildQuiz(): List<QuizQuestion> {
-        val rnd = java.util.Random()
-        val pool = if (words.size >= 4) words
-        else if (lesson.lang == "ja" || lesson.lang == "en") Data.allWords
-        else TargetContent.words(lesson.lang)
-        val count = min(10, words.size)
-        val targets = words.shuffled(rnd).take(count)
-        return targets.map { w ->
-            val type = when {
-                !targetJa && store.nativeLang == "hi" && w.hi.isNotEmpty() && rnd.nextFloat() < 0.4f -> QuizType.TYPE_WORD
-                !targetJa && rnd.nextFloat() < 0.3f -> QuizType.TYPE_AUDIO
-                else -> QuizType.CHOICE
-            }
-            when (type) {
-                QuizType.TYPE_WORD -> QuizQuestion(
-                    type = QuizType.TYPE_WORD,
-                    promptText = w.hi,
-                    promptAudio = null,
-                    promptIsJa = false,
-                    options = emptyList(),
-                    correct = -1,
-                    answer = w.en,
+    val rnd = remember { java.util.Random() }
+    val allWords = remember {
+        val base = LinkedHashMap<String, Word>()
+        for (w in words) base[w.id] = w
+        val extra = if (lesson.lang == "ja" || lesson.lang == "en") Data.allWords else TargetContent.words(lesson.lang)
+        for (w in extra) if (w.lang == lesson.lang) base.putIfAbsent(w.id, w)
+        base.values.toList()
+    }
+    val lessonIds = remember { words.map { it.id }.toSet() }
+
+    /** Lesson words first, then the rest of the language's vocabulary — never repeats. */
+    fun pickTargets(count: Int, exclude: Set<String>): List<Word> {
+        val lessonLeft = words.filter { it.id !in exclude }.shuffled(rnd)
+        val otherLeft = allWords.filter { it.id !in exclude && it.id !in lessonIds }.shuffled(rnd)
+        return (lessonLeft + otherLeft).take(count)
+    }
+
+    fun makeQuestions(targets: List<Word>): List<QuizQuestion> = targets.map { w ->
+        val type = when {
+            !targetJa && store.nativeLang == "hi" && w.hi.isNotEmpty() && rnd.nextFloat() < 0.4f -> QuizType.TYPE_WORD
+            !targetJa && rnd.nextFloat() < 0.3f -> QuizType.TYPE_AUDIO
+            else -> QuizType.CHOICE
+        }
+        when (type) {
+            QuizType.TYPE_WORD -> QuizQuestion(
+                type = QuizType.TYPE_WORD,
+                promptText = w.hi,
+                promptAudio = null,
+                promptIsJa = false,
+                options = emptyList(),
+                correct = -1,
+                answer = w.en,
+                word = w
+            )
+            QuizType.TYPE_AUDIO -> QuizQuestion(
+                type = QuizType.TYPE_AUDIO,
+                promptText = null,
+                promptAudio = w.en,
+                promptIsJa = false,
+                options = emptyList(),
+                correct = -1,
+                answer = w.en,
+                word = w
+            )
+            QuizType.CHOICE -> {
+                val distractors = allWords.filter { it.id != w.id }.shuffled(rnd).take(3)
+                val options = (distractors + w).shuffled(rnd)
+                QuizQuestion(
+                    type = QuizType.CHOICE,
+                    promptText = if (targetJa) {
+                        w.kana + (if (store.showRomaji) "\n" + w.romaji else "")
+                    } else {
+                        w.en + "\n" + w.ipa
+                    },
+                    promptAudio = if (targetJa) w.kana else w.en,
+                    promptIsJa = targetJa,
+                    options = options.map { o ->
+                        QuizOption(
+                            emoji = o.emoji,
+                            label = when {
+                                store.showTranslations -> o.glossFor(store.nativeLang)
+                                targetJa -> o.romaji
+                                else -> o.en
+                            }
+                        )
+                    },
+                    correct = options.indexOf(w),
+                    answer = "",
                     word = w
                 )
-                QuizType.TYPE_AUDIO -> QuizQuestion(
-                    type = QuizType.TYPE_AUDIO,
-                    promptText = null,
-                    promptAudio = w.en,
-                    promptIsJa = false,
-                    options = emptyList(),
-                    correct = -1,
-                    answer = w.en,
-                    word = w
-                )
-                QuizType.CHOICE -> {
-                    val distractors = pool.filter { it.id != w.id }.shuffled(rnd).take(3)
-                    val options = (distractors + w).shuffled(rnd)
-                    QuizQuestion(
-                        type = QuizType.CHOICE,
-                        promptText = if (targetJa) {
-                            w.kana + (if (store.showRomaji) "\n" + w.romaji else "")
-                        } else {
-                            w.en + "\n" + w.ipa
-                        },
-                        promptAudio = if (targetJa) w.kana else w.en,
-                        promptIsJa = targetJa,
-                        options = options.map { o ->
-                            QuizOption(
-                                emoji = o.emoji,
-                                label = when {
-                                    store.showTranslations -> o.glossFor(store.nativeLang)
-                                    targetJa -> o.romaji
-                                    else -> o.en
-                                }
-                            )
-                        },
-                        correct = options.indexOf(w),
-                        answer = "",
-                        word = w
-                    )
-                }
             }
         }
     }
 
-    var quiz by remember { mutableStateOf(buildQuiz()) }
+    val initialWords = remember { pickTargets(10, emptySet()) }
+    var quiz by remember { mutableStateOf(makeQuestions(initialWords)) }
+    var usedIds by remember { mutableStateOf(initialWords.map { it.id }.toSet()) }
     var qIndex by remember { mutableStateOf(0) }
     var picked by remember { mutableStateOf<Int?>(null) }
     var typed by remember { mutableStateOf("") }
     var checked by remember { mutableStateOf(false) }
     var score by remember { mutableStateOf(0) }
+    var answered by remember { mutableStateOf(0) }
     var finished by remember { mutableStateOf(false) }
+
+    fun appendTen() {
+        val targets = pickTargets(10, usedIds)
+        val qs = makeQuestions(targets)
+        if (qs.isEmpty()) return
+        quiz = quiz + qs
+        usedIds = usedIds + targets.map { it.id }
+    }
+
 
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
     when {
         finished -> {
             ResultStage(
                 score = score,
-                total = quiz.size,
+                total = answered,
                 lesson = lesson,
                 store = store,
                 onClose = onClose,
+                onMore = if (usedIds.size < allWords.size) ({
+                    val start = quiz.size
+                    appendTen()
+                    if (quiz.size > start) {
+                        qIndex = start
+                        picked = null
+                        typed = ""
+                        checked = false
+                        finished = false
+                    }
+                }) else null,
                 onAgain = {
-                    quiz = buildQuiz()
+                    val fresh = pickTargets(10, emptySet())
+                    quiz = makeQuestions(fresh)
+                    usedIds = fresh.map { it.id }.toSet()
                     qIndex = 0
                     picked = null
                     typed = ""
                     checked = false
                     score = 0
+                    answered = 0
                     finished = false
                 }
             )
@@ -660,6 +695,9 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                     Text("Quiz ${qIndex + 1}/${quiz.size}", style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.weight(1f))
                     Text("⭐ $score", style = MaterialTheme.typography.labelLarge)
+                    if (usedIds.size < allWords.size) {
+                        TextButton(onClick = { appendTen() }) { Text("+10") }
+                    }
                 }
 
                 Card(
@@ -771,6 +809,7 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                         Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = {
+                                answered++
                                 if (qIndex == quiz.lastIndex) {
                                     store.completeLesson(lesson.id, words.map { it.id })
                                     finished = true
@@ -819,6 +858,7 @@ fun LessonFlow(store: Store, speaker: Speaker, lesson: Lesson, modifier: Modifie
                         Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = {
+                                answered++
                                 if (qIndex == quiz.lastIndex) {
                                     store.completeLesson(lesson.id, words.map { it.id })
                                     finished = true
@@ -848,7 +888,8 @@ private fun ResultStage(
     lesson: Lesson,
     store: Store,
     onClose: () -> Unit,
-    onAgain: () -> Unit
+    onAgain: () -> Unit,
+    onMore: (() -> Unit)? = null
 ) {
     Column(
         Modifier
@@ -875,6 +916,10 @@ private fun ResultStage(
         Spacer(Modifier.height(24.dp))
         Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Done") }
         Spacer(Modifier.height(8.dp))
+        if (onMore != null) {
+            Button(onClick = onMore, modifier = Modifier.fillMaxWidth()) { Text("10 more questions") }
+            Spacer(Modifier.height(8.dp))
+        }
         OutlinedButton(onClick = onAgain, modifier = Modifier.fillMaxWidth()) { Text("Practice again") }
     }
 }

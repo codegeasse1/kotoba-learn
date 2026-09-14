@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
         store.load()
         KanjiData.init(applicationContext)
         Gloss.attach(applicationContext)
+        Practice.attach(applicationContext)
         Gloss.ensure(store.nativeLang)
         Gloss.ensureTarget(store.target)
         Thread { DictionaryData.init(applicationContext) }.start()
