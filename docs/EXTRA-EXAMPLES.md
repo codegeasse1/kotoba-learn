@@ -106,10 +106,29 @@ they fail with *"SentencePiece tokenizer is not found in the model"*. Don't add
 one to `OnDeviceAi.MODELS`.
 
 `OnDeviceAi.kt` downloads the model into the app's private files directory
-(`files/ai-models/`), keeps it warm between calls, serialises generation behind a
-`Mutex`, and turns a load failure into a plain-English message pointing the
-learner back at **Profile → Advanced**. `MoreExamples.kt` prompts it for short
-sentences plus English meanings, then cleans up the output.
+(`files/ai-models/`), keeps it warm between calls, and serialises generation behind
+a `Mutex`. Each call creates a fresh session with a **random seed**: MediaPipe's
+session options default to `randomSeed = 0`, which makes sampling deterministic, so
+tapping generate twice used to return the identical sentence. A load failure is
+turned into a plain-English message pointing the learner back at
+**Profile → Advanced**.
+
+`MoreExamples.kt` writes the prompt, and that is what decides the quality:
+
+* Both bundled models are instruction-tuned and expect **Qwen's ChatML template**
+  (`<|im_start|>` … `<|im_end|>`). Handing one a bare paragraph makes it continue the
+  text instead of answering it, which is what produced word-salad.
+* The prompt quotes up to two examples the app already has for that word, so the
+  model has the format, the level and the target script to imitate, and it lists the
+  sentences already on screen so it does not repeat them.
+* The reply is filtered before anything is shown: each line must be in the target
+  script, 4–16 words, not a run-on, not the same few words over and over, and not the
+  headword itself. Duplicates — inside one reply or against lines already displayed —
+  are dropped. A bad generation therefore shows a short "tap again to retry" message
+  instead of the model's rambling.
+* The model is asked for the **English** meaning (what it is strongest at). That is
+  shown as-is to learners whose native language is English and rendered through the
+  bundled gloss tables for everyone else.
 
 **Honest expectations:** these are 0.5B–1.5B parameter models. They are decent at
 short sentences in well-resourced languages (English, Spanish, German, Japanese)

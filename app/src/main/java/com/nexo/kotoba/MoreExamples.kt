@@ -150,14 +150,38 @@ fun MoreExamplesSection(
                         aiError = null
                         scope.launch {
                             try {
-                                val raw = OnDeviceAi.generate(
-                                    ctx,
-                                    store.aiModelId,
-                                    buildAiPrompt(word, lang, native, aiCount)
+                                val already = aiLines.map { it.text }
+                                val samples = withContext(Dispatchers.Default) {
+                                    Examples.exLines(word, lang, native)
+                                        .filter { it.gloss.isNotBlank() }
+                                        .take(2)
+                                }
+                                val prompt = buildAiPrompt(
+                                    word = word,
+                                    lang = lang,
+                                    native = native,
+                                    count = aiCount,
+                                    samples = samples,
+                                    avoid = already
                                 )
-                                val parsed = parseAiLines(raw, lang, native, aiCount)
+                                var parsed = emptyList<Examples.ExLine>()
+                                // Small models sometimes answer with one long rambling line,
+                                // or simply echo the headword. One silent retry (fresh seed)
+                                // is cheap and usually enough.
+                                for (attempt in 0 until 2) {
+                                    val raw = OnDeviceAi.generate(ctx, store.aiModelId, prompt)
+                                    parsed = parseAiLines(
+                                        raw = raw,
+                                        lang = lang,
+                                        native = native,
+                                        count = aiCount,
+                                        headword = aiHeadword(word, lang),
+                                        avoid = already
+                                    )
+                                    if (parsed.isNotEmpty()) break
+                                }
                                 if (parsed.isEmpty()) {
-                                    aiError = "The model didn't return usable sentences. Try again."
+                                    aiError = "The model didn't return usable sentences this time. Tap again to retry."
                                 } else {
                                     aiLines = aiLines + parsed
                                 }
@@ -301,30 +325,117 @@ fun wordForHeadword(en: String, store: Store): Word {
     )
 }
 
-internal fun buildAiPrompt(word: Word, lang: String, native: String, count: Int): String {
+/** The string the model is asked to build sentences around. */
+internal fun aiHeadword(word: Word, lang: String): String =
+    if (lang != "en" && word.kana.isNotEmpty()) word.kana else word.en
+
+/**
+ * Prompt for the on-device model.
+ *
+ * It is wrapped in Qwen's ChatML template (`<|im_start|>` / `<|im_end|>`): both
+ * bundled models are instruction-tuned, and handing one a bare paragraph makes it
+ * continue the text instead of answering it — which is where the old word-salad
+ * came from. The reply is primed by ending on the assistant turn header, and any
+ * example sentences the app already has are quoted so the model has the format and
+ * the level to imitate.
+ */
+internal fun buildAiPrompt(
+    word: Word,
+    lang: String,
+    native: String,
+    count: Int,
+    samples: List<Examples.ExLine> = emptyList(),
+    avoid: List<String> = emptyList()
+): String {
     val langName = languageLabel(lang)
-    val w = when {
-        lang != "en" && word.kana.isNotEmpty() -> word.kana
-        else -> word.en
-    }
+    val w = aiHeadword(word, lang)
+    val demo = samples.filter { it.text.isNotBlank() && it.gloss.isNotBlank() }.take(2)
     return buildString {
-        append("You are an experienced $langName teacher preparing practice material for a complete beginner.\n")
-        append("Write $count short, simple, natural $langName sentences that each use the word \"$w\".\n")
-        if (lang != "en") append("Write only in $langName script. Never use Latin letters.\n")
-        append("After each sentence write a pipe symbol \"|\" and then the English meaning of that sentence.\n")
-        append("Output one line per sentence, in this format: <$langName sentence> | <English meaning>\n")
-        append("Do not number the lines. Do not add any other text.\n")
-        append("The word \"$w\" means \"${word.en}\" in English.")
+        append("<|im_start|>system\n")
+        append("You are an experienced $langName teacher writing practice sentences for a complete beginner. ")
+        append("You always answer with plain $langName sentences, one per line, in exactly the format shown, and nothing else.\n")
+        append("<|im_end|>\n")
+        append("<|im_start|>user\n")
+        append("Word: \"$w\"\n")
+        if (demo.isNotEmpty()) {
+            append("Two examples that already exist for this word (do not reuse them):\n")
+            demo.forEach { append("${it.text} | ${it.gloss}\n") }
+        }
+        append("Write $count different $langName sentences that each use the word \"$w\".\n")
+        append("Rules:\n")
+        append("- One sentence per line, then a pipe symbol \"|\", then the English meaning of that sentence.\n")
+        append("- Each sentence is 4 to 12 words long, simple and natural.\n")
+        if (lang != "en") append("- Write only in $langName script. Never use Latin letters.\n")
+        append("- Every line is a different sentence. Do not number the lines. Do not write anything else.")
+        if (avoid.isNotEmpty()) {
+            append("\n- Do not write any of these sentences again:\n")
+            avoid.take(6).forEach { append("  $it\n") }
+        }
+        append("\n<|im_end|>\n")
+        append("<|im_start|>assistant\n")
     }
 }
 
+/** Sentence tokens, counting combining marks as part of the word (Devanagari, Arabic, …). */
+private fun aiWords(s: String): List<String> =
+    Regex("[\\p{L}\\p{M}\\p{N}']+").findAll(s).map { it.value.lowercase() }.toList()
+
+/** Loose key used to spot a sentence that has already been shown. */
+private fun aiKey(s: String): String = aiWords(s).joinToString(" ")
+
+private const val AI_MAX_WORDS = 16
+private const val AI_MAX_CHARS = 140
+
+/**
+ * Rejects what a bad generation looks like: run-on rambles, fragments, text in the
+ * wrong script, and "sentences" built from the same two or three words over and
+ * over. Small models do all of these, and showing them is worse than showing
+ * nothing.
+ */
+private fun plausibleSentence(text: String, lang: String): Boolean {
+    if (text.length < 4 || text.length > AI_MAX_CHARS) return false
+    if (!looksLikeTarget(text, lang)) return false
+    return plausibleWords(aiWords(text))
+}
+
+/** Same idea for the translation half of a line. */
+private fun plausibleMeaning(meaning: String, lang: String, native: String): Boolean {
+    if (meaning.isEmpty()) return true
+    if (meaning.length > AI_MAX_CHARS) return false
+    if (native != lang && looksLikeTarget(meaning, lang)) return false
+    return plausibleWords(aiWords(meaning))
+}
+
+private fun plausibleWords(words: List<String>): Boolean {
+    if (words.isEmpty() || words.size > AI_MAX_WORDS) return false
+    if (words.size >= 5 && words.toHashSet().size * 2 < words.size) return false
+    val counts = HashMap<String, Int>(words.size)
+    for (w in words) {
+        val n = (counts[w] ?: 0) + 1
+        if (n >= 4) return false
+        counts[w] = n
+    }
+    return true
+}
+
+/**
+ * Turns a model reply into example lines. Anything that isn't a plausible sentence,
+ * or that repeats something already on screen (including the headword itself), is
+ * dropped.
+ */
 internal fun parseAiLines(
     raw: String,
     lang: String,
     native: String,
-    count: Int
+    count: Int,
+    headword: String = "",
+    avoid: Collection<String> = emptyList()
 ): List<Examples.ExLine> {
     val out = ArrayList<Examples.ExLine>(count)
+    val seen = HashSet<String>()
+    val blocked = HashSet<String>()
+    avoid.forEach { blocked.add(aiKey(it)) }
+    blocked.add(aiKey(headword))
     for (rawLine in raw.split('\n')) {
         var line = rawLine.trim()
         if (line.isEmpty()) continue
@@ -338,23 +449,33 @@ internal fun parseAiLines(
         }
         text = text.trim().trim('"', '\'', '“', '”', '「', '」', '《', '》').trim()
         meaning = meaning.trim().trim('"', '\'', '“', '”', '「', '」').trim()
-        if (text.length < 3 || text.length > 200) continue
-        if (!looksLikeTarget(text, lang)) continue
-        if (out.any { it.text.equals(text, ignoreCase = true) }) continue
-        val gloss = when {
-            native.isBlank() || native == "en" || native == lang -> ""
-            meaning.isNotEmpty() -> Examples.sentenceGloss(meaning, native).ifBlank { meaning }
-            else -> ""
-        }
+        if (!plausibleSentence(text, lang)) continue
+        if (!plausibleMeaning(meaning, lang, native)) continue
+        val key = aiKey(text)
+        if (key.isBlank() || !blocked.add(key)) continue
+        if (!seen.add(key)) continue
         val sub = if (lang == "ja") DictionaryData.kanaToRomaji(text) else ""
-        out.add(Examples.ExLine(text, sub, gloss))
+        out.add(Examples.ExLine(text, sub, aiGloss(meaning, lang, native)))
         if (out.size >= count) break
     }
     return out
 }
 
+/**
+ * The meaning line under a generated sentence. The model is asked for English (what
+ * it is best at) and that is translated through the bundled gloss tables — except
+ * for learners whose native language *is* English, who used to get no translation
+ * at all even though the model had just written one.
+ */
+private fun aiGloss(meaning: String, lang: String, native: String): String = when {
+    meaning.isBlank() || native.isBlank() || native == lang -> ""
+    native == "en" -> meaning
+    looksLikeTarget(meaning, native) -> meaning
+    else -> Examples.sentenceGloss(meaning, native).ifBlank { meaning }
+}
+
 internal fun looksLikeTarget(text: String, lang: String): Boolean = when (lang) {
-    "en" -> text.any { it.isLetter() } && text.count { it.code > 0x2000 } == 0
+    "en" -> text.any { it.isLetter() } && text.none { it.isLetter() && it.code > 0x024F }
     "ja" -> text.count { it.code in 0x3040..0x30FF || it.code in 0x4E00..0x9FFF } >= 1
     else -> {
         val letters = text.count { it.isLetter() }

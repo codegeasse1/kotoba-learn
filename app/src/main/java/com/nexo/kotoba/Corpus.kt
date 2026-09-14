@@ -110,6 +110,8 @@ object Corpus {
             }
 
             val gloss = when {
+                // The English column of a pair is the translation we want.
+                !englishSide && native == "en" -> right
                 native.isBlank() || native == "en" -> ""
                 englishSide -> Examples.sentenceGloss(sentence, native)
                 else -> Examples.sentenceGloss(right, native)

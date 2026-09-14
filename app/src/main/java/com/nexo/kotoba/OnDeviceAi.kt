@@ -2,6 +2,7 @@ package com.nexo.kotoba
 
 import android.content.Context
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -10,6 +11,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.ThreadLocalRandom
 
 /**
  * OPTION 1: an optional on-device language model.
@@ -154,37 +156,65 @@ object OnDeviceAi {
     /**
      * Runs [prompt] through the on-device model. Blocking, so it is serialised and
      * pushed off the main thread. The model is kept warm between calls.
+     *
+     * The per-call [seed] matters more than it looks: MediaPipe's session options
+     * default to `randomSeed = 0`, which makes sampling fully deterministic — every
+     * "generate" tap used to return the exact same sentence.
      */
-    suspend fun generate(ctx: Context, id: String, prompt: String): String = lock.withLock {
+    suspend fun generate(
+        ctx: Context,
+        id: String,
+        prompt: String,
+        seed: Int = randomSeed()
+    ): String = lock.withLock {
         withContext(Dispatchers.IO) {
             val app = ctx.applicationContext
             val f = fileFor(app, id)
             require(f.exists()) { "The on-device model is not downloaded yet." }
 
-            val current = synchronized(this@OnDeviceAi) {
-                if (engine == null || enginePath != f.absolutePath) {
-                    engine?.close()
-                    engine = null
-                    val options = LlmInference.LlmInferenceOptions.builder()
-                        .setModelPath(f.absolutePath)
-                        .setMaxTopK(40)
-                        .setMaxTokens(256)
-                        .build()
-                    try {
-                        engine = LlmInference.createFromOptions(app, options)
-                        enginePath = f.absolutePath
-                    } catch (e: Exception) {
-                        enginePath = null
-                        throw IllegalStateException(
-                            "This model could not be loaded (${e.message ?: "unknown error"}). " +
-                                "Try deleting it and downloading another model in Profile → Advanced.",
-                            e
-                        )
-                    }
-                }
-                engine!!
+            val engine = synchronized(this@OnDeviceAi) { engineFor(app, f) }
+            val sessionOptions = LlmInferenceSession.LlmInferenceSessionOptions.builder()
+                .setTopK(40)
+                .setTopP(0.95f)
+                .setTemperature(0.85f)
+                .setRandomSeed(seed)
+                .build()
+            val session = LlmInferenceSession.createFromOptions(engine, sessionOptions)
+            try {
+                session.addQueryChunk(prompt)
+                session.generateResponse()
+            } finally {
+                session.close()
             }
-            current.generateResponse(prompt)
         }
     }
+
+    /** Loads the engine for [f] once and keeps it warm between calls. */
+    private fun engineFor(app: Context, f: File): LlmInference {
+        val current = engine
+        if (current != null && enginePath == f.absolutePath) return current
+        current?.close()
+        engine = null
+        val options = LlmInference.LlmInferenceOptions.builder()
+            .setModelPath(f.absolutePath)
+            .setMaxTopK(40)
+            .setMaxTokens(256)
+            .build()
+        return try {
+            LlmInference.createFromOptions(app, options).also {
+                engine = it
+                enginePath = f.absolutePath
+            }
+        } catch (e: Exception) {
+            enginePath = null
+            throw IllegalStateException(
+                "This model could not be loaded (${e.message ?: "unknown error"}). " +
+                    "Try deleting it and downloading another model in Profile → Advanced.",
+                e
+            )
+        }
+    }
+
+    /** A fresh seed per call so two generations are never identical. */
+    private fun randomSeed(): Int = ThreadLocalRandom.current().nextInt(1, Int.MAX_VALUE)
 }
