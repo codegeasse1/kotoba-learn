@@ -97,8 +97,8 @@ download, no network traffic at all. The learner picks one of:
 
 | Model | Size | Download |
 | --- | --- | --- |
-| Qwen2.5 0.5B Instruct (`.task`, q8) | ~521 MB | default |
-| Qwen2.5 1.5B Instruct (`.task`, q8) | ~1.5 GB | better sentences |
+| Qwen2.5 0.5B Instruct (`.task`, q8) | ~547 MB | default |
+| Qwen2.5 1.5B Instruct (`.task`, q8) | ~1.6 GB | better sentences |
 
 Both are MediaPipe **`.task`** bundles from `litert-community`. This matters: the
 LiteRT-LM `.litertlm` files look similar but `LlmInference` cannot load them —
@@ -109,9 +109,17 @@ one to `OnDeviceAi.MODELS`.
 (`files/ai-models/`), keeps it warm between calls, and serialises generation behind
 a `Mutex`. Each call creates a fresh session with a **random seed**: MediaPipe's
 session options default to `randomSeed = 0`, which makes sampling deterministic, so
-tapping generate twice used to return the identical sentence. A load failure is
-turned into a plain-English message pointing the learner back at
-**Profile → Advanced**.
+tapping generate twice used to return the identical sentence. The engine is created
+with a **1024-token** context (`MAX_TOKENS`): the original 256 was enough for the old
+one-paragraph prompt, but not for the ChatML prompt described below, and MediaPipe
+does not truncate an over-long query — it rejects it, which crashed the app on a real
+device. A load failure is turned into a plain-English message pointing the learner
+back at **Profile → Advanced**.
+
+Downloads are verified against the exact byte length of the published file (both the
+completed transfer and, on later launches, `isReady`): a download that stops early
+used to pass the old "bigger than 1 MB" check, and a truncated `.task` handed to
+MediaPipe's native loader fails in the worst way.
 
 `MoreExamples.kt` writes the prompt, and that is what decides the quality:
 
@@ -121,6 +129,11 @@ turned into a plain-English message pointing the learner back at
 * The prompt quotes up to two examples the app already has for that word, so the
   model has the format, the level and the target script to imitate, and it lists the
   sentences already on screen so it does not repeat them.
+* The prompt is held under a hard character budget (`AI_MAX_PROMPT_CHARS`). When it
+  would overflow, the worked examples are dropped first and then the "do not repeat"
+  list, so the query always fits the context.
+* Every call includes a random everyday **situation** ("ordering food or a drink", …),
+  so two taps ask for genuinely different sentences even if a model ignores the seed.
 * The reply is filtered before anything is shown: each line must be in the target
   script, 4–16 words, not a run-on, not the same few words over and over, and not the
   headword itself. Duplicates — inside one reply or against lines already displayed —

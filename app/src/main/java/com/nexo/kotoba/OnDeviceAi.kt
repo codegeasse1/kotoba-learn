@@ -22,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom
  * after the one-time download there is no internet, no account, and no API key —
  * which is what makes it usable in an offline-first app.
  *
- * The models are small (~521 MB / ~1.5 GB) and permissively licensed; the URLs
+ * The models are small (~547 MB / ~1.6 GB) and permissively licensed; the URLs
  * point at public, non-gated Hugging Face files.
  *
  * IMPORTANT: every entry must be a MediaPipe `.task` bundle. LiteRT-LM `.litertlm`
@@ -34,10 +34,20 @@ object OnDeviceAi {
     /** Id of the model offered by default (the first entry of [MODELS]). */
     const val DEFAULT_ID = "qwen2.5-0.5b"
 
+    /**
+     * Total number of tokens (prompt + reply) the engine accepts. The old value of 256
+     * was fine for the one-paragraph prompt this app used to send, but the ChatML prompt
+     * with worked examples easily exceeds it — and the native library does not merely
+     * truncate an over-long query, it rejects it. The bundled models ship a 1280-token KV
+     * cache, so 1024 leaves headroom for the reply while staying inside the cache.
+     */
+    private const val MAX_TOKENS = 1024
+
     data class Model(
         val id: String,
         val label: String,
         val sizeMb: Int,
+        val bytes: Long,
         val url: String,
         val file: String,
         val note: String
@@ -47,7 +57,8 @@ object OnDeviceAi {
         Model(
             id = "qwen2.5-0.5b",
             label = "Light · Qwen2.5 0.5B",
-            sizeMb = 521,
+            sizeMb = 547,
+            bytes = 546_660_344L,
             url = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct/resolve/main/Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
             file = "Qwen2.5-0.5B-Instruct_q8_ekv1280.task",
             note = "Smallest download that works. Best for English, Japanese and other widely-supported languages."
@@ -55,7 +66,8 @@ object OnDeviceAi {
         Model(
             id = "qwen2.5-1.5b",
             label = "Better · Qwen2.5 1.5B",
-            sizeMb = 1524,
+            sizeMb = 1598,
+            bytes = 1_597_913_616L,
             url = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
             file = "Qwen2.5-1.5B-Instruct_q8_ekv1280.task",
             note = "Clearly better sentences, but a very large download."
@@ -69,10 +81,16 @@ object OnDeviceAi {
 
     fun fileFor(ctx: Context, id: String): File = File(dir(ctx), model(id).file)
 
-    /** True once a plausible model file is on disk. */
+    /**
+     * True once a *complete* model file is on disk. The old check was "larger than
+     * 1 MB", which called a download that stopped at 40% ready — and handing a
+     * truncated model to MediaPipe's native loader is not a graceful failure.
+     */
     fun isReady(ctx: Context, id: String): Boolean {
         val f = fileFor(ctx, id)
-        return f.exists() && f.length() > 1_000_000L
+        if (!f.exists()) return false
+        val expected = model(id).bytes
+        return f.length() >= expected - expected / 50
     }
 
     fun delete(ctx: Context, id: String) {
@@ -129,9 +147,11 @@ object OnDeviceAi {
                     }
                 }
                 conn.disconnect()
-                if (tmp.length() < 1_000_000L) {
+                val expected = m.bytes
+                val got = tmp.length()
+                if (got < expected - expected / 50) {
                     tmp.delete()
-                    return@withContext "Download finished but the file looks incomplete."
+                    return@withContext "The download stopped early ($got of $expected bytes). Please try again."
                 }
                 if (target.exists()) target.delete()
                 if (!tmp.renameTo(target)) {
@@ -170,21 +190,31 @@ object OnDeviceAi {
         withContext(Dispatchers.IO) {
             val app = ctx.applicationContext
             val f = fileFor(app, id)
-            require(f.exists()) { "The on-device model is not downloaded yet." }
+            require(isReady(app, id)) {
+                "The on-device model is missing or incomplete. Download it again in Profile → Advanced."
+            }
 
             val engine = synchronized(this@OnDeviceAi) { engineFor(app, f) }
-            val sessionOptions = LlmInferenceSession.LlmInferenceSessionOptions.builder()
-                .setTopK(40)
-                .setTopP(0.95f)
-                .setTemperature(0.85f)
-                .setRandomSeed(seed)
-                .build()
-            val session = LlmInferenceSession.createFromOptions(engine, sessionOptions)
             try {
-                session.addQueryChunk(prompt)
-                session.generateResponse()
-            } finally {
-                session.close()
+                val sessionOptions = LlmInferenceSession.LlmInferenceSessionOptions.builder()
+                    .setTopK(40)
+                    .setTopP(0.95f)
+                    .setTemperature(0.85f)
+                    .setRandomSeed(seed)
+                    .build()
+                val session = LlmInferenceSession.createFromOptions(engine, sessionOptions)
+                try {
+                    session.addQueryChunk(prompt)
+                    session.generateResponse()
+                } finally {
+                    session.close()
+                }
+            } catch (e: Exception) {
+                // The session-options API is newer than the plain engine call. If it is
+                // unavailable or refuses this query, fall back to the classic single-shot
+                // call (a fresh session with the engine's default options) rather than
+                // failing the whole generation.
+                engine.generateResponse(prompt)
             }
         }
     }
@@ -198,7 +228,7 @@ object OnDeviceAi {
         val options = LlmInference.LlmInferenceOptions.builder()
             .setModelPath(f.absolutePath)
             .setMaxTopK(40)
-            .setMaxTokens(256)
+            .setMaxTokens(MAX_TOKENS)
             .build()
         return try {
             LlmInference.createFromOptions(app, options).also {

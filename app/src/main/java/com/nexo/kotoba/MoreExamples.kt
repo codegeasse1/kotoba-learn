@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -156,19 +157,20 @@ fun MoreExamplesSection(
                                         .filter { it.gloss.isNotBlank() }
                                         .take(2)
                                 }
-                                val prompt = buildAiPrompt(
-                                    word = word,
-                                    lang = lang,
-                                    native = native,
-                                    count = aiCount,
-                                    samples = samples,
-                                    avoid = already
-                                )
                                 var parsed = emptyList<Examples.ExLine>()
                                 // Small models sometimes answer with one long rambling line,
-                                // or simply echo the headword. One silent retry (fresh seed)
-                                // is cheap and usually enough.
+                                // or simply echo the headword. A second attempt asks about a
+                                // different situation with a fresh seed, which is usually
+                                // enough to get something usable.
                                 for (attempt in 0 until 2) {
+                                    val prompt = buildAiPrompt(
+                                        word = word,
+                                        lang = lang,
+                                        native = native,
+                                        count = aiCount,
+                                        samples = samples,
+                                        avoid = already
+                                    )
                                     val raw = OnDeviceAi.generate(ctx, store.aiModelId, prompt)
                                     parsed = parseAiLines(
                                         raw = raw,
@@ -186,8 +188,10 @@ fun MoreExamplesSection(
                                     aiLines = aiLines + parsed
                                 }
                                 onCountChange?.invoke(extra.size + aiLines.size)
-                            } catch (e: Exception) {
-                                aiError = e.message ?: "AI generation failed."
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Throwable) {
+                                aiError = e.message ?: e.toString()
                             }
                             aiBusy = false
                         }
@@ -338,6 +342,14 @@ internal fun aiHeadword(word: Word, lang: String): String =
  * came from. The reply is primed by ending on the assistant turn header, and any
  * example sentences the app already has are quoted so the model has the format and
  * the level to imitate.
+ *
+ * The prompt is also held inside a strict character budget. The engine is created with a
+ * 1024-token context and the native library rejects a query that does not fit — the old
+ * 256-token context was small enough that this prompt could break it outright. Material is
+ * dropped when the budget is tight: the worked examples first, then the "do not repeat" list.
+ *
+ * A random situation is woven in so two taps never ask for exactly the same thing, which
+ * keeps the sentences varied even if a model ignores the sampling seed.
  */
 internal fun buildAiPrompt(
     word: Word,
@@ -345,35 +357,78 @@ internal fun buildAiPrompt(
     native: String,
     count: Int,
     samples: List<Examples.ExLine> = emptyList(),
-    avoid: List<String> = emptyList()
+    avoid: List<String> = emptyList(),
+    scenario: String = aiScenario()
 ): String {
     val langName = languageLabel(lang)
     val w = aiHeadword(word, lang)
-    val demo = samples.filter { it.text.isNotBlank() && it.gloss.isNotBlank() }.take(2)
-    return buildString {
-        append("<|im_start|>system\n")
-        append("You are an experienced $langName teacher writing practice sentences for a complete beginner. ")
-        append("You always answer with plain $langName sentences, one per line, in exactly the format shown, and nothing else.\n")
-        append("<|im_end|>\n")
-        append("<|im_start|>user\n")
-        append("Word: \"$w\"\n")
-        if (demo.isNotEmpty()) {
-            append("Two examples that already exist for this word (do not reuse them):\n")
-            demo.forEach { append("${it.text} | ${it.gloss}\n") }
-        }
-        append("Write $count different $langName sentences that each use the word \"$w\".\n")
-        append("Rules:\n")
-        append("- One sentence per line, then a pipe symbol \"|\", then the English meaning of that sentence.\n")
-        append("- Each sentence is 4 to 12 words long, simple and natural.\n")
-        if (lang != "en") append("- Write only in $langName script. Never use Latin letters.\n")
-        append("- Every line is a different sentence. Do not number the lines. Do not write anything else.")
-        if (avoid.isNotEmpty()) {
-            append("\n- Do not write any of these sentences again:\n")
-            avoid.take(6).forEach { append("  $it\n") }
-        }
-        append("\n<|im_end|>\n")
-        append("<|im_start|>assistant\n")
+    val demos = samples.filter { it.text.isNotBlank() && it.gloss.isNotBlank() }.take(2)
+    val repeats = avoid.filter { it.isNotBlank() }.take(2)
+    val shaped = listOf(
+        demos to repeats,
+        emptyList<Examples.ExLine>() to repeats,
+        emptyList<Examples.ExLine>() to emptyList<String>()
+    )
+    for ((d, a) in shaped) {
+        val prompt = aiPromptText(langName, lang, w, count, d, a, scenario)
+        if (prompt.length <= AI_MAX_PROMPT_CHARS) return prompt
     }
+    return aiPromptText(langName, lang, w, count, emptyList(), emptyList(), scenario)
+}
+
+/** Hard cap on prompt length; roughly 500–700 tokens for a Latin-script language. */
+private const val AI_MAX_PROMPT_CHARS = 1200
+
+/** Everyday situations, so two taps never ask for exactly the same sentences. */
+private val AI_SCENARIOS = listOf(
+    "greeting a friend in the morning",
+    "ordering food or a drink",
+    "asking for directions",
+    "talking about the weather",
+    "shopping at a market",
+    "talking about family",
+    "at school or at work",
+    "making plans for the weekend",
+    "describing where you live",
+    "meeting someone for the first time",
+    "travelling by train or bus",
+    "talking about hobbies and free time"
+)
+
+private fun aiScenario(): String = AI_SCENARIOS.random()
+
+private fun aiPromptText(
+    langName: String,
+    lang: String,
+    w: String,
+    count: Int,
+    demos: List<Examples.ExLine>,
+    repeats: List<String>,
+    scenario: String
+): String = buildString {
+    append("<|im_start|>system\n")
+    append("You are an experienced $langName teacher writing practice sentences for a complete beginner. ")
+    append("You always answer with plain $langName sentences, one per line, in exactly the format shown, and nothing else.\n")
+    append("<|im_end|>\n")
+    append("<|im_start|>user\n")
+    append("Word: \"$w\"\n")
+    if (scenario.isNotBlank()) append("Situation: $scenario.\n")
+    if (demos.isNotEmpty()) {
+        append("Two sentences that already exist for this word (do not reuse them):\n")
+        demos.forEach { append("${it.text} | ${it.gloss}\n") }
+    }
+    append("Write $count different $langName sentences that each use the word \"$w\".\n")
+    append("Rules:\n")
+    append("- One sentence per line, then a pipe symbol \"|\", then the English meaning of that sentence.\n")
+    append("- Each sentence is 4 to 12 words long, simple and natural.\n")
+    if (lang != "en") append("- Write only in $langName script. Never use Latin letters.\n")
+    append("- Every line is a different sentence. Do not number the lines. Do not write anything else.")
+    if (repeats.isNotEmpty()) {
+        append("\n- Do not write any of these sentences again:\n")
+        repeats.forEach { append("  $it\n") }
+    }
+    append("\n<|im_end|>\n")
+    append("<|im_start|>assistant\n")
 }
 
 /** Sentence tokens, counting combining marks as part of the word (Devanagari, Arabic, …). */
