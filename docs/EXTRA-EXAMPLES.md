@@ -1,8 +1,10 @@
 # Extra example sentences
 
-Kotoba's hand-authored example sentences are deliberately small — about ten per
-word. Learners who want more page through a bundled corpus of real sentences,
-entirely offline, with no account and no API key on the phone.
+The word sheet shows the bundled corpus of real sentences directly: open a word
+and you get sentences that genuinely use it, each with its own real translation,
+entirely offline — no account, no API key. **Load 10 more** pages through the
+rest. Nothing on the sheet is built from a fixed "sentence frame" with the taught
+word dropped into the blank, so no two words read alike.
 
 The word-example feature lives in `MoreExamples.kt`, which is the *single*
 implementation used by every screen that shows a word:
@@ -46,6 +48,11 @@ averaging 2.5–4.3 sentences per word.
   dictionary sense in the gloss table, is accent-insensitive (`trafico` finds
   `tráfico`), tolerates inflection (`madre` finds `madres`), and treats an
   apostrophe as a word boundary so elided Spanish/French forms work (`l'économie`).
+* Japanese is matched as a substring with a kanji-boundary rule, so 母 no longer
+  matches 母国 ("motherland") and a one-mora kana reading (日 → ひ) only counts
+  when the whole sentence is that word — this is what makes the Japanese sheet
+  show real, on-topic sentences instead of the near-empty list a whole-word match
+  produced.
 
 ### Every shown translation is a real one
 
