@@ -137,8 +137,8 @@ accident	दुर्घटना	N
 accidental	आकस्मिक	Adj
 accidentally	संयोगवश	Adv
 acclaim	वाहवाह करना	V
-acclaim	वाहवा ही; सम्मान	N
-acclamation	वाहवा ही; सम्मान	N
+acclaim	वाहवाही; सम्मान	N
+acclamation	वाहवाही; सम्मान	N
 acclimatize	दशानुकूलित होना (करना)	V
 accolade	सम्मान	N
 accommodate	रह (रख) सकना; समाविष्ट करना (कराना); समायोजित करना; सहायता करना	V
@@ -2850,9 +2850,9 @@ cesspool	नाबदान; गंदीजगह	N
 chafe	रगड़	N
 chafe	रगड़ जाना	V
 chaff	छिलका; छाँटन	N
-chaff	हँसीमेंखि जाना; तंग करना	VT
+chaff	हँसीमेंखिजाना; तंग करना	VT
 chagrin	झुंझलाहट	N
-chagrin	कुढ़ाना; खि जाना	VT
+chagrin	कुढ़ाना; खिजाना	VT
 chain	श्रृंखला; ज़ंजीर; करधनी; तोड़ा	N
 chain	सिकड़ी बाँधना	V
 chair	कुर्सी	N
@@ -5765,7 +5765,7 @@ drug	दवा	N
 drug	दवा देना; बेहोशीकीदवा देना	VT
 drugstore	दवाकीदुकान	N
 drum	ढोल	N
-drum	ढोलब जाना; बजाना	VT
+drum	ढोल बजाना; बजाना	VT
 drumbeat	ढोलकीआवाज़	N
 drummer	ढोलबजानेवाला	N
 drunk	मत्त; नशेमेंचूर	Adj
@@ -6725,7 +6725,7 @@ fall to	हार जाना	PhrV
 fall in	मेंहो जाना	PhrV
 fall in with	सहमत होना	PhrV
 fall into sth	मेंफँसना	PhrV
-fall off	से गिरना; कमहो जाना	PhrV
+fall off	से गिरना; कम हो जाना	PhrV
 fall-out	झगड़ा	N
 fall over sb/sth	पर गिरना	PhrV
 fall through	असफल होना	V
@@ -8061,7 +8061,7 @@ foul play	नियमविरुद्धखेल	N
 foulness	नियमविरुद्धता	N
 foully	अनुचिततासे	Adv
 found	स्थापना करना	VT
-founding father	जन्म दाता	N
+founding father	जन्मदाता	N
 foundation	आधार; स्थापना; संस्था	N
 foundation stone	आधारशिला	N
 founder	संस्थापक	N
@@ -10316,7 +10316,7 @@ id card	परिचय पत्र	Abbr:identity card
 idea	विचार; योजना; मत; अनुमान; जानकारी; सुझाव	N
 ideal	पूर्ण; अभीष्ट; काल्पनिक; आदर्श	Adj
 idealism	आदर्शवाद	N
-idealist	आदर्श वादी	N
+idealist	आदर्शवादी	N
 idealistically	आदर्शरूपमें	Adv
 idealization	आदर्शीकरण	N
 ideate	कल्पना करना	V
@@ -11902,7 +11902,7 @@ kilohertz	किलोहर्टज	N
 kilometer	किलोमीटर	N
 kilowatt	किलोवाट	N
 kilt	घाघरा	N
-kimono	की मोनो (जापानी पहनावा)	N
+kimono	कीमोनो (जापानी पहनावा)	N
 kin	संबंधी	N
 kind	दयालु; आभारी	Adj
 kind	प्रकार; वस्तु	N
@@ -12071,7 +12071,7 @@ lacklustre	भावशून्य	Adj
 laconic	मितभाषी	Adj
 lacquer	रोगन	N
 lacrosse	क्रीडा विशेष	N
-loctation	दुग्ध ० ावण (प्रसव के बाद)	N
+loctation	दुग्धावण (प्रसव के बाद)	N
 lactic acid	दुग्धाम्ल	N
 lactose	दुग्धशर्करा	N
 lacuna	कमी	N
@@ -13109,7 +13109,7 @@ match wood	तीलियों का काष्ठ	N
 mate	साथी; जोड़	N
 material	द्रव्यात्मक	N
 materialism	भौतिकवाद	N
-materialist	भौतिक वादी	N
+materialist	भौतिकवादी	N
 materialistic	सांसारिक	Adj
 materialize	मूर्तरूप देना	V
 maternal	मातृक	Adj
@@ -13207,7 +13207,7 @@ measurement	नाप	N
 measuring-tape	मापक यत्रं	N
 meat	माँस; प्रमुखअंश	N
 meatball	छोटे टुकडों में कटे मॉंस के गोले	N
-mecca	मक्का (मुसल मानों का तीर्थ)	N
+mecca	मक्का (मुसलमानों का तीर्थ)	N
 mechanic	मैकैनिक; कारीगर	N
 mechanical	यांत्रिक	Adj
 mechanically	यांत्रिकरूपसे	Adv
@@ -13368,7 +13368,7 @@ messily	गंदे तरीके से	Adv
 messiness	गंदगी	N
 message	समाचार	N
 messenger	संदेशवाहक	N
-messiah	मुक्ति दाता	N
+messiah	मुक्तिदाता	N
 messrs	सर्वश्री	N
 met	मौसम विभाग	N
 metabolism	रस प्रक्रिया	N
@@ -14952,8 +14952,8 @@ opinion	विचार	N
 opium-eater	अफ़ीमची	N
 opponent	विपक्ष	N
 opportune	सुविधा का	Adj
-opportunist	अवसर वादी	N
-opportunist	अवसर वादी	Adj
+opportunist	अवसरवादी	N
+opportunist	अवसरवादी	Adj
 opportunity	मौका	N
 oppose	विरोध करना	VTI
 opposite	विरुद्ध	Adj
@@ -17304,7 +17304,7 @@ proverb	कहावत	N
 provide	देना	V
 provider	प्रबन्धक	N
 provided	बशर्ते कि	Conj
-providence	परमा त्मा का विधान	N
+providence	परमात्मा का विधान	N
 provident	दूरदर्शी	Adj
 providential	सौभाग्यपूर्ण	Adj
 province	प्रान्त; अधिकार क्षेत्र	N
@@ -17325,8 +17325,8 @@ proximity	सामीप्यता	N
 proxy	प्रतिनिधि	N
 prude	छद्म लज्जालु स्त्री	Adj
 prudent	बुद्धिमत्तापूर्ण	Adj
-prudence	बुद्धि मानी	N
-prudently	बुद्धि मानी से	Adv
+prudence	बुद्धिमानी	N
+prudently	बुद्धिमानी से	Adv
 prune	आलूबुखारा	N
 prune	काटना-छाँटना	V
 pruning	काट-छाँट	N
@@ -17961,7 +17961,7 @@ ready	तैयार; शीघ्र; पहुँच के अन्दर; 
 readily	तरन्त ही	Adj
 ready	प्राप्तधन; काममेलानेकेलियेतैयार	N
 reaffirm	निश्चितरूपसेकिसीबातकोफिरसेकहना	V
-reagent	प्रति कारक	N
+reagent	प्रतिकारक	N
 real	सत्य; वास्तविक; पूर्णतः; आमदनी; सम्पत्ति	Adj
 real	यथार्तमे	Adv
 realign	विभिन्नदशाओंमे जाना	V
@@ -18289,7 +18289,7 @@ relief	सहायता कोष	Adj
 relief	उभरीहुईनक्काशी; रंगऔरशेडिंगद्वाराऊँचाईकाप्रदर्शन	N
 relieve	पीड़ाकम करना; सेवा से मुक्त करना; कम करना; कार्य मुक्त करना; सहायता करना	VT
 relieved	चिन्तामुक्त	Adj
-religion	धर्म; कर्तव्य; जीवन का अंग; परमा त्मा के अस्तित्व में विश्वास	N
+religion	धर्म; कर्तव्य; जीवन का अंग; परमात्मा के अस्तित्व में विश्वास	N
 religious	मज़हबी; धार्मिक; धार्मिक स्वभाव का; मठ का; निष्ठापूर्वक	Adj
 religiously	नियमित रूप से	Adv
 relinquish	छोड़ देना	VT
@@ -18513,7 +18513,7 @@ resilient	लोचदार	Adj
 resin	राल	N
 resist	विरोध करना; अप्रभावित रहना; टक्कर लेना; नरोकपाना	VT
 resistance	विरोध; प्रतिरोध; प्रतिरोधक क्षमता; विद्दुतप्रवाहकाप्रतिरोध; विरोधी संस्था	N
-resistant	प्रति रोधी	Adj
+resistant	प्रतिरोधी	Adj
 resit	अनुत्तीर्ण होने पर पुनः परीक्षा देना	V
 resolute	धीर; संकल्पवान	Adj
 resolution	दृढ़ निश्चय; संकल्प; प्रस्ताव; इरादा; विश्लेषण; किसी प्रश्न का उत्तर	N
@@ -18874,7 +18874,7 @@ root	स्थापितकर	VT
 rope	रस्सी	N
 rope	रस्सी से बाँधना (बँधना)	V
 ropy	बेकार	Adj
-rosary	जपमाला; गुला ० बकाबाग़	N
+rosary	जपमाला; गुलाबकाबाग़	N
 rose	गुलाबकाफूलयापौधा	N
 rose-water	गुलाब-जल	N
 rosette	रंग-बिरंगे रिबनों का बना बिल्ला	N
@@ -20698,7 +20698,7 @@ soapy	साबुनी; साबुन-जैसा; चिकना; सा�
 soap box	मंच	N
 soap stone	सेलखड़ी; सिलखड़ी; गोरा-पत्थर; घीया-पत्थर	N
 soar	उड़ना; बहुत बढ़ना	V
-sob	सि सकना; हिचकी भरकर रोना	V
+sob	सिसकना; हिचकी भरकर रोना	V
 sob	सिसकी	N
 sober	अमत्त; संयमी; समझदार	Adj
 sobering	गम्भीरताकीओर	Adj
@@ -22096,7 +22096,7 @@ surveillance	निगरानी	N
 survey	पर्यवलोकन	N
 survey	जाँचना; निरीक्षण करना; सर्वेक्षण करना	V
 surveyor	सर्वेक्षक; निरीक्षक	N
-survival	(मृत्यु) सेबच जाना (उत्तर जीवन)	N
+survival	(मृत्यु) से बच जाना (उत्तर जीवन)	N
 survive	जीवित रहना	V
 survivor	उत्तरजीवी	N
 susceptibility	अतिसंवेदनशीलता	N
@@ -23995,7 +23995,7 @@ unhinge	पागल या विक्षिप्त बना देना	V
 unholy	अपवित्र	Adj
 unicameral	एक सभाका	Adj
 unicorn	गेंडा; एक सींग का जानवर	N
-unification	एकहो जाना	N
+unification	एक हो जाना	N
 uniform	एकसमान	Adj
 uniform	एकरूपकावस्त्र	N
 uniformity	एकरूपता	N
@@ -24834,7 +24834,7 @@ vow	वादा	VTI
 vowel	स्वर	N
 voyage	यात्रा (जलयाविमान)	N
 voyager	जलयात्री	N
-vulcanised	गन्ध की	Adj
+vulcanised	गन्धकी	Adj
 vulgar	असंस्कृत; अशिष्ट	Adj
 vulgarity	अशिष्टता	N
 vulgarly	असभ्यता से	Adv

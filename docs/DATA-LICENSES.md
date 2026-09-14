@@ -53,8 +53,11 @@ sentences per word (Tatoeba + generated combined).
   project, then machine-audited: the Hindi column's `{}`/`[]` usage notes are
   normalised to `(…)`, `_` space-holders became spaces, and glued compound verbs
   were split only where a Hindi word list confirms every resulting word
-  (`छोड़देना` → `छोड़ देना`). Unverifiable tokens are left as they are rather than
-  guessed at. See [EXTRA-EXAMPLES.md](EXTRA-EXAMPLES.md#corpus-audit-the-checked-in-data).
+  (`छोड़देना` → `छोड़ देना`). A later pass re-joined the handful of words the
+  splitter had broken the wrong way (`वाहवाही` had become `वाहवा ही`, `कीमोनो` →
+  `की मोनो`, …) — 17 readings in all. Unverifiable tokens are left as they are
+  rather than guessed at. See
+  [EXTRA-EXAMPLES.md](EXTRA-EXAMPLES.md#corpus-audit-the-checked-in-data).
 * `ja_en.tsv`, `kanji.tsv`, `verbs.tsv` — Japanese dictionary, kanji and verb
   tables authored/vendored for this project.
 

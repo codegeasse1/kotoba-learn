@@ -190,5 +190,17 @@ swept every asset for rows that would be shown to a learner and looked bad:
   glued verbal compounds are split where a Hindi word list confirms every piece
   (`छोड़ देना`, `अवमानित करना`, `कम होना`), and a token is left alone rather than
   guessed at whenever the split can't be verified — so the dictionary never
-  invents a wrong reading.
+  invents a wrong reading. A follow-up audit re-joined the words the splitter
+  had broken the wrong way (`वाहवाही` had become `वाहवा ही`; `कीमोनो` →
+  `की मोनो`; `जन्मदाता` → `जन्म दाता`; `सिसकना` → `सि सकना`; and a dozen more) —
+  17 readings corrected. `verbs.tsv`'s Hindi column, which shares the same
+  source, was re-spaced from the corrected table.
+* **Sentence tables swept for cross-script contamination and stray marks.**
+  Every `sentences_*` file was re-scanned: a Korean word inside an English gloss
+  (`He likes scrutin지는 every point.`), a Latin-only sentence in the Arabic
+  file, a trailing `\\` in Bengali, a `\\` standing in for a space in Arabic,
+  five Hindi sentences whose full stop was a Latin `I`, and `..`/doubled
+  punctuation were all fixed. Space-before-punctuation (a corpus artefact) was
+  normalised in the Devanagari, Bengali, Arabic, Tamil, Telugu and Kannada
+  files — French keeps its typographic space before `!?;:`.
 
