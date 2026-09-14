@@ -266,7 +266,7 @@ object Practice {
 
     private fun mixedDrills(): List<Drill> {
         drillsReady
-        val ids = categories.map { it.id }.filter { count(it.id) > 0 }
+        val ids = categories.map { it.id }.filter { count(it) > 0 }
         if (ids.isEmpty()) return emptyList()
         val rnd = java.util.Random()
         val out = ArrayList<Drill>()
