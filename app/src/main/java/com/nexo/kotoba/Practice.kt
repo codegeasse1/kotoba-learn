@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -30,6 +31,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.unit.sp
 
 /**
@@ -111,6 +115,15 @@ object Practice {
      */
     private const val TPL_SAMPLE = 6000
     private const val CAT_BUDGET = 60000
+
+    /**
+     * The "random mix" topic draws a little from every other topic, so it must not
+     * expand all twelve of them in full — doing that on the composition thread is
+     * what made the 🎲 button jank (and, on slower phones, crash). Each topic gets a
+     * much smaller budget and target when it is only being sampled.
+     */
+    private const val MIXED_TPL_CAP = 3000
+    private const val MIXED_TARGET = 160
     const val MIXED_ID = "__mixed__"
     private const val MIXED_SIZE = 600
 
@@ -205,11 +218,11 @@ object Practice {
      * combinations instead — same variety, bounded work. [CAT_BUDGET] caps the
      * work per topic so opening a session always stays fast.
      */
-    private fun generate(cat: GCat): List<Drill> {
+    private fun generate(cat: GCat, budgetCap: Int = CAT_BUDGET, target: Int = GEN_CAP): List<Drill> {
         val rnd = java.util.Random()
-        val reservoir = ArrayList<Drill>(GEN_CAP)
+        val reservoir = ArrayList<Drill>(target)
         var seen = 0
-        var budget = CAT_BUDGET
+        var budget = budgetCap
         for (t in cat.tpls) {
             if (budget <= 0) break
             val names = ArrayList(refsOf(t))
@@ -263,10 +276,10 @@ object Practice {
                 if (!localSeen.add(full + "|" + answer)) continue
                 val drill = Drill(cat.id, sentence, answer, wrongs, hi)
                 seen++
-                if (reservoir.size < GEN_CAP) reservoir.add(drill)
+                if (reservoir.size < target) reservoir.add(drill)
                 else {
                     val j = rnd.nextInt(seen + 1)
-                    if (j < GEN_CAP) reservoir[j] = drill
+                    if (j < target) reservoir[j] = drill
                 }
             }
         }
@@ -295,6 +308,24 @@ object Practice {
         "A fresh sample from all grammar topics", emptyList()
     )
 
+    /**
+     * A small sample of one topic's drills without paying for the whole topic:
+     * the curated drills plus a bounded slice of the generated ones. Already-cached
+     * topics are reused as-is.
+     */
+    private fun sampleFor(id: String, n: Int): List<Drill> {
+        drillsReady
+        synchronized(genPool) { genPool[id] }?.let { return it.shuffled().take(n) }
+        val cat = genCats[id] ?: return emptyList()
+        val curated = byCat[id].orEmpty()
+        val generated = generate(cat, MIXED_TPL_CAP, MIXED_TARGET)
+        val out = ArrayList<Drill>(curated.size + generated.size)
+        val seen = HashSet<String>(curated.size + generated.size)
+        for (d in curated) if (seen.add(d.sentence + "|" + d.answer)) out.add(d)
+        for (d in generated) if (seen.add(d.sentence + "|" + d.answer)) out.add(d)
+        return out.shuffled().take(n)
+    }
+
     private fun mixedDrills(): List<Drill> {
         drillsReady
         val ids = categories.map { it.id }.filter { count(it) > 0 }
@@ -302,8 +333,7 @@ object Practice {
         val rnd = java.util.Random()
         val out = ArrayList<Drill>()
         for (cid in ids.shuffled(rnd).take(12)) {
-            val src = forCategory(cid)
-            out.addAll(src.shuffled(rnd).take(60))
+            out.addAll(sampleFor(cid, 60))
         }
         return out.shuffled(rnd).distinctBy { it.sentence + "|" + it.answer }.take(MIXED_SIZE)
     }
@@ -986,8 +1016,14 @@ fun DrillSession(
     BackHandler(onBack = onClose)
     val native = store.nativeLang
     var round by remember(category.id) { mutableStateOf(0) }
-    val pool = remember(category.id, round) { Practice.forCategory(category.id) }
-    val deck = remember(category.id, native, round) { pool.shuffled() }
+    // Expanding a topic's recipe can mean tens of thousands of combinations, so it
+    // runs off the main thread with a spinner — building it during composition is
+    // what froze (and on some phones killed) the 🎲 random-mix session.
+    var pool by remember(category.id, round) { mutableStateOf<List<Drill>?>(null) }
+    LaunchedEffect(category.id, round) {
+        if (pool == null) pool = withContext(Dispatchers.Default) { Practice.forCategory(category.id) }
+    }
+    val deck = remember(category.id, native, round, pool) { pool?.shuffled().orEmpty() }
     var shown by remember(category.id, native, round) { mutableStateOf(questionLimit) }
     val questions = deck.take(shown.coerceAtMost(deck.size))
     val moreAvailable = shown < deck.size
@@ -1037,6 +1073,21 @@ fun DrillSession(
         Spacer(Modifier.height(8.dp))
 
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            if (pool == null) {
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 26.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(Modifier.width(22.dp).height(22.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Building your questions…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                return@Column
+            }
             if (questions.isEmpty()) {
                 Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
                     Text(

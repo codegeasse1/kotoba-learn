@@ -106,6 +106,13 @@ fun MoreExamplesSection(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            } else if (extraDone) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "That's every bundled example for this word.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
