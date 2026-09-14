@@ -33,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -474,7 +475,7 @@ private fun PatternQuiz(
 ) {
     BackHandler(onBack = onClose)
     val native = store.nativeLang
-    val questions = remember(p.id, native, p.lang) {
+    val allQuestions = remember(p.id, native, p.lang) {
         val pool = GrammarPacks.examples(p).mapNotNull { ex ->
             val prompt = ex.glossFor(native, p.lang)
             if (prompt.isBlank()) null else QuizQ(prompt, ex.ja, emptyList(), ex.ja)
@@ -489,6 +490,9 @@ private fun PatternQuiz(
             }
         }
     }
+    var shown by remember(p.id, native) { mutableStateOf(10) }
+    val questions = allQuestions.take(shown.coerceAtMost(allQuestions.size))
+    val moreAvailable = shown < allQuestions.size
     var qi by remember { mutableStateOf(0) }
     var score by remember { mutableStateOf(0) }
     var picked by remember { mutableStateOf<String?>(null) }
@@ -513,6 +517,12 @@ private fun PatternQuiz(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            Spacer(Modifier.weight(1f))
+            if (qi < questions.size && moreAvailable) {
+                TextButton(onClick = { shown = minOf(shown + 10, allQuestions.size) }) {
+                    Text("+10 more")
+                }
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -558,6 +568,20 @@ private fun PatternQuiz(
                     }
                 }
                 Spacer(Modifier.height(14.dp))
+                if (moreAvailable) {
+                    Button(
+                        onClick = {
+                            val start = questions.size
+                            shown = minOf(shown + 10, allQuestions.size)
+                            qi = start
+                            picked = null
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Practise 10 more questions")
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
                 Button(
                     onClick = { qi = 0; score = 0; picked = null },
                     modifier = Modifier.fillMaxWidth()

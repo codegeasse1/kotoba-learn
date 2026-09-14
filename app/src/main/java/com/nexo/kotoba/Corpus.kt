@@ -21,6 +21,13 @@ import android.content.Context
  * Everything is bundled, so this keeps working in airplane mode: no network, no
  * API key, no model.
  *
+ * Translations are only ever shown when the bundle actually contains one for the
+ * exact sentence: for an English track whose native language has its own pair
+ * file the sentence and its translation are the two columns of the same row, and
+ * every other combination looks the sentence up in the native tables (through the
+ * English column as a pivot). We never compose a word-by-word "translation" — a
+ * confident-looking wrong gloss is worse than none.
+ *
  * [extra] is called lazily — a language's tables are only read the first time a
  * learner actually taps "More examples", and only one language's tables are kept
  * in memory at once (the Japanese/English file is the big one).
@@ -41,6 +48,12 @@ object Corpus {
     private var loadedFor: String? = null
 
     private var lines: List<String> = emptyList()
+
+    @Volatile
+    private var nativeLoadedFor: String? = null
+
+    /** Lower-case English sentence → its translation, for the native-language tables. */
+    private var nativeByEnglish: Map<String, String> = emptyMap()
 
     /** Number of bundled sentence pairs currently in memory (0 until first read). */
     fun size(): Int = lines.size
@@ -66,6 +79,40 @@ object Corpus {
         loadedFor = lang
     }
 
+    @Synchronized
+    private fun ensureNativeLoaded(ctx: Context, native: String) {
+        if (nativeLoadedFor == native) return
+        val app = ctx.applicationContext
+        val map = HashMap<String, String>(40_000)
+        for (asset in ASSETS_FOR[native] ?: emptyList()) {
+            try {
+                app.assets.open(asset).bufferedReader().use { r ->
+                    r.forEachLine { line ->
+                        val tab = line.indexOf('\t')
+                        if (tab <= 0) return@forEachLine
+                        val left = line.substring(0, tab).trim()
+                        val right = line.substring(tab + 1).trim()
+                        if (left.isEmpty() || right.isEmpty()) return@forEachLine
+                        // The bundled pair files always have the native language on
+                        // the left and English on the right.
+                        map.putIfAbsent(right.lowercase(), left)
+                    }
+                }
+            } catch (_: Exception) {
+                // No native tables for this language — nothing to look up.
+            }
+        }
+        nativeByEnglish = map
+        nativeLoadedFor = native
+    }
+
+    /** A real translation of [english] in [native], or null when the bundle has none. */
+    private fun nativeLookup(ctx: Context, native: String, english: String): String? {
+        if (native.isBlank() || native == "en") return null
+        ensureNativeLoaded(ctx, native)
+        return nativeByEnglish[english.trim().lowercase()]
+    }
+
     /**
      * Extra examples for [word] in the language being learned, starting at
      * [offset] in the list of matches, up to [limit].
@@ -82,43 +129,67 @@ object Corpus {
         limit: Int = 10,
         romaji: Boolean = true
     ): List<Examples.ExLine> {
-        ensureLoaded(ctx, target)
-        if (lines.isEmpty()) return emptyList()
-
         val needles = needlesFor(word, target)
         if (needles.isEmpty()) return emptyList()
 
         val englishSide = target == "en"
+        // When the learner studies English and their native language has its own
+        // pair file, that file is the perfect source: (native, English) columns, so
+        // the sentence and its real translation share a row.
+        val directNative = englishSide && native.isNotBlank() && native != "en" &&
+            ASSETS_FOR[native].orEmpty().isNotEmpty()
+
+        // Pools are tried in order; a pool is (table, match the English column?,
+        // gloss kind). Gloss kind 1 = the other column is the translation,
+        // 2 = translate the English column through the native tables, 0 = no gloss.
+        val pools = ArrayList<Triple<String, Boolean, Int>>(2)
+        if (directNative) {
+            pools.add(Triple(native, true, 1))
+            pools.add(Triple("en", true, 0)) // more English sentences, just no native line
+        } else {
+            val kind = when {
+                native.isBlank() || native == target -> 0
+                native == "en" -> 1
+                else -> 2
+            }
+            pools.add(Triple(target, englishSide, kind))
+        }
+
         val out = ArrayList<Examples.ExLine>(limit)
         val seen = HashSet<String>(limit * 2)
         var skipped = 0
-        for (raw in lines) {
-            val tab = raw.indexOf('\t')
-            if (tab <= 0) continue
-            val left = raw.substring(0, tab)
-            val right = raw.substring(tab + 1)
-            val sentence = if (englishSide) right else left
+        for ((tableKey, matchEnglish, glossKind) in pools) {
+            ensureLoaded(ctx, tableKey)
+            if (lines.isEmpty()) continue
+            for (raw in lines) {
+                val tab = raw.indexOf('\t')
+                if (tab <= 0) continue
+                val left = raw.substring(0, tab)
+                val right = raw.substring(tab + 1)
+                val sentence = if (matchEnglish) right else left
 
-            val hit = needles.any { needle ->
-                if (englishSide) containsWord(sentence, needle) else containsStem(sentence, needle)
-            }
-            if (!hit) continue
-            if (!seen.add(sentence.lowercase())) continue
-            if (skipped < offset) {
-                skipped++
-                continue
-            }
+                val hit = needles.any { needle ->
+                    if (matchEnglish) containsWord(sentence, needle) else containsStem(sentence, needle)
+                }
+                if (!hit) continue
+                if (!seen.add(sentence.lowercase())) continue
+                if (skipped < offset) {
+                    skipped++
+                    continue
+                }
+                if (out.size >= limit) return out
 
-            val gloss = when {
-                // The English column of a pair is the translation we want.
-                !englishSide && native == "en" -> right
-                native.isBlank() || native == "en" -> ""
-                englishSide -> Examples.sentenceGloss(sentence, native)
-                else -> Examples.sentenceGloss(right, native)
+                val gloss = when (glossKind) {
+                    // The column that is not the sentence is the native translation.
+                    1 -> if (matchEnglish) left else right
+                    // English pivot: the exact English sentence, translated by the
+                    // native-language tables when they contain it.
+                    2 -> Examples.exactGloss(right, native) ?: nativeLookup(ctx, native, right) ?: ""
+                    else -> ""
+                }
+                val sub = if (target == "ja" && romaji) DictionaryData.kanaToRomaji(sentence) else ""
+                out.add(Examples.ExLine(sentence, sub, gloss))
             }
-            val sub = if (target == "ja" && romaji) DictionaryData.kanaToRomaji(sentence) else ""
-            out.add(Examples.ExLine(sentence, sub, gloss))
-            if (out.size >= limit) break
         }
         return out
     }

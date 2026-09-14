@@ -3508,59 +3508,23 @@ object Examples {
     }
 
     /**
-     * A learner-native rendering of a full English [sentence]. This is used for the
-     * extra, corpus-sourced examples where only the English side is available.
+     * A learner-native rendering of a full English [sentence], returned only when
+     * the bundled gloss tables actually contain a translation for that exact
+     * sentence (the corpus examples and word sheets share the same curated table).
      *
-     * Exact sentence glosses are rare in the bundled tables, so this falls back to
-     * a greedy phrase-by-phrase gist: the longest dictionary phrase that matches at
-     * each position wins, unknown words are skipped, and a result is only returned
-     * when enough of the sentence was actually translated to be useful.
+     * Earlier versions also tried to *compose* a gloss word-by-word from the
+     * dictionary tables. That produces confident nonsense for anything idiomatic
+     * ("Let's give Tom a surprise welcome party" → "देना ए आश्चर्य स्वागत है पार्टी"),
+     * so a wrong translation is no longer shown: callers fall back to a real
+     * sentence pair, or to nothing at all.
      */
-    fun sentenceGloss(sentence: String, native: String): String {
-        if (native.isBlank() || native == "en") return ""
+    fun exactGloss(sentence: String, native: String): String? {
+        if (native.isBlank() || native == "en") return null
         val s = sentence.trim()
-        if (s.isEmpty()) return ""
-
-        Gloss.lookup(s)?.let { g -> cleanGloss(g)?.let { if (it.isNotBlank()) return it } }
-
-        val tokens = Regex("[\\p{L}\\p{N}']+").findAll(s).map { it.value }.toList()
-        if (tokens.size < 2) return ""
-
-        val parts = ArrayList<String>(tokens.size)
-        var translated = 0
-        var i = 0
-        while (i < tokens.size) {
-            var hit = 0
-            var piece: String? = null
-            for (len in minOf(4, tokens.size - i) downTo 1) {
-                val g = glossLookup(tokens.subList(i, i + len).joinToString(" "))
-                if (!g.isNullOrBlank()) {
-                    piece = g
-                    hit = len
-                    break
-                }
-            }
-            if (piece != null) {
-                parts.add(piece)
-                translated++
-                i += hit
-            } else {
-                i += 1
-            }
-        }
-        if (translated < 2) return ""
-        if (translated * 100 / tokens.size < 35) return ""
-        return parts.joinToString(" ")
-    }
-
-    /** Case-tolerant gloss lookup — dictionary keys mix "I" with lower-case words. */
-    private fun glossLookup(phrase: String): String? {
-        cleanGloss(Gloss.lookup(phrase))?.let { return it }
-        val lower = phrase.lowercase()
-        if (lower != phrase) cleanGloss(Gloss.lookup(lower))?.let { return it }
-        val cap = phrase.replaceFirstChar { it.uppercaseChar() }
-        if (cap != phrase) cleanGloss(Gloss.lookup(cap))?.let { return it }
-        return null
+        if (s.isEmpty()) return null
+        val g = Gloss.lookup(s) ?: return null
+        val clean = cleanGloss(g) ?: return null
+        return clean.ifBlank { null }
     }
 
     /**

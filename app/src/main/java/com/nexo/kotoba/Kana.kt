@@ -200,14 +200,18 @@ private fun KanaDetailDialog(
 private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modifier: Modifier = Modifier, onExit: () -> Unit) {
     BackHandler(onBack = onExit)
     val rnd = remember { java.util.Random() }
-    val questions = remember {
-        chars.shuffled(rnd).take(10).map { w ->
+    val used = remember { HashSet<String>() }
+    fun makeQuestions(n: Int) = chars
+        .filter { used.add(it.id) }
+        .shuffled(rnd).take(n)
+        .map { w ->
             val audioOnly = rnd.nextBoolean()
             val distractors = chars.filter { it.id != w.id }.shuffled(rnd).take(3)
             val options = (distractors + w).shuffled(rnd)
             Triple(audioOnly, options, options.indexOf(w))
         }
-    }
+    var questions by remember { mutableStateOf(makeQuestions(10)) }
+    val canMore = used.size < chars.size
     var index by remember { mutableStateOf(0) }
     var picked by remember { mutableStateOf<Int?>(null) }
     var score by remember { mutableStateOf(0) }
@@ -226,8 +230,11 @@ private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modi
             TextButton(onClick = onExit) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
-            Text(if (done) "Done" else "Question ${index + 1}/10", style = MaterialTheme.typography.labelLarge)
+            Text(if (done) "Done" else "Question ${index + 1}/${questions.size}", style = MaterialTheme.typography.labelLarge)
             Spacer(Modifier.weight(1f))
+            if (!done && canMore) {
+                TextButton(onClick = { questions = questions + makeQuestions(10) }) { Text("+10") }
+            }
             Text("⭐ $score", style = MaterialTheme.typography.labelLarge)
         }
 
@@ -241,8 +248,23 @@ private fun KanaQuiz(store: Store, speaker: Speaker, chars: List<KanaChar>, modi
                 Spacer(Modifier.height(12.dp))
                 Text("Kana quiz finished!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(6.dp))
-                Text("Score: $score / 10", style = MaterialTheme.typography.titleLarge)
+                Text("Score: $score / ${questions.size}", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(20.dp))
+                if (canMore) {
+                    Button(
+                        onClick = {
+                            val start = questions.size
+                            questions = questions + makeQuestions(10)
+                            if (questions.size > start) {
+                                index = start
+                                picked = null
+                                done = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("10 more questions") }
+                    Spacer(Modifier.height(8.dp))
+                }
                 Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Back to kana") }
             }
         } else {

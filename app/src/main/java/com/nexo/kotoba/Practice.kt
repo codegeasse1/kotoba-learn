@@ -45,7 +45,8 @@ import androidx.compose.ui.unit.sp
  * phrase that fills it, and [wrong] are three competing forms of the *same* slot
  * so every option is a near-identical sentence differing only in the grammar
  * point being tested. [hi] is the hand-written Hindi rendering of the correct
- * sentence (other native languages fall back to [Examples.sentenceGloss]).
+ * sentence (other native languages use a curated sentence translation when the
+ * bundled tables contain one, and show no translation otherwise).
  */
 data class Drill(
     val category: String,
@@ -60,7 +61,7 @@ data class Drill(
     fun translation(native: String): String {
         if (native.isBlank() || native == "en") return ""
         if (native == "hi") return hi
-        return Examples.sentenceGloss(full(), native)
+        return Examples.exactGloss(full(), native) ?: ""
     }
 }
 
@@ -102,6 +103,14 @@ object Practice {
      * still gives varied questions).
      */
     private const val GEN_CAP = 1500
+
+    /**
+     * A template whose slot values multiply out to more than this is sampled
+     * randomly instead of enumerated, and [CAT_BUDGET] caps the total attempts per
+     * topic, so no recipe can stall the UI thread or exhaust the heap.
+     */
+    private const val TPL_SAMPLE = 6000
+    private const val CAT_BUDGET = 60000
     const val MIXED_ID = "__mixed__"
     private const val MIXED_SIZE = 600
 
@@ -185,28 +194,50 @@ object Practice {
         return out.toList()
     }
 
-    /** Expands one recipe into drills, uniformly sampling down to [GEN_CAP]. */
+    /**
+     * Expands one recipe into drills, uniformly sampling down to [GEN_CAP].
+     *
+     * A template's slot values can multiply out to a huge cartesian product (one
+     * topic is >800,000 combinations). Enumerating that exhaustively both stalls
+     * the main thread and grows the per-template dedupe set until the process runs
+     * out of memory, which is what made "Practice random grammar" crash. So small
+     * products are enumerated and larger ones are visited by drawing random slot
+     * combinations instead — same variety, bounded work. [CAT_BUDGET] caps the
+     * work per topic so opening a session always stays fast.
+     */
     private fun generate(cat: GCat): List<Drill> {
         val rnd = java.util.Random()
         val reservoir = ArrayList<Drill>(GEN_CAP)
         var seen = 0
+        var budget = CAT_BUDGET
         for (t in cat.tpls) {
+            if (budget <= 0) break
             val names = ArrayList(refsOf(t))
             val blank = t.blank
             if (blank != null && !names.contains(blank)) names.add(blank)
             val vals = names.map { cat.slots[it] ?: emptyList<GVal>() }
             if (vals.any { it.isEmpty() }) continue
             var total = 1L
-            for (v in vals) total *= v.size
+            for (v in vals) {
+                total *= v.size
+                if (total > TPL_SAMPLE) break
+            }
+            val enumerate = total <= TPL_SAMPLE.toLong()
+            val iterations = minOf(if (enumerate) total else TPL_SAMPLE.toLong(), budget.toLong())
+            budget -= iterations.toInt()
             val idx = IntArray(names.size)
             val localSeen = HashSet<String>()
             var k = 0L
-            while (k < total) {
+            while (k < iterations) {
                 val chosen = HashMap<String, GVal>(names.size)
-                for (i in names.indices) chosen[names[i]] = vals[i][idx[i]]
-                for (i in names.indices.reversed()) {
-                    if (++idx[i] < vals[i].size) break
-                    idx[i] = 0
+                if (enumerate) {
+                    for (i in names.indices) chosen[names[i]] = vals[i][idx[i]]
+                    for (i in names.indices.reversed()) {
+                        if (++idx[i] < vals[i].size) break
+                        idx[i] = 0
+                    }
+                } else {
+                    for (i in names.indices) chosen[names[i]] = vals[i][rnd.nextInt(vals[i].size)]
                 }
                 k++
                 val bv = if (blank != null) chosen[blank] else null
