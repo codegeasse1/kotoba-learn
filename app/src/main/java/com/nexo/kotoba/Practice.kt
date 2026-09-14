@@ -594,9 +594,8 @@ wish|I ___ you good luck!|wish|wishes;hope;want|मैं तुम्हें 
         val title = p.titleEn.lowercase()
         return categories
             .mapNotNull { c ->
-                c.matchKeys.filter { title.contains(it) }
-                    .maxOfOrNull { it.length }
-                    ?.let { c to it }
+                val key = c.matchKeys.filter { title.contains(it) }.maxByOrNull { it.length }
+                if (key == null) null else c to key
             }
             .maxByOrNull { it.second.length }
             ?.first
